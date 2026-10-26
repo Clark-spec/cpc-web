@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320">
+  <g fill="#C5CDF2" stroke="#C5CDF2">
+    <!-- Mortarboard -->
+    <polygon points="200,20 352,88 200,156 48,88" fill-opacity="0.95" stroke="none" />
+    <!-- Cap base -->
+    <polygon points="108,110 292,110 260,160 140,160" fill-opacity="0.9" stroke="none" />
+    <!-- Tassel cord -->
+    <path d="M200 88 L312 116" fill="none" stroke-width="7" stroke-linecap="round" stroke-opacity="0.95" />
+    <circle cx="312" cy="116" r="8" fill-opacity="0.95" stroke="none" />
+    <!-- Tassel strands -->
+    <path d="M312 124 l-7 30 M312 124 l0 32 M312 124 l8 29" fill="none" stroke-width="6" stroke-linecap="round" />
+    <!-- Diploma scroll, clearly separated below the cap -->
+    <rect x="238" y="196" width="136" height="36" rx="18" fill-opacity="0.85" stroke="none" />
+    <ellipse cx="242" cy="214" rx="10" ry="18" fill-opacity="0.8" stroke="none" />
+    <!-- Ribbon band -->
+    <rect x="306" y="194" width="10" height="40" rx="4" fill-opacity="0.65" stroke="none" />
+    <!-- Ribbon tails -->
+    <polygon points="311,234 300,258 311,250 321,259" fill-opacity="0.8" stroke="none" />
+  </g>
+</svg>

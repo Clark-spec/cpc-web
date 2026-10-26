@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
+@theme {
+  /* Cordova Public College design tokens, sampled from the login design frame. */
+  --color-cpc-navy: #0b2a7b;
+  --color-cpc-bg: #e1ecff;
+  --color-cpc-title: #4b5ba3;
+  --color-cpc-label: #3b4a9c;
+  --color-cpc-placeholder: #8e9deb;
+  --color-cpc-icon: #3f5bc4;
+  --color-cpc-input-border: #dde3f5;
+  --color-cpc-button: #4a5fa6;
+  --color-cpc-welcome: #093596;
+  --color-cpc-cordova: #111c9c;
+  --color-cpc-decor: #c5cdf2;
+
+  --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  background: #e7eee2;
-  color: #143b30;
+  background: var(--color-cpc-bg);
+  overflow: hidden;
+}
+
+/* Uniformly scales the fixed 1440x1024 design frame to fit any viewport.
+   --auth-scale is set from AuthLayout; the min() fallback keeps the pure-CSS
+   behavior if JS is unavailable. */
+.auth-stage {
+  transform: scale(var(--auth-scale, min(calc(100vw / 1440), calc(100vh / 1024))));
 }

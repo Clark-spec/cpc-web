@@ -1,40 +1,27 @@
 import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-import HomePage from "@/pages/user/home";
-import RecipePage from "@/pages/user/recipe";
-import AdminPage from "@/pages/admin/home";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import AuthLayout from "@/pages/auth/layout";
-import LoginPage from "@/pages/auth/login";
-import SignupPage from "@/pages/auth/signup";
-import { AuthProvider } from "@/components/context/auth-context";
-import { ProtectedRoute, HomeRedirect } from "@/components/context/protected-route";
+import StudentLoginPage from "@/pages/auth/student";
+import StaffLoginPage from "@/pages/auth/staff";
+import AdminLoginPage from "@/pages/auth/admin";
 
 createRoot(document.getElementById("root")!).render(
-  <AuthProvider>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomeRedirect />} />
+  <BrowserRouter>
+    <Routes>
+      {/* The student login is the default login screen. */}
+      <Route path="/" element={<Navigate to="/login/student" replace />} />
 
-        {/*Auth pages */}
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route index element={<Navigate to="login" replace />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="signup" element={<SignupPage />} />
-        </Route>
+      <Route path="/login" element={<AuthLayout />}>
+        <Route index element={<Navigate to="student" replace />} />
+        <Route path="student" element={<StudentLoginPage />} />
+        <Route path="staff" element={<StaffLoginPage />} />
+      </Route>
 
-        {/* User Panel Pages */}
-        <Route element={<ProtectedRoute role="USER" />}>
-          <Route path="/user" element={<HomePage />} />
-          <Route path="/recipe/:id" element={<RecipePage />} />
-        </Route>
+      {/* Plain placeholder so the Admin footer link does not 404. */}
+      <Route path="/login/admin" element={<AdminLoginPage />} />
 
-        {/*Admin Pages */}
-        <Route element={<ProtectedRoute role="ADMIN" />}>
-          <Route path="/admin" element={<AdminPage />} />
-        </Route>
-        <Route path="*" element={<HomeRedirect />} />
-      </Routes>
-    </BrowserRouter>
-  </AuthProvider>,
+      <Route path="*" element={<Navigate to="/login/student" replace />} />
+    </Routes>
+  </BrowserRouter>,
 );
