@@ -8,64 +8,48 @@ import cpcBuilding from "@/assets/cpc-building.png";
 import diploma from "@/assets/diploma.png";
 import gradHat from "@/assets/gradhat.png";
 
+/** Every geometry below is a design px measured from the 1440x1024 login
+ *  artwork, applied through one uniform scale so the proportions of the design
+ *  survive at any desktop window size. */
 const DESIGN_WIDTH = 1440;
 const DESIGN_HEIGHT = 1024;
+/** Aspect ratio below which the dedicated mobile layout takes over. */
+const MOBILE_LAYOUT_ASPECT = 1.05;
 /** Never report a viewport wider/taller than this; anything beyond is a stale window rect. */
 const MAX_TRUSTED_WIDTH = 2560;
 const MAX_TRUSTED_HEIGHT = 1600;
 
-/** Aspect ratio (width / height) at/above which the fluid wide layout takes over. */
-const WIDE_LAYOUT_ASPECT = DESIGN_WIDTH / DESIGN_HEIGHT;
-/** Aspect ratio below which the dedicated mobile layout takes over. */
-const MOBILE_LAYOUT_ASPECT = 1.05;
-/** Card geometry from the Figma frame: 34.5% of 1440 x 67% of 1024. */
-const CARD_DESIGN_WIDTH = 496.8;
-const CARD_DESIGN_HEIGHT = 686;
+/** Glass card box, measured from the design. */
+const CARD = { width: 559, height: 791, left: 87, top: 121, radius: 46 };
 
-function resolveMode(viewportWidth: number, viewportHeight: number): AuthLayoutMode {
-  const aspect = viewportWidth / viewportHeight;
-  if (aspect < MOBILE_LAYOUT_ASPECT) return "mobile";
-  return aspect > WIDE_LAYOUT_ASPECT ? "wide" : "frame";
-}
+/** The right-hand group — cap, diploma and welcome message — measured from the
+ *  design's right edge, so it can be scaled from that corner as one unit. */
+const RIGHT_GROUP_WIDTH = 668;
 
-/** Fraction of the window width the login card takes in wide mode. */
-const WIDE_CARD_WIDTH_SHARE = 0.335;
-/** Never let the card exceed this share of the window height. */
-const WIDE_CARD_MAX_HEIGHT_SHARE = 0.84;
-
-export default function AuthLayout() {
-  const [viewport, setViewport] = useState(() => ({
+function readViewport() {
+  return {
     width: Math.min(window.innerWidth, MAX_TRUSTED_WIDTH),
     height: Math.min(window.innerHeight, MAX_TRUSTED_HEIGHT),
-  }));
+  };
+}
+
+export default function AuthLayout() {
+  const [viewport, setViewport] = useState(readViewport);
 
   useEffect(() => {
-    const fitDesignFrame = () => {
-      const width = Math.min(window.innerWidth, MAX_TRUSTED_WIDTH);
-      const height = Math.min(window.innerHeight, MAX_TRUSTED_HEIGHT);
-      setViewport({ width, height });
-      document.documentElement.style.setProperty(
-        "--auth-scale",
-        String(Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT)),
-      );
-    };
-    fitDesignFrame();
-    window.addEventListener("resize", fitDesignFrame);
-    return () => window.removeEventListener("resize", fitDesignFrame);
+    const fit = () => setViewport(readViewport());
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
   }, []);
 
-  const mode = resolveMode(viewport.width, viewport.height);
+  const mode: AuthLayoutMode =
+    viewport.width / viewport.height < MOBILE_LAYOUT_ASPECT ? "mobile" : "desktop";
 
   return (
     <AuthLayoutModeContext.Provider value={mode}>
-      <main className="flex h-screen w-screen items-center justify-center overflow-hidden bg-cpc-bg font-inter">
-        {mode === "mobile" ? (
-          <MobileStage />
-        ) : mode === "wide" ? (
-          <WideStage width={viewport.width} height={viewport.height} />
-        ) : (
-          <FrameStage />
-        )}
+      <main className="flex h-screen w-full items-center justify-center overflow-hidden bg-cpc-bg font-inter">
+        {mode === "mobile" ? <MobileStage /> : <DesktopStage {...viewport} />}
       </main>
     </AuthLayoutModeContext.Provider>
   );
@@ -97,19 +81,18 @@ function MobileStage() {
   );
 }
 
-/** Fluid layout for viewports wider than the design frame: same geometry
- *  expressed in vw/vh, so it fills the whole window without distortion. The
- *  card is sized from the window width (slightly wider than the original
- *  design share), capped so it never exceeds 84% of the window height, and
- *  centered vertically so the top and bottom margins are equal. */
-function WideStage({ width, height }: { width: number; height: number }) {
-  const scale = Math.min(
-    (width * WIDE_CARD_WIDTH_SHARE) / CARD_DESIGN_WIDTH,
-    (height * WIDE_CARD_MAX_HEIGHT_SHARE) / CARD_DESIGN_HEIGHT,
-  );
-  const cardWidth = CARD_DESIGN_WIDTH * scale;
-  const cardHeight = CARD_DESIGN_HEIGHT * scale;
-  const cardTop = (height - cardHeight) / 2;
+/** Desktop and tablet layout. Each layer keeps the edge it is pinned to in the
+ *  design — the card and the upper diagonal to the top-left, the building and
+ *  lower triangle to the bottom-right, the cap, diploma and welcome message to
+ *  the top-right — so the window fills completely while every element holds the
+ *  design's proportions.
+ *
+ *  The blended artwork is placed with computed px instead of a `transform`
+ *  wrapper: a transformed ancestor would isolate `mix-blend-multiply` from the
+ *  page background and the building would stop washing out. */
+function DesktopStage({ width, height }: { width: number; height: number }) {
+  const scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT);
+  const px = (designPx: number) => `${designPx * scale}px`;
 
   return (
     <div className="relative h-full w-full">
@@ -118,99 +101,63 @@ function WideStage({ width, height }: { width: number; height: number }) {
         src={cpcBuilding}
         alt=""
         aria-hidden
-        className="absolute top-[33.81vh] left-[7.22vw] z-[1] h-[67.3vh] w-auto opacity-75 mix-blend-multiply"
+        className="absolute right-0 bottom-0 z-[1] h-auto w-auto opacity-75 mix-blend-multiply"
+        style={{ height: px(689), right: px(-20), bottom: px(-11) }}
       />
 
-      {/* Dark navy diagonal shapes. */}
-      <div className="absolute inset-0 z-[2] bg-cpc-navy" style={{ clipPath: "polygon(0 0, 65% 0, 0 54%)" }} />
-      <div className="absolute inset-0 z-[2] bg-cpc-navy" style={{ clipPath: "polygon(100% 72%, 100% 100%, 65% 100%)" }} />
-
-      {/* Diploma behind the graduation cap. */}
-      <img
-        src={diploma}
-        alt=""
-        aria-hidden
-        className="absolute top-[19.06vh] left-[84.4vw] z-[3] h-[11.06vh] w-auto"
+      {/* Dark navy diagonals: one cut across the top-left, one tucked into the
+          bottom-right corner. */}
+      <div
+        className="absolute inset-0 z-[2] bg-cpc-navy"
+        style={{ clipPath: `polygon(0 0, ${px(936)} 0, 0 ${px(553)})` }}
       />
-      <img
-        src={gradHat}
-        alt=""
-        aria-hidden
-        className="absolute top-[1.52vh] left-[75.82vw] z-[4] h-[21.35vh] w-auto"
+      <div
+        className="absolute right-0 bottom-0 z-[2] bg-cpc-navy"
+        style={{ width: px(504), height: px(287), clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
       />
 
-      {/* Glass login card, vertically centered. */}
+      {/* Cap, diploma and welcome message, scaled from the top-right corner. */}
+      <div
+        className="absolute top-0 right-0 z-[3] h-[1024px] origin-top-right"
+        style={{ width: RIGHT_GROUP_WIDTH, transform: `scale(${scale})` }}
+      >
+        <img
+          src={diploma}
+          alt=""
+          aria-hidden
+          className="absolute top-[195px] right-[61px] z-[3] h-[113px] w-auto"
+        />
+        <img
+          src={gradHat}
+          alt=""
+          aria-hidden
+          className="absolute top-[16px] right-[47px] z-[4] h-[219px] w-auto"
+        />
+        <div className="absolute top-[371px] left-0 z-10">
+          <p className="text-[64px] leading-[64px] font-normal text-cpc-welcome">Welcome to</p>
+          <p className="text-[95px] leading-[99.6px] font-extrabold text-cpc-cordova">Cordova</p>
+          <p className="text-[64px] leading-[92.8px] font-bold text-cpc-cordova">Public College</p>
+        </div>
+      </div>
+
+      {/* Glass login card, pinned to the design's top-left corner. */}
       <section
-        className="absolute left-[8.6vw] z-10 overflow-hidden border border-white/60 bg-white/70 shadow-[0_24px_80px_rgba(11,42,123,0.18)] backdrop-blur-md"
+        className="absolute z-10 overflow-hidden border border-white/60 bg-white/70 shadow-[0_24px_80px_rgba(11,42,123,0.18)] backdrop-blur-md"
         style={{
-          top: cardTop,
-          height: cardHeight,
-          width: cardWidth,
-          borderRadius: 46 * scale,
+          left: px(CARD.left),
+          top: px(CARD.top),
+          width: px(CARD.width),
+          height: px(CARD.height),
+          borderRadius: CARD.radius * scale,
         }}
       >
         <div
-          className="h-[686px] w-[496.8px] flex-none origin-top-left pt-[36px] pb-[20px]"
+          className="h-[791px] w-[559px] flex-none origin-top-left"
           style={{ transform: `scale(${scale})` }}
         >
           <Outlet />
         </div>
       </section>
-
-      {/* Welcome message, scaled to match the card. */}
-      <div
-        className="absolute top-[36.27vh] left-[53.6vw] z-10 origin-top-left"
-        style={{ transform: `scale(${scale})` }}
-      >
-        <p className="text-[64px] leading-[64px] font-normal text-cpc-welcome">Welcome to</p>
-        <p className="text-[95px] leading-[99.6px] font-extrabold text-cpc-cordova">Cordova</p>
-        <p className="text-[64px] leading-[92.8px] font-bold text-cpc-cordova">Public College</p>
-      </div>
-    </div>
-  );
-}
-
-/** Fixed 1440x1024 design frame, uniformly scaled to fit the viewport. */
-function FrameStage() {
-  return (
-    <div className="auth-stage relative h-[1024px] w-[1440px] flex-none">
-      {/* Washed-out campus building along the bottom. */}
-      <img
-        src={cpcBuilding}
-        alt=""
-        aria-hidden
-        className="absolute top-[33.81%] left-[7.22%] z-[1] h-[67.3%] w-auto opacity-75 mix-blend-multiply"
-      />
-
-      {/* Dark navy diagonal shapes. */}
-      <div className="absolute inset-0 z-[2] bg-cpc-navy" style={{ clipPath: "polygon(0 0, 65% 0, 0 54%)" }} />
-      <div className="absolute inset-0 z-[2] bg-cpc-navy" style={{ clipPath: "polygon(100% 72%, 100% 100%, 65% 100%)" }} />
-
-      {/* Diploma behind the graduation cap. */}
-      <img
-        src={diploma}
-        alt=""
-        aria-hidden
-        className="absolute top-[19.06%] left-[84.4%] z-[3] h-[11.06%] w-auto"
-      />
-      <img
-        src={gradHat}
-        alt=""
-        aria-hidden
-        className="absolute top-[1.52%] left-[75.82%] z-[4] h-[21.35%] w-auto"
-      />
-
-      {/* Glass login card. */}
-      <section className="absolute top-[19%] left-[8.6%] z-10 flex h-[67%] w-[34.5%] flex-col items-center overflow-hidden rounded-[46px] border border-white/60 bg-white/70 pt-[36px] pb-[20px] shadow-[0_24px_80px_rgba(11,42,123,0.18)] backdrop-blur-md">
-        <Outlet />
-      </section>
-
-      {/* Welcome message. */}
-      <div className="absolute top-[36.27%] left-[53.6%] z-10">
-        <p className="text-[64px] leading-[64px] font-normal text-cpc-welcome">Welcome to</p>
-        <p className="text-[95px] leading-[99.6px] font-extrabold text-cpc-cordova">Cordova</p>
-        <p className="text-[64px] leading-[92.8px] font-bold text-cpc-cordova">Public College</p>
-      </div>
     </div>
   );
 }

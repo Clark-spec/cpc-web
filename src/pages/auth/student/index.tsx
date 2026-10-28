@@ -7,7 +7,11 @@ export default function StudentLoginPage() {
       title="Student Login"
       idLabel="School Id"
       idPlaceholder="Enter your school id"
-      footerLinks={[{ label: "Staff", to: "/login/staff" }]}
+      redirectTo="/student/home"
+      footerLinks={[
+        { label: "Admin", to: "/login/admin" },
+        { label: "Staff", to: "/login/staff" },
+      ]}
     />
   );
 }

@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
 
-export type AuthLayoutMode = "mobile" | "frame" | "wide";
+export type AuthLayoutMode = "mobile" | "desktop";
 
-export const AuthLayoutModeContext = createContext<AuthLayoutMode>("frame");
+export const AuthLayoutModeContext = createContext<AuthLayoutMode>("desktop");
 
 export function useAuthLayoutMode(): AuthLayoutMode {
   return useContext(AuthLayoutModeContext);

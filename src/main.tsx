@@ -5,6 +5,7 @@ import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
 import StaffLoginPage from "@/pages/auth/staff";
 import AdminLoginPage from "@/pages/auth/admin";
+import StudentHomePage from "@/pages/student/home";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
@@ -16,10 +17,11 @@ createRoot(document.getElementById("root")!).render(
         <Route index element={<Navigate to="student" replace />} />
         <Route path="student" element={<StudentLoginPage />} />
         <Route path="staff" element={<StaffLoginPage />} />
+        <Route path="admin" element={<AdminLoginPage />} />
       </Route>
 
-      {/* Plain placeholder so the Admin footer link does not 404. */}
-      <Route path="/login/admin" element={<AdminLoginPage />} />
+      {/* Student home, shown after the student signs in. */}
+      <Route path="/student/home" element={<StudentHomePage />} />
 
       <Route path="*" element={<Navigate to="/login/student" replace />} />
     </Routes>
