@@ -2,17 +2,47 @@
 
 @theme {
   /* Cordova Public College design tokens, sampled from the login design frame. */
-  --color-cpc-navy: #0b2a7b;
-  --color-cpc-bg: #e1ecff;
-  --color-cpc-title: #4b5ba3;
-  --color-cpc-label: #3b4a9c;
-  --color-cpc-placeholder: #8e9deb;
-  --color-cpc-icon: #3f5bc4;
-  --color-cpc-input-border: #dde3f5;
-  --color-cpc-button: #4a5fa6;
+  --color-cpc-navy: #082d79;
+  --color-cpc-bg: #e5f0ff;
+  --color-cpc-title: #475da0;
+  --color-cpc-label: #475da0;
+  --color-cpc-placeholder: #abbff9;
+  --color-cpc-icon: #3554b7;
+  --color-cpc-input-border: #e0dddd;
+  --color-cpc-button: #495fa1;
   --color-cpc-welcome: #093596;
   --color-cpc-cordova: #111c9c;
   --color-cpc-decor: #c5cdf2;
+
+  /* Cordova Public College homepage palette, sampled from the design frame. */
+  --color-cpc-navy-top: #2441a6;
+  --color-cpc-navy-deep: #0f2468;
+  --color-cpc-navy-text: #1b2f9e;
+  --color-cpc-heading-soft: #4b56a8;
+  --color-cpc-hero-title: #454b7d;
+  --color-cpc-blue-accent: #2b4bd1;
+  --color-cpc-muted-blue: #8091e8;
+  --color-cpc-tile-border: #aebbea;
+  --color-cpc-section-light: #eef3ff;
+
+  /* Online Enrollment feature design tokens - Extracted from design */
+  --color-enroll-bg: #EFF6FF;
+  --color-enroll-blob: #d6e8ff;
+  --color-enroll-hero-bg: #e3eeff;
+  --color-enroll-primary: #4860A1;
+  --color-enroll-primary-hover: #0B2C8C;
+  --color-enroll-text: #5069A7;
+  --color-enroll-muted: #8595C5;
+  --color-enroll-border: #DAE3F3;
+  --color-enroll-success: #10b981;
+  --color-enroll-warning: #f59e0b;
+  --color-enroll-error: #ef4444;
+  --color-enroll-card: #ffffff;
+  --color-enroll-heading: #0B2C8C;
+  --color-enroll-icon: #0B2C8C;
+  --color-enroll-accent-from: #5178E2;
+  --color-enroll-accent-to: #6C8DE7;
+  --color-enroll-shadow: rgba(15, 37, 87, 0.04);
 
   --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -23,7 +53,6 @@ body {
   margin: 0;
   min-width: 320px;
   background: var(--color-cpc-bg);
-  overflow: hidden;
 }
 
 /* Uniformly scales the fixed 1440x1024 design frame to fit any viewport.

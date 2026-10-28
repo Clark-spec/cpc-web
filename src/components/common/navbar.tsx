@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { CaretDownIcon } from "@/components/common/icons";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 
@@ -12,12 +13,12 @@ type NavItem = {
   links: NavLink[];
 };
 
-// TODO: replace the placeholder hrefs with the section routes.
+// TODO: links without a route yet stay as "#" until their pages exist.
 const navItems: NavItem[] = [
   {
     label: "Enrollment",
     links: [
-      { label: "Online Enrollment", to: "#" },
+      { label: "Online Enrollment", to: "/online-enrollment" },
       { label: "Enrollment Requirements", to: "#" },
       { label: "Registrar Information", to: "#" },
     ],
@@ -58,7 +59,7 @@ const navItems: NavItem[] = [
     label: "My Account",
     links: [
       { label: "Student Profile", to: "#" },
-      { label: "Enrollment Status", to: "#" },
+      { label: "Enrollment Status", to: "/online-enrollment/status" },
       { label: "Clearance Status", to: "#" },
       { label: "Violations", to: "#" },
       { label: "Scholarship Status", to: "#" },
@@ -72,13 +73,13 @@ export function Navbar() {
   return (
     <div className="h-[120px] w-full bg-white shadow-[0_4px_16px_rgba(27,47,158,0.10)]">
       <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-[30px]">
-        <div className="flex items-center gap-[14px]">
+        <Link to="/student/home" className="flex items-center gap-[14px]">
           <img src={cpcLogo} alt="Cordova Public College seal" className="h-[68px] w-[68px] rounded-full object-cover" />
           <div className="font-poppins">
             <p className="text-[22px] leading-[24px] font-bold text-cpc-navy-text">Cordova Public College</p>
             <p className="text-[20px] leading-[24px] font-medium tracking-[0.12em] text-[#2d3fa8]">Servire Populum</p>
           </div>
-        </div>
+        </Link>
 
         <nav aria-label="Student portal">
           <ul className="flex items-center gap-[28px]">
@@ -115,12 +116,22 @@ export function Navbar() {
                       <ul className="min-w-[220px] rounded-[4px] border border-cpc-input-border bg-white py-[8px] shadow-[0_14px_30px_rgba(27,47,158,0.18)]">
                         {item.links.map((link) => (
                           <li key={link.label}>
-                            <a
-                              href={link.to}
-                              className="block px-[18px] py-[8px] font-poppins text-[15px] leading-[18px] font-normal whitespace-nowrap text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent"
-                            >
-                              {link.label}
-                            </a>
+                            {link.to === "#" ? (
+                              <a
+                                href="#"
+                                className="block px-[18px] py-[8px] font-poppins text-[15px] leading-[18px] font-normal whitespace-nowrap text-cpc-muted-blue"
+                                aria-disabled="true"
+                              >
+                                {link.label}
+                              </a>
+                            ) : (
+                              <Link
+                                to={link.to}
+                                className="block px-[18px] py-[8px] font-poppins text-[15px] leading-[18px] font-normal whitespace-nowrap text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent"
+                              >
+                                {link.label}
+                              </Link>
+                            )}
                           </li>
                         ))}
                       </ul>

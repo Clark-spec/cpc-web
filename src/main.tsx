@@ -1,11 +1,12 @@
 import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Navigate, Route, Routes, Outlet } from "react-router";
+import { BrowserRouter, Link, Navigate, Route, Routes, Outlet } from "react-router";
 import { AuthProvider } from "@/hooks/useAuth";
 import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
 import StaffLoginPage from "@/pages/auth/staff";
 import AdminLoginPage from "@/pages/auth/admin";
+import StudentHomePage from "@/pages/student/home";
 import OnlineEnrollmentPage from "@/pages/online-enrollment";
 import EnrollmentConfirmationPage from "@/pages/online-enrollment/confirmation";
 import EnrollmentStatusPage from "@/pages/online-enrollment/status";
@@ -14,11 +15,24 @@ import EnrollmentStep2Page from "@/pages/online-enrollment/step-2";
 import EnrollmentStep3Page from "@/pages/online-enrollment/step-3";
 import EnrollmentStep4Page from "@/pages/online-enrollment/step-4";
 
-function ProtectedEnrollment() {
-  return <Outlet />;
+export function ProtectedEnrollment() {
+  return (
+    <div className="enroll-layout">
+      <div className="enroll-content mx-auto w-full max-w-[1200px] px-6 py-10">
+        {/* The enrollment pages have no portal navbar, so this is the only way back. */}
+        <Link
+          to="/student/home"
+          className="mb-6 inline-block font-poppins text-[15px] text-enroll-primary hover:underline"
+        >
+          &larr; Back to Student Portal
+        </Link>
+        <Outlet />
+      </div>
+    </div>
+  );
 }
 
-function AppRoutes() {
+export function AppRoutes() {
   return (
     <Routes>
       {/* Auth routes */}
@@ -32,6 +46,9 @@ function AppRoutes() {
 
       {/* Plain placeholder so the Admin footer link does not 404. */}
       <Route path="/login/admin" element={<AdminLoginPage />} />
+
+      {/* Student home, shown after the student signs in. */}
+      <Route path="/student/home" element={<StudentHomePage />} />
 
       {/* Enrollment routes - no app layout, pages render directly */}
       <Route

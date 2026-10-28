@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import {
   BookOpenIcon,
   FileTextIcon,
@@ -20,7 +21,7 @@ const quickAccessTiles: QuickAccessTile[] = [
     label: "Enrollment",
     title: "Enrollment",
     description: "Apply, enroll, and manage your academic journey.",
-    to: "#",
+    to: "/online-enrollment",
     icon: UsersIcon,
   },
   {
@@ -66,9 +67,9 @@ export function QuickAccessCard() {
       {/* TODO: replace the placeholder hrefs with the section routes. */}
       <div className="grid grid-cols-6 gap-[20px] rounded-[4px] bg-white p-[26px] shadow-[3px_3px_6px_rgba(0,0,0,0.25)]">
         {quickAccessTiles.map((tile) => (
-          <a
+          <Link
             key={tile.label}
-            href={tile.to}
+            to={tile.to}
             className="flex h-[147px] flex-col rounded-[2px] border border-cpc-tile-border bg-white p-[14px] text-left"
           >
             <tile.icon className="h-[36px] w-[36px] text-cpc-label" />
@@ -76,7 +77,7 @@ export function QuickAccessCard() {
             <p className="mt-[4px] font-poppins text-[11px] leading-[13px] font-normal text-cpc-muted-blue">
               {tile.description}
             </p>
-          </a>
+          </Link>
         ))}
       </div>
     </div>
