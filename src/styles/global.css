@@ -14,25 +14,6 @@
   --color-cpc-cordova: #111c9c;
   --color-cpc-decor: #c5cdf2;
 
-  /* Online Enrollment feature design tokens - Extracted from design */
-  --color-enroll-bg: #EFF6FF;
-  --color-enroll-blob: #d6e8ff;
-  --color-enroll-hero-bg: #e3eeff;
-  --color-enroll-primary: #4860A1;
-  --color-enroll-primary-hover: #0B2C8C;
-  --color-enroll-text: #5069A7;
-  --color-enroll-muted: #8595C5;
-  --color-enroll-border: #DAE3F3;
-  --color-enroll-success: #10b981;
-  --color-enroll-warning: #f59e0b;
-  --color-enroll-error: #ef4444;
-  --color-enroll-card: #ffffff;
-  --color-enroll-heading: #0B2C8C;
-  --color-enroll-icon: #0B2C8C;
-  --color-enroll-accent-from: #5178E2;
-  --color-enroll-accent-to: #6C8DE7;
-  --color-enroll-shadow: rgba(15, 37, 87, 0.04);
-
   --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-plus-jakarta: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
@@ -42,6 +23,7 @@ body {
   margin: 0;
   min-width: 320px;
   background: var(--color-cpc-bg);
+  overflow: hidden;
 }
 
 /* Uniformly scales the fixed 1440x1024 design frame to fit any viewport.

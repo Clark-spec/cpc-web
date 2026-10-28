@@ -7,7 +7,10 @@ export default function StaffLoginPage() {
       title="Staff Login"
       idLabel="Staff Id"
       idPlaceholder="Enter your staff id"
-      footerLinks={[{ label: "Student", to: "/login/student" }]}
+      footerLinks={[
+        { label: "Student", to: "/login/student" },
+        { label: "Admin", to: "/login/admin" },
+      ]}
     />
   );
 }

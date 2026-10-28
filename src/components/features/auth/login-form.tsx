@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuthLayoutMode } from "@/components/features/auth/auth-layout-mode";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 
@@ -16,6 +16,8 @@ type LoginFormProps = {
   idLabel: string;
   idPlaceholder: string;
   footerLinks: FooterLink[];
+  /** Where a successful sign-in lands. Omitted until the role has a home page. */
+  redirectTo?: string;
 };
 
 type Credentials = {
@@ -23,13 +25,17 @@ type Credentials = {
   password: string;
 };
 
-function useLoginForm() {
+function useLoginForm(redirectTo?: string) {
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState<Credentials>({ id: "", password: "" });
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     // TODO: send `credentials` to the real Cordova Public College login API for
     // this role, then navigate to the role's home page on success.
+    if (redirectTo) {
+      navigate(redirectTo);
+    }
   }
 
   return { credentials, setCredentials, handleSubmit };
@@ -91,7 +97,7 @@ function FooterLinks({ footerLinks }: { footerLinks: FooterLink[] }) {
 
 export function LoginForm(props: LoginFormProps) {
   const mode = useAuthLayoutMode();
-  const form = useLoginForm();
+  const form = useLoginForm(props.redirectTo);
 
   if (mode === "mobile") {
     return <MobileLoginForm {...props} {...form} />;
@@ -101,8 +107,8 @@ export function LoginForm(props: LoginFormProps) {
 
 type FormInternals = ReturnType<typeof useLoginForm>;
 
-/** Pixel-faithful Figma geometry: fixed design px, uniformly scaled by the
- *  layout's card wrapper. Used in frame and wide modes. */
+/** Pixel-faithful Figma geometry: fixed design px sized for the 559x791 card,
+ *  uniformly scaled by the layout's card wrapper. */
 function DesktopLoginForm({
   role,
   title,
@@ -119,22 +125,22 @@ function DesktopLoginForm({
   const labelClass = "font-poppins text-[17px] leading-[1.3] font-semibold text-cpc-label";
 
   return (
-    <div className="flex h-full w-full flex-col items-center">
+    <div className="flex h-full w-full flex-col items-center pt-[25px]">
       <img
         src={cpcLogo}
         alt="Cordova Public College seal"
-        className="aspect-square h-[22%] rounded-full object-cover shadow-[0_6px_24px_rgba(11,42,123,0.25)]"
+        className="aspect-square h-[174px] rounded-full object-cover shadow-[0_6px_24px_rgba(11,42,123,0.25)]"
       />
 
-      <h1 className="mt-[8px] text-center font-poppins text-[40px] leading-tight font-semibold text-cpc-title">
+      <h1 className="mt-[18px] text-center font-poppins text-[40px] leading-tight font-semibold text-cpc-title">
         {title}
       </h1>
 
-      <form onSubmit={handleSubmit} className="mt-[16px] flex w-[72%] flex-col">
+      <form onSubmit={handleSubmit} className="mt-[9px] flex w-[67%] flex-col">
         <label htmlFor={`${role}-id`} className={labelClass}>
           {idLabel}
         </label>
-        <div className="relative mt-[8px]">
+        <div className="relative mt-[3px]">
           <IdBadgeIcon className={iconClass} />
           <input
             id={`${role}-id`}
@@ -148,10 +154,10 @@ function DesktopLoginForm({
           />
         </div>
 
-        <label htmlFor={`${role}-password`} className={`mt-[26px] ${labelClass}`}>
+        <label htmlFor={`${role}-password`} className={`mt-[20px] ${labelClass}`}>
           Password
         </label>
-        <div className="relative mt-[8px]">
+        <div className="relative mt-[3px]">
           <LockIcon className={iconClass} />
           <input
             id={`${role}-password`}
@@ -167,13 +173,13 @@ function DesktopLoginForm({
 
         <button
           type="submit"
-          className="mt-[40px] h-[62px] w-[79%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon"
+          className="mt-[50px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon"
         >
           Sign in
         </button>
       </form>
 
-      <p className="mt-[18px] mb-[24px] text-center font-poppins text-[17px] leading-[1.3] text-[#3d4770]">
+      <p className="mt-[18px] text-center font-poppins text-[17px] leading-[1.3] text-[#3d4770]">
         <FooterLinks footerLinks={footerLinks} />
       </p>
     </div>
