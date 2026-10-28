@@ -86,7 +86,7 @@ function FooterLinks({ footerLinks }: { footerLinks: FooterLink[] }) {
       {footerLinks.map((link, index) => (
         <span key={link.to}>
           {index > 0 && " or "}
-          <Link to={link.to} className="font-bold text-cpc-cordova underline underline-offset-2">
+          <Link to={link.to} className="font-bold text-cpc-button underline underline-offset-2">
             {link.label}
           </Link>
         </span>
@@ -119,17 +119,17 @@ function DesktopLoginForm({
   setCredentials,
   handleSubmit,
 }: LoginFormProps & FormInternals) {
-  const iconClass = "pointer-events-none absolute top-1/2 left-[18px] h-[26px] w-[26px] -translate-y-1/2 text-cpc-icon";
+  const iconClass = "pointer-events-none absolute top-1/2 left-[17px] h-[28px] w-[28px] -translate-y-1/2 text-cpc-icon";
   const inputClass =
-    "h-[70px] w-full rounded-[22px] border border-cpc-input-border bg-white pr-[16px] pl-[58px] font-poppins text-[17px] text-cpc-label shadow-[inset_0_1px_4px_rgba(75,91,163,0.08),0_2px_10px_rgba(75,91,163,0.10)] outline-none placeholder:text-cpc-placeholder focus:border-cpc-icon focus:ring-2 focus:ring-cpc-icon/30";
-  const labelClass = "font-poppins text-[17px] leading-[1.3] font-semibold text-cpc-label";
+    "h-[70px] w-full rounded-[22px] border-2 border-cpc-input-border bg-white pr-[16px] pl-[56px] font-poppins text-[16px] text-cpc-label outline-none placeholder:text-cpc-placeholder focus:border-cpc-icon focus:ring-2 focus:ring-cpc-icon/30";
+  const labelClass = "font-poppins text-[16px] leading-[1.3] font-semibold text-cpc-label";
 
   return (
     <div className="flex h-full w-full flex-col items-center pt-[25px]">
       <img
         src={cpcLogo}
         alt="Cordova Public College seal"
-        className="aspect-square h-[174px] rounded-full object-cover shadow-[0_6px_24px_rgba(11,42,123,0.25)]"
+        className="aspect-square h-[174px] rounded-full object-cover shadow-[0_6px_24px_rgba(8,45,121,0.25)]"
       />
 
       <h1 className="mt-[18px] text-center font-poppins text-[40px] leading-tight font-semibold text-cpc-title">
@@ -154,7 +154,7 @@ function DesktopLoginForm({
           />
         </div>
 
-        <label htmlFor={`${role}-password`} className={`mt-[20px] ${labelClass}`}>
+        <label htmlFor={`${role}-password`} className={`mt-[24px] ${labelClass}`}>
           Password
         </label>
         <div className="relative mt-[3px]">
@@ -173,13 +173,13 @@ function DesktopLoginForm({
 
         <button
           type="submit"
-          className="mt-[50px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon"
+          className="mt-[46px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon"
         >
           Sign in
         </button>
       </form>
 
-      <p className="mt-[18px] text-center font-poppins text-[17px] leading-[1.3] text-[#3d4770]">
+      <p className="mt-[18px] text-center font-poppins text-[16px] leading-[1.3] text-cpc-button">
         <FooterLinks footerLinks={footerLinks} />
       </p>
     </div>
@@ -208,7 +208,7 @@ function MobileLoginForm({
       <img
         src={cpcLogo}
         alt="Cordova Public College seal"
-        className="h-20 w-20 rounded-full object-cover shadow-[0_6px_24px_rgba(11,42,123,0.25)]"
+        className="h-20 w-20 rounded-full object-cover shadow-[0_6px_24px_rgba(8,45,121,0.25)]"
       />
 
       <h1 className="mt-3 text-center font-poppins text-[26px] leading-tight font-semibold text-cpc-title">
@@ -258,7 +258,7 @@ function MobileLoginForm({
         </button>
       </form>
 
-      <p className="mt-5 mb-1 text-center font-poppins text-[15px] leading-[1.3] text-[#3d4770]">
+      <p className="mt-5 mb-1 text-center font-poppins text-[15px] leading-[1.3] text-cpc-button">
         <FooterLinks footerLinks={footerLinks} />
       </p>
     </div>

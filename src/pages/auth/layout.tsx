@@ -74,7 +74,7 @@ function MobileStage() {
         className="absolute right-0 bottom-0 z-[1] w-[94%] opacity-50 mix-blend-multiply"
       />
 
-      <section className="absolute inset-x-5 top-1/2 z-10 -translate-y-1/2 overflow-hidden rounded-[28px] border border-white/60 bg-white/70 shadow-[0_24px_80px_rgba(11,42,123,0.18)] backdrop-blur-md">
+      <section className="absolute inset-x-5 top-1/2 z-10 -translate-y-1/2 overflow-hidden rounded-[28px] border border-white/60 bg-white/70 shadow-[0_24px_80px_rgba(8,45,121,0.18)] backdrop-blur-md">
         <Outlet />
       </section>
     </div>
@@ -101,19 +101,19 @@ function DesktopStage({ width, height }: { width: number; height: number }) {
         src={cpcBuilding}
         alt=""
         aria-hidden
-        className="absolute right-0 bottom-0 z-[1] h-auto w-auto opacity-75 mix-blend-multiply"
-        style={{ height: px(689), right: px(-20), bottom: px(-11) }}
+        className="absolute right-0 bottom-0 z-[1] h-auto w-auto mix-blend-multiply"
+        style={{ height: px(689), right: px(-19), bottom: px(-7) }}
       />
 
       {/* Dark navy diagonals: one cut across the top-left, one tucked into the
           bottom-right corner. */}
       <div
         className="absolute inset-0 z-[2] bg-cpc-navy"
-        style={{ clipPath: `polygon(0 0, ${px(936)} 0, 0 ${px(553)})` }}
+        style={{ clipPath: `polygon(0 0, ${px(928)} 0, 0 ${px(549)})` }}
       />
       <div
         className="absolute right-0 bottom-0 z-[2] bg-cpc-navy"
-        style={{ width: px(504), height: px(287), clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+        style={{ width: px(495), height: px(293), clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
       />
 
       {/* Cap, diploma and welcome message, scaled from the top-right corner. */}
@@ -133,7 +133,7 @@ function DesktopStage({ width, height }: { width: number; height: number }) {
           aria-hidden
           className="absolute top-[16px] right-[47px] z-[4] h-[219px] w-auto"
         />
-        <div className="absolute top-[371px] left-0 z-10">
+        <div className="absolute top-[369px] left-0 z-10">
           <p className="text-[64px] leading-[64px] font-normal text-cpc-welcome">Welcome to</p>
           <p className="text-[95px] leading-[99.6px] font-extrabold text-cpc-cordova">Cordova</p>
           <p className="text-[64px] leading-[92.8px] font-bold text-cpc-cordova">Public College</p>
@@ -142,7 +142,7 @@ function DesktopStage({ width, height }: { width: number; height: number }) {
 
       {/* Glass login card, pinned to the design's top-left corner. */}
       <section
-        className="absolute z-10 overflow-hidden border border-white/60 bg-white/70 shadow-[0_24px_80px_rgba(11,42,123,0.18)] backdrop-blur-md"
+        className="absolute z-10 overflow-hidden border border-white/60 bg-white/[0.93] shadow-[0_24px_80px_rgba(8,45,121,0.18)] backdrop-blur-md"
         style={{
           left: px(CARD.left),
           top: px(CARD.top),
