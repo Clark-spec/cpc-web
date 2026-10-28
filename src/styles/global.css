@@ -14,15 +14,34 @@
   --color-cpc-cordova: #111c9c;
   --color-cpc-decor: #c5cdf2;
 
+  /* Online Enrollment feature design tokens - Extracted from design */
+  --color-enroll-bg: #EFF6FF;
+  --color-enroll-blob: #d6e8ff;
+  --color-enroll-hero-bg: #e3eeff;
+  --color-enroll-primary: #4860A1;
+  --color-enroll-primary-hover: #0B2C8C;
+  --color-enroll-text: #5069A7;
+  --color-enroll-muted: #8595C5;
+  --color-enroll-border: #DAE3F3;
+  --color-enroll-success: #10b981;
+  --color-enroll-warning: #f59e0b;
+  --color-enroll-error: #ef4444;
+  --color-enroll-card: #ffffff;
+  --color-enroll-heading: #0B2C8C;
+  --color-enroll-icon: #0B2C8C;
+  --color-enroll-accent-from: #5178E2;
+  --color-enroll-accent-to: #6C8DE7;
+  --color-enroll-shadow: rgba(15, 37, 87, 0.04);
+
   --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-plus-jakarta: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   background: var(--color-cpc-bg);
-  overflow: hidden;
 }
 
 /* Uniformly scales the fixed 1440x1024 design frame to fit any viewport.
@@ -30,4 +49,653 @@ body {
    behavior if JS is unavailable. */
 .auth-stage {
   transform: scale(var(--auth-scale, min(calc(100vw / 1440), calc(100vh / 1024))));
+}
+
+/* Online Enrollment layout */
+.enroll-layout {
+  min-height: 100vh;
+  background: var(--color-enroll-bg);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.enroll-layout::before {
+  content: "";
+  position: fixed;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: var(--color-enroll-blob);
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.enroll-content {
+  position: relative;
+  z-index: 1;
+}
+
+.enroll-page-title {
+  font-family: var(--font-plus-jakarta);
+  font-size: clamp(2.25rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--color-enroll-heading);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.enroll-page-subtitle {
+  font-family: var(--font-plus-jakarta);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-enroll-text);
+  margin-top: 0.5rem;
+  line-height: 1.6;
+}
+
+.enroll-hero {
+  background: var(--color-enroll-hero-bg);
+  border-radius: 1.5rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.enroll-hero-label {
+  font-family: var(--font-plus-jakarta);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-enroll-primary);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.enroll-hero-headline {
+  font-family: var(--font-plus-jakarta);
+  font-size: clamp(2.25rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--color-enroll-heading);
+  line-height: 1.15;
+  margin: 0 0 1rem;
+}
+
+.enroll-hero-headline-accent {
+  color: var(--color-enroll-primary);
+}
+
+.enroll-hero-description {
+  font-family: var(--font-plus-jakarta);
+  font-size: 15px;
+  color: var(--color-enroll-text);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  max-width: 480px;
+}
+
+.enroll-btn-primary {
+  background: var(--color-enroll-primary);
+  color: white;
+  font-family: var(--font-plus-jakarta);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(29, 99, 237, 0.3);
+}
+
+.enroll-btn-primary:hover:not(:disabled) {
+  background: var(--color-enroll-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 99, 237, 0.4);
+}
+
+.enroll-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.enroll-btn-primary:focus-visible {
+  outline: 2px solid var(--color-enroll-primary);
+  outline-offset: 2px;
+}
+
+.enroll-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.enroll-status-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  font-family: var(--font-plus-jakarta);
+  font-size: 0.875rem;
+  color: var(--color-enroll-text);
+}
+
+.enroll-status-badge {
+  background: var(--color-enroll-success);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  animation: enroll-pulse 2s ease-in-out infinite;
+}
+
+@keyframes enroll-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.enroll-card {
+  background: var(--color-enroll-card);
+  border: 1px solid var(--color-enroll-border);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px var(--color-enroll-shadow);
+  transition: box-shadow 0.2s ease;
+}
+
+.enroll-card:hover {
+  box-shadow: 0 4px 16px var(--color-enroll-shadow);
+  transform: none;
+}
+
+.enroll-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-enroll-hero-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-enroll-primary);
+}
+
+.enroll-card-title {
+  font-family: var(--font-plus-jakarta);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-enroll-heading);
+  margin: 0.75rem 0 0.5rem;
+}
+
+.enroll-card-description {
+  font-family: var(--font-plus-jakarta);
+  font-size: 13px;
+  color: var(--color-enroll-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.enroll-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding: 0 0.5rem;
+}
+
+.enroll-stepper::before {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  left: 2.5rem;
+  right: 2.5rem;
+  height: 3px;
+  background: var(--color-enroll-border);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.enroll-stepper-progress {
+  position: absolute;
+  top: 1.25rem;
+  left: 2.5rem;
+  height: 3px;
+  background: var(--color-enroll-primary);
+  border-radius: 2px;
+  z-index: 1;
+  transition: width 0.4s ease;
+}
+
+.enroll-step {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.enroll-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--color-enroll-border);
+  background: var(--color-enroll-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-plus-jakarta);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-enroll-muted);
+  transition: all 0.3s ease;
+}
+
+.enroll-step.active .enroll-step-circle {
+  border-color: var(--color-enroll-primary);
+  background: var(--color-enroll-primary);
+  color: white;
+}
+
+.enroll-step.completed .enroll-step-circle {
+  border-color: var(--color-enroll-success);
+  background: var(--color-enroll-success);
+  color: white;
+}
+
+.enroll-step-label {
+  font-family: var(--font-plus-jakarta);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-enroll-muted);
+  text-align: center;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.enroll-step.active .enroll-step-label {
+  color: var(--color-enroll-primary);
+  font-weight: 700;
+}
+
+.enroll-step.completed .enroll-step-label {
+  color: var(--color-enroll-success);
+}
+
+.enroll-form-label {
+  font-family: var(--font-plus-jakarta);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-enroll-heading);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.enroll-form-input,
+.enroll-form-select,
+.enroll-form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--color-enroll-border);
+  border-radius: 10px;
+  background: var(--color-enroll-card);
+  font-family: var(--font-plus-jakarta);
+  font-size: 14px;
+  color: var(--color-enroll-heading);
+  transition: all 0.2s ease;
+}
+
+.enroll-form-input:focus,
+.enroll-form-select:focus,
+.enroll-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-enroll-primary);
+  box-shadow: 0 0 0 3px rgba(72, 96, 161, 0.15);
+}
+
+.enroll-form-input.error,
+.enroll-form-select.error,
+.enroll-form-textarea.error {
+  border-color: var(--color-enroll-error);
+}
+
+.enroll-form-error {
+  font-family: var(--font-plus-jakarta);
+  font-size: 12px;
+  color: var(--color-enroll-error);
+  margin-top: 0.375rem;
+  display: block;
+}
+
+.enroll-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.enroll-upload-box {
+  border: 2px dashed var(--color-enroll-border);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  background: var(--color-enroll-hero-bg);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.enroll-upload-box:hover,
+.enroll-upload-box.drag-active {
+  border-color: var(--color-enroll-primary);
+  background: #E8ECF8;
+}
+
+.enroll-upload-box.completed {
+  border-style: solid;
+  border-color: var(--color-enroll-success);
+  background: #ECFDF5;
+}
+
+.enroll-upload-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-enroll-primary);
+  margin: 0 auto 1rem;
+}
+
+.enroll-upload-title {
+  font-family: var(--font-plus-jakarta);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-enroll-heading);
+  margin-bottom: 0.375rem;
+}
+
+.enroll-upload-hint {
+  font-family: var(--font-plus-jakarta);
+  font-size: 13px;
+  color: var(--color-enroll-muted);
+}
+
+.enroll-upload-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--color-enroll-card);
+  border: 1px solid var(--color-enroll-border);
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+
+.enroll-upload-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.enroll-upload-file-name {
+  font-family: var(--font-plus-jakarta);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-enroll-heading);
+}
+
+.enroll-upload-file-size {
+  font-family: var(--font-plus-jakarta);
+  font-size: 12px;
+  color: var(--color-enroll-muted);
+}
+
+.enroll-upload-status {
+  font-family: var(--font-plus-jakarta);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9999px;
+}
+
+.enroll-upload-status.pending {
+  background: #fef3c7;
+  color: var(--color-enroll-warning);
+}
+
+.enroll-upload-status.success {
+  background: #d1fae5;
+  color: var(--color-enroll-success);
+}
+
+.enroll-upload-status.error {
+  background: #FEF2F2;
+  color: var(--color-enroll-error);
+}
+
+.enroll-floating-card {
+  animation: enroll-float 5s ease-in-out infinite;
+}
+
+.enroll-floating-card:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.enroll-floating-card:nth-child(3) {
+  animation-delay: 2s;
+}
+
+@keyframes enroll-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.enroll-timeline {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.enroll-timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-enroll-border);
+}
+
+.enroll-timeline-item {
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.enroll-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.enroll-timeline-dot {
+  position: absolute;
+  left: -2.5rem;
+  top: 0.25rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-enroll-border);
+  background: var(--color-enroll-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.enroll-timeline-item.completed .enroll-timeline-dot {
+  border-color: var(--color-enroll-success);
+  background: var(--color-enroll-success);
+  color: white;
+}
+
+.enroll-timeline-item.active .enroll-timeline-dot {
+  border-color: var(--color-enroll-primary);
+  background: var(--color-enroll-primary);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(72, 96, 161, 0.2);
+}
+
+.enroll-timeline-title {
+  font-family: var(--font-plus-jakarta);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-enroll-heading);
+  margin: 0 0 0.25rem;
+}
+
+.enroll-timeline-time {
+  font-family: var(--font-plus-jakarta);
+  font-size: 13px;
+  color: var(--color-enroll-muted);
+  margin: 0;
+}
+
+.enroll-timeline-item.active .enroll-timeline-title {
+  color: var(--color-enroll-primary);
+}
+
+.enroll-timeline-item.completed .enroll-timeline-title {
+  color: var(--color-enroll-success);
+}
+
+.nav-link {
+  font-family: var(--font-plus-jakarta);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-enroll-heading);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: var(--color-enroll-hero-bg);
+  color: var(--color-enroll-primary);
+}
+
+.nav-link.active {
+  background: var(--color-enroll-primary);
+  color: white;
+}
+
+.app-header {
+  background: var(--color-enroll-card);
+  border-bottom: 1px solid var(--color-enroll-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px var(--color-enroll-shadow);
+}
+
+.app-header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.app-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.app-logo-text {
+  font-family: var(--font-plus-jakarta);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-enroll-heading);
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-enroll-hero-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-enroll-primary);
+  font-family: var(--font-plus-jakarta);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.app-user-name {
+  font-family: var(--font-plus-jakarta);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-enroll-heading);
+}
+
+@media (max-width: 768px) {
+  .app-nav {
+    display: none;
+  }
+  
+  .app-user-name {
+    display: none;
+  }
+}
+
+.floating-shape {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-enroll-blob);
+  opacity: 0.4;
+  pointer-events: none;
+  animation: enroll-float 6s ease-in-out infinite;
+}
+
+.floating-shape:nth-child(2) {
+  animation-delay: 1.5s;
+}
+
+.floating-shape:nth-child(3) {
+  animation-delay: 3s;
+}
+
+.enroll-illustration {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 320px;
+  height: 320px;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+@media (max-width: 1024px) {
+  .enroll-illustration {
+    display: none;
+  }
 }
