@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router";
-import { Navbar } from "@/components/common/navbar";
-import { TopBar } from "@/components/features/student/home/top-bar";
+import { PortalFooter } from "@/components/common/portal-footer";
+import { PortalHeader } from "@/components/common/portal-header";
 import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
 import cpcBg from "@/assets/cpc-bg.png";
 
@@ -25,10 +25,7 @@ export default function ConfirmationPage() {
 
   return (
     <div className="w-full overflow-x-hidden bg-white font-poppins">
-      <header className="relative z-30">
-        <TopBar />
-        <Navbar />
-      </header>
+      <PortalHeader />
 
       <PageHeroBanner
         breadcrumbItems={[
@@ -111,7 +108,7 @@ export default function ConfirmationPage() {
               </Link>
               <button
                 onClick={() => window.print()}
-                className="px-6 py-3 text-enroll-primary border border-enroll-primary rounded-lg hover:bg-enroll-hero-bg transition-colors"
+                className="cursor-pointer rounded-lg border border-cpc-button px-6 py-3 text-cpc-button transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
               >
                 Print Receipt
               </button>
@@ -161,6 +158,8 @@ export default function ConfirmationPage() {
           </div>
         </div>
       </div>
+
+      <PortalFooter />
     </div>
   );
 }

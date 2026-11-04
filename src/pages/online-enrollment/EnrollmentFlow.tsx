@@ -106,7 +106,7 @@ export function EnrollmentFlow() {
             <button
               onClick={handlePrev}
               disabled={step === 1}
-              className="px-6 py-3 text-enroll-text hover:text-enroll-heading disabled:opacity-40 disabled:cursor-not-allowed"
+              className="cursor-pointer px-6 py-3 text-cpc-label transition-colors hover:text-cpc-navy-text disabled:cursor-not-allowed disabled:opacity-40"
             >
               Back
             </button>
