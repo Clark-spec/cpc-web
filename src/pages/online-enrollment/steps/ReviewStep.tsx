@@ -1,10 +1,16 @@
 import { useEnrollment } from "@/components/features/online-enrollment/hooks/useEnrollment";
-import { Button } from "@/components/ui/button";
 
 export function ReviewStep() {
   const { state, enrollmentData, goToStep } = useEnrollment();
 
   const totalUnits = enrollmentData.subjects.reduce((sum: number, subject: any) => sum + subject.units, 0);
+
+  // Build display name from new fields or fall back to old fields
+  const displayName = [
+    state.personalInfo.firstName,
+    state.personalInfo.middleName,
+    state.personalInfo.lastName
+  ].filter(Boolean).join(' ');
 
   return (
     <div className="space-y-8">
@@ -24,37 +30,48 @@ export function ReviewStep() {
             <h4 className="font-semibold text-enroll-heading mb-4">Personal Information</h4>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-enroll-text">Full Name:</span>
-                <span className="font-medium">{state.personalInfo.fullName}</span>
+                <span className="text-enroll-text">Name:</span>
+                <span className="font-medium">{displayName || (state.personalInfo.fullName || "N/A")}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-enroll-text">Birth Date:</span>
-                <span className="font-medium">{state.personalInfo.birthDate}</span>
+                <span className="text-enroll-text">Date of Birth:</span>
+                <span className="font-medium">{state.personalInfo.birthDate || "N/A"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-enroll-text">Gender:</span>
+                <span className="font-medium">{state.personalInfo.gender || "N/A"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-enroll-text">Civil Status:</span>
+                <span className="font-medium">{state.personalInfo.civilStatus || "N/A"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-enroll-text">Email:</span>
-                <span className="font-medium">{state.personalInfo.email}</span>
+                <span className="font-medium">{state.personalInfo.email || "N/A"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-enroll-text">Contact:</span>
-                <span className="font-medium">{state.personalInfo.contactNumber}</span>
+                <span className="text-enroll-text">Phone:</span>
+                <span className="font-medium">{state.personalInfo.contactNumber || "N/A"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-enroll-text">Address:</span>
-                <span className="font-medium">{state.personalInfo.address}</span>
+                <span className="font-medium">{state.personalInfo.homeAddress || state.personalInfo.address || "N/A"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-enroll-text">Guardian:</span>
-                <span className="font-medium">{state.personalInfo.guardianName}</span>
+                <span className="text-enroll-text">Emergency Contact:</span>
+                <span className="font-medium">{state.personalInfo.contactPerson || "N/A"} ({state.personalInfo.relationship || "N/A"})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-enroll-text">Contact Number:</span>
+                <span className="font-medium">{state.personalInfo.emergencyContact || "N/A"}</span>
               </div>
             </div>
-            <Button
-              variant="secondary"
-              className="mt-4"
+            <button
+              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
               onClick={() => goToStep(1)}
             >
               Edit Personal Info
-            </Button>
+            </button>
           </div>
 
           <div className="enroll-card p-6">
@@ -69,13 +86,12 @@ export function ReviewStep() {
                 <span className="font-medium">{state.yearLevel}</span>
               </div>
             </div>
-            <Button
-              variant="secondary"
-              className="mt-4"
+            <button
+              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
               onClick={() => goToStep(2)}
             >
               Edit Course
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -101,13 +117,12 @@ export function ReviewStep() {
                 <span>{totalUnits}</span>
               </div>
             </div>
-            <Button
-              variant="secondary"
-              className="mt-4"
+            <button
+              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
               onClick={() => goToStep(2)}
             >
               Edit Subjects
-            </Button>
+            </button>
           </div>
 
           <div className="enroll-card p-6">
@@ -128,13 +143,12 @@ export function ReviewStep() {
                 </div>
               ))}
             </div>
-            <Button
-              variant="secondary"
-              className="mt-4"
+            <button
+              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
               onClick={() => goToStep(3)}
             >
               Edit Requirements
-            </Button>
+            </button>
           </div>
         </div>
       </div>

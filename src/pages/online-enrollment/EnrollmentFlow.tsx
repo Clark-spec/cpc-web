@@ -60,9 +60,12 @@ export function EnrollmentFlow() {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return enrollmentData.personalInfo.fullName &&
+        return (enrollmentData.personalInfo.firstName || enrollmentData.personalInfo.fullName) &&
                enrollmentData.personalInfo.email &&
-               enrollmentData.personalInfo.contactNumber;
+               enrollmentData.personalInfo.contactNumber &&
+               enrollmentData.personalInfo.homeAddress &&
+               enrollmentData.personalInfo.emergencyContact &&
+               enrollmentData.personalInfo.contactPerson;
       case 2:
         return enrollmentData.subjects.length > 0;
       case 3:

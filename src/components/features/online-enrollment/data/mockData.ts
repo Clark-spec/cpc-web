@@ -1,12 +1,23 @@
 export type PersonalInfo = {
-  fullName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   birthDate: string;
-  address: string;
-  contactNumber: string;
+  gender: string;
+  civilStatus: string;
+  placeOfBirth: string;
+  nationality: string;
+  religion: string;
   email: string;
-  guardianName: string;
-  guardianContact: string;
+  contactNumber: string;
+  homeAddress: string;
+  contactPerson: string;
+  relationship: string;
   emergencyContact: string;
+  fullName?: string;
+  address?: string;
+  guardianName?: string;
+  guardianContact?: string;
 };
 
 export type Subject = {
@@ -39,14 +50,21 @@ export type EnrollmentData = {
 };
 
 export const mockUserProfile: Partial<PersonalInfo> = {
-  fullName: "Juan Dela Cruz",
+  firstName: "Juan",
+  middleName: "Cristbal",
+  lastName: "Dela Cruz",
   birthDate: "2004-03-15",
-  address: "123 Mabini St, Cordova, Cebu",
-  contactNumber: "09171234567",
+  gender: "Male",
+  civilStatus: "Single",
+  placeOfBirth: "Cebu City",
+  nationality: "Filipino",
+  religion: "Roman Catholic",
   email: "juan.delacruz@cpc.edu.ph",
-  guardianName: "Maria Dela Cruz",
-  guardianContact: "09171234568",
-  emergencyContact: "09171234569",
+  contactNumber: "09171234567",
+  homeAddress: "123 Mabini St, Cordova, Cebu",
+  contactPerson: "Maria Dela Cruz",
+  relationship: "Mother",
+  emergencyContact: "09171234568",
 };
 
 export const availableCourses = [
