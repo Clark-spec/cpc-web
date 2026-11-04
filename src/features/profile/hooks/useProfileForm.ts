@@ -222,3 +222,6 @@ export function useProfileForm() {
     setValue,
   };
 }
+
+/** The form state tree. `useProfileForm` owns one react-hook-form instance, so it is called once per page. */
+export type ProfileFormState = ReturnType<typeof useProfileForm>;

@@ -2,8 +2,7 @@ import { useParams } from "react-router";
 import { PortalFooter } from "@/components/common/portal-footer";
 import { PortalHeader } from "@/components/common/portal-header";
 import { EnrollmentFlow } from "@/features/online-enrollment/EnrollmentFlow";
-import { PageHeroBanner } from "@/components/common/page-hero-banner";
-import cpcBg from "@/assets/cpc-bg.png";
+import { EnrollmentHero } from "@/features/online-enrollment/components/EnrollmentHero";
 
 const stepConfig: Record<number, { title: string; subtitle: string }> = {
   1: {
@@ -32,17 +31,7 @@ export default function EnrollmentStepPage() {
     <div className="w-full overflow-x-hidden bg-white font-poppins">
       <PortalHeader />
 
-      <PageHeroBanner
-        breadcrumbItems={[
-          { label: "Home", href: "/" },
-          { label: "Student Services", href: "/student/home" },
-          { label: "Enrollment", href: null },
-        ]}
-        eyebrow="ENROLLMENT"
-        title={config.title}
-        subtitle={config.subtitle}
-        backgroundImage={cpcBg}
-      />
+      <EnrollmentHero title={config.title} subtitle={config.subtitle} />
 
       <EnrollmentFlow />
       <PortalFooter />

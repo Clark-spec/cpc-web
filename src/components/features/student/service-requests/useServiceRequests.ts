@@ -211,3 +211,6 @@ export function useServiceRequestsPage() {
     clearNotice,
   };
 }
+
+/** The page state tree. `useServiceRequestsPage` owns it, so it is called once per page. */
+export type ServiceRequestsPage = ReturnType<typeof useServiceRequestsPage>;

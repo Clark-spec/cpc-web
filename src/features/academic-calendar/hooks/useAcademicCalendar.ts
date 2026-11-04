@@ -18,6 +18,9 @@ import {
 
 export type CalendarView = "month" | "week" | "list";
 
+/** The single calendar state tree. `useAcademicCalendar` owns it, so it is called once per page. */
+export type AcademicCalendar = ReturnType<typeof useAcademicCalendar>;
+
 const MONTHS = [
   "January",
   "February",
