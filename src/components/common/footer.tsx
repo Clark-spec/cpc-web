@@ -35,7 +35,7 @@ const linkGroups: LinkGroup[] = [
     title: "Resources",
     links: [
       { label: "Student Handbook", to: "#" },
-      { label: "Academic Calendar", to: "#" },
+      { label: "Academic Calendar", to: "/academics/academic-calendar" },
       { label: "Library", to: "#" },
       { label: "FAQs", to: "#" },
       { label: "Support", to: "#" },
