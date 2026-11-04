@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Loader2, Send } from "lucide-react";
-import { Modal } from "./Modal";
+import { Modal } from "@/components/ui/modal";
 import { officeSignerNames } from "../data/mockClearance";
 import type { OfficeSignature } from "../types";
 

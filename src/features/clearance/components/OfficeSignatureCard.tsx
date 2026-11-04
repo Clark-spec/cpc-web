@@ -9,7 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Badge } from "./Badge";
+import { Badge } from "@/components/ui/badge";
 import { RequestSignatureModal } from "./RequestSignatureModal";
 import { useClearance } from "../context/ClearanceContext";
 import { formatDateTime, formatRelativeTime } from "../lib/format";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Loader2, Send } from "lucide-react";
-import { Modal } from "./Modal";
+import { Modal } from "@/components/ui/modal";
 import { OfficeSignatureCard } from "./OfficeSignatureCard";
 import { useClearance } from "../context/ClearanceContext";
 

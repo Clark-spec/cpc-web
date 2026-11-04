@@ -1,8 +1,8 @@
 import { useParams } from "react-router";
 import { PortalFooter } from "@/components/common/portal-footer";
 import { PortalHeader } from "@/components/common/portal-header";
-import { EnrollmentFlow } from "@/pages/online-enrollment/EnrollmentFlow";
-import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
+import { EnrollmentFlow } from "@/features/online-enrollment/EnrollmentFlow";
+import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import cpcBg from "@/assets/cpc-bg.png";
 
 const stepConfig: Record<number, { title: string; subtitle: string }> = {

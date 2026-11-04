@@ -45,7 +45,7 @@ export function RequestHistoryTable({
           >
             Request History
           </h2>
-          <p className="mt-1 font-poppins text-[12px] leading-[18px] text-sr-muted">
+          <p className="mt-1 font-poppins text-[11px] leading-[17px] text-sr-muted">
             View previously submitted service requests.
           </p>
         </div>
@@ -84,8 +84,41 @@ export function RequestHistoryTable({
           </p>
         </div>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-lg border border-sr-border">
-          <table className="w-full min-w-[720px] border-collapse text-left">
+        <>
+          {/* Mobile: stacked records so the table never overflows sideways. */}
+          <ul className="mt-4 space-y-2.5 md:hidden">
+            {requests.map((request) => (
+              <li
+                key={request.id}
+                className="rounded-lg border border-sr-border bg-white px-3.5 py-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-poppins text-[11px] font-bold tracking-[0.02em] text-sr-primary">
+                      {request.referenceNumber}
+                    </p>
+                    <p className="mt-0.5 font-poppins text-[12px] leading-[17px] font-medium text-sr-text">
+                      {request.service.name}
+                    </p>
+                    <p className="mt-1 font-poppins text-[10px] text-sr-muted">
+                      Submitted {formatDate(request.submittedAt)}
+                    </p>
+                  </div>
+                  <StatusBadge status={request.status} label={request.statusLabel} />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onView(request.id)}
+                  className="mt-2 rounded-md px-2 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-section"
+                >
+                  View details
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-4 hidden overflow-x-auto rounded-lg border border-sr-border md:block">
+            <table className="w-full min-w-[720px] border-collapse text-left">
             <thead>
               <tr className="bg-sr-section">
                 <th className="px-4 py-2.5 font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-navy uppercase">
@@ -136,7 +169,8 @@ export function RequestHistoryTable({
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </section>
   );

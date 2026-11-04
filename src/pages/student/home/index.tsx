@@ -1,13 +1,13 @@
 import { Footer } from "@/components/common/footer";
 import { Navbar } from "@/components/common/navbar";
-import { AboutSection } from "@/components/features/student/home/about-section";
-import { CtaSection } from "@/components/features/student/home/cta-section";
-import { HeroSection } from "@/components/features/student/home/hero-section";
-import { ProgramsSection } from "@/components/features/student/home/programs-section";
-import { QuickAccessCard } from "@/components/features/student/home/quick-access-card";
-import { StatsBand } from "@/components/features/student/home/stats-band";
-import { TopBar } from "@/components/features/student/home/top-bar";
-import { useHomeFrame } from "@/components/features/student/home/use-home-frame";
+import { AboutSection } from "@/features/student-home/components/about-section";
+import { CtaSection } from "@/features/student-home/components/cta-section";
+import { HeroSection } from "@/features/student-home/components/hero-section";
+import { ProgramsSection } from "@/features/student-home/components/programs-section";
+import { QuickAccessCard } from "@/features/student-home/components/quick-access-card";
+import { StatsBand } from "@/features/student-home/components/stats-band";
+import { TopBar } from "@/components/common/top-bar";
+import { useHomeFrame } from "@/hooks/useHomeFrame";
 
 export default function StudentHomePage() {
   const scale = useHomeFrame();

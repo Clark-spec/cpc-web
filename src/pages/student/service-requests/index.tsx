@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Footer } from "@/components/common/footer";
-import { Navbar } from "@/components/common/navbar";
-import { TopBar } from "@/components/features/student/home/top-bar";
-import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
+import { PortalFooter } from "@/components/common/portal-footer";
+import { PortalHeader } from "@/components/common/portal-header";
+import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import { NewRequestForm } from "@/components/features/student/service-requests/NewRequestForm";
 import { NotificationsCard } from "@/components/features/student/service-requests/NotificationsCard";
 import { RequestDetailsModal } from "@/components/features/student/service-requests/RequestDetailsModal";
@@ -68,10 +67,7 @@ export default function ServiceRequestsPage() {
 
   return (
     <div className="w-full overflow-x-hidden bg-white font-poppins">
-      <header className="relative z-30">
-        <TopBar />
-        <Navbar />
-      </header>
+      <PortalHeader />
 
       <PageHeroBanner
         breadcrumbItems={[
@@ -142,7 +138,7 @@ export default function ServiceRequestsPage() {
         </div>
       </main>
 
-      <Footer />
+      <PortalFooter />
 
       {viewRequestId !== null && (
         <RequestDetailsModal requestId={viewRequestId} onClose={() => setViewRequestId(null)} />

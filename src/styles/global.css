@@ -61,6 +61,28 @@
   --color-sr-warning: #F2A23A;
   --color-sr-processing: #3976D9;
   --color-sr-danger: #D64545;
+
+  /* Academic calendar palette */
+  --color-ac-primary: #193C9A;
+  --color-ac-navy: #102A83;
+  --color-ac-secondary: #2449A8;
+  --color-ac-page: #F4F7FF;
+  --color-ac-section: #EAF1FF;
+  --color-ac-border: #DCE6F8;
+  --color-ac-text: #172B5C;
+  --color-ac-muted: #71809D;
+  --color-ac-enrollment: #24A56A;
+  --color-ac-exam: #E34B59;
+  --color-ac-deadline: #F2A23A;
+  --color-ac-event: #9665E8;
+  --color-ac-activity: #3976D9;
+  --color-ac-holiday: #71809D;
+  --color-ac-enrollment-soft: #E9F7F1;
+  --color-ac-exam-soft: #FDEDEF;
+  --color-ac-deadline-soft: #FEF4E7;
+  --color-ac-event-soft: #F4EDFD;
+  --color-ac-activity-soft: #EAF1FD;
+  --color-ac-holiday-soft: #F0F2F6;
 }
 
 body {
@@ -807,4 +829,132 @@ body {
 .sr-btn-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Compact variant of the enrollment form used by the service request card. */
+.sr-form .enroll-form-label {
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.sr-form .enroll-form-input,
+.sr-form .enroll-form-select,
+.sr-form .enroll-form-textarea {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.sr-form .enroll-form-error {
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+.sr-form select.enroll-form-select {
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371809D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+/* Class Schedules: ~320ms fade after the section-change skeleton. */
+@keyframes scheduleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.schedule-fade {
+  animation: scheduleFadeIn 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule-fade {
+    animation: none;
+  }
+}
+
+/* Print / Save as PDF: keep the schedule content, drop portal chrome. */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  .print-hide,
+  header,
+  footer {
+    display: none !important;
+  }
+
+  .schedule-fade {
+    animation: none !important;
+  }
+
+  /* Keep the light-blue header strips and status tints in the PDF. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #class-schedules-heading,
+  #weekly-calendar-heading {
+    break-after: avoid;
+  }
+
+  table {
+    font-size: 10pt;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+}
+
+/* Academic calendar page */
+.ac-card {
+  background: #ffffff;
+  border: 1px solid var(--color-ac-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(23, 43, 92, 0.05);
+}
+
+.ac-fade {
+  animation: ac-fade-in 0.24s ease-out both;
+}
+
+@keyframes ac-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ac-fade {
+    animation: none;
+  }
+}
+
+@media print {
+  .ac-fade {
+    animation: none !important;
+  }
 }

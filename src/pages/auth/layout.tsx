@@ -3,7 +3,7 @@ import { Outlet } from "react-router";
 import {
   AuthLayoutModeContext,
   type AuthLayoutMode,
-} from "@/components/features/auth/auth-layout-mode";
+} from "@/features/auth/auth-layout-mode";
 import cpcBuilding from "@/assets/cpc-building.png";
 import diploma from "@/assets/diploma.png";
 import gradHat from "@/assets/gradhat.png";

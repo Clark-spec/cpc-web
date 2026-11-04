@@ -38,7 +38,7 @@ export function RequestStatusCard({ request, loading, error, onRetry }: RequestS
           >
             Request Status
           </h2>
-          <p className="mt-1 truncate font-poppins text-[12px] leading-[18px] text-sr-muted">
+          <p className="mt-1 truncate font-poppins text-[11px] leading-[17px] text-sr-muted">
             {request ? `Latest request: ${request.service.name}` : "Track your latest request"}
           </p>
         </div>

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router";
 import { PortalFooter } from "@/components/common/portal-footer";
 import { PortalHeader } from "@/components/common/portal-header";
-import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
+import { PageHeroBanner } from "@/components/common/page-hero-banner";
 import cpcBg from "@/assets/cpc-bg.png";
 
 export default function ConfirmationPage() {

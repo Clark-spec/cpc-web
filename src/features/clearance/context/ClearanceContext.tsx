@@ -9,9 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useToast } from "../components/Toast";
+import { useToast } from "@/components/ui/toast";
 import { createInitialState, mockStudent } from "../data/mockClearance";
-import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   cancelRequest as cancelRequestService,
   demoApprove as demoApproveService,

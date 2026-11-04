@@ -53,7 +53,7 @@ export function NotificationsCard({
           <h2 id="notifications-title" className="font-poppins text-[15px] font-semibold text-sr-text">
             Notifications
           </h2>
-          <p className="mt-1 font-poppins text-[12px] leading-[18px] text-sr-muted">
+          <p className="mt-1 font-poppins text-[11px] leading-[17px] text-sr-muted">
             Updates on your requests
           </p>
         </div>

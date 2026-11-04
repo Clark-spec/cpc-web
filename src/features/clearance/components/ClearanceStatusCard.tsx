@@ -1,5 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
-import { Badge } from "./Badge";
+import { Badge } from "@/components/ui/badge";
 import { useClearance } from "../context/ClearanceContext";
 import { useClearanceProgress } from "../hooks/useClearanceProgress";
 

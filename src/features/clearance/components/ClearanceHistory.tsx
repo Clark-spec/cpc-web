@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, ChevronDown, Download } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Badge } from "./Badge";
+import { Badge } from "@/components/ui/badge";
 import { useClearance } from "../context/ClearanceContext";
 import { formatDate } from "../lib/format";
 import { downloadClearanceSlip } from "../lib/clearancePdf";

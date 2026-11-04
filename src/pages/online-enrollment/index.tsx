@@ -1,8 +1,8 @@
 import { PortalFooter } from "@/components/common/portal-footer";
 import { PortalHeader } from "@/components/common/portal-header";
-import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
-import { HeroSection } from "@/components/features/online-enrollment/components/HeroSection";
-import { FeaturesGrid } from "@/components/features/online-enrollment/components/FeaturesGrid";
+import { PageHeroBanner } from "@/components/common/page-hero-banner";
+import { HeroSection } from "@/features/online-enrollment/components/HeroSection";
+import { FeaturesGrid } from "@/features/online-enrollment/components/FeaturesGrid";
 import cpcBg from "@/assets/cpc-bg.png";
 
 export default function OnlineEnrollmentPage() {

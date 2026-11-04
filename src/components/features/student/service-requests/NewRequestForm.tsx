@@ -193,7 +193,7 @@ export function NewRequestForm({
           <h2 id="new-request-title" className="font-poppins text-[15px] font-semibold text-sr-text">
             New Request
           </h2>
-          <p className="mt-1 font-poppins text-[12px] leading-[18px] text-sr-muted">
+          <p className="mt-1 font-poppins text-[11px] leading-[17px] text-sr-muted">
             Fill out the form below to request your supporting documents.
           </p>
         </div>
@@ -209,7 +209,7 @@ export function NewRequestForm({
         )}
       </div>
 
-      <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
+      <form className="sr-form mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
         <div>
           <label htmlFor="service-select" className="enroll-form-label">
             Service Selection <RequiredMark />
@@ -334,13 +334,27 @@ export function NewRequestForm({
             <span
               className={
                 file || savedDocument
-                  ? "rounded-full border border-[#C4EBD9] bg-[#E3F7EE] px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-[#1E8A57]"
-                  : "rounded-full border border-[#F6DEB4] bg-[#FEF4E2] px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-[#B7791F]"
+                  ? "inline-flex items-center gap-1.5 rounded-full border border-[#C4EBD9] bg-[#E3F7EE] px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-[#1E8A57]"
+                  : "inline-flex items-center gap-1.5 rounded-full border border-[#F6DEB4] bg-[#FEF4E2] px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-[#B7791F]"
               }
             >
-              {file || savedDocument ? "Uploaded" : "Required"}
+              <span
+                aria-hidden
+                className={
+                  file || savedDocument
+                    ? "h-1.5 w-1.5 rounded-full bg-[#1E8A57]"
+                    : "h-1.5 w-1.5 rounded-full bg-[#D68A16]"
+                }
+              />
+              {file || savedDocument ? "Uploaded" : "Missing"}
             </span>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="font-poppins text-[11px] font-semibold tracking-[0.08em] text-sr-muted uppercase">
+            Document Upload
+          </h3>
 
           <DocumentUpload
             file={file}
