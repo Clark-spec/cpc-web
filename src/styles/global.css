@@ -710,3 +710,23 @@ body {
     display: none;
   }
 }
+
+/* Page Hero Banner */
+.page-hero-banner {
+  position: relative;
+  min-height: 320px;
+}
+
+@media (max-width: 768px) {
+  .page-hero-banner {
+    min-height: 240px;
+  }
+}
+
+.page-hero-breadcrumb {
+  font-size: 14px;
+}
+
+.page-hero-eyebrow {
+  font-size: 13px;
+}

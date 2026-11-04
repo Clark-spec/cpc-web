@@ -71,20 +71,23 @@ export function RequirementsStep() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-cpc-navy">Upload Requirements</h3>
-        <p className="text-sm text-enroll-text">
-          Upload all required documents to complete your enrollment.
+      <div>
+        <h3 className="text-xl font-semibold text-enroll-heading mb-2">Submit Your Requirements</h3>
+        <p className="text-sm text-enroll-muted">
+          Upload the necessary documents required for your enrollment application. Ensure that all uploaded files are clear, complete, and readable.
+        </p>
+        <p className="text-xs text-enroll-text mt-1">
+          Please review the required document formats and file size limits before uploading.
         </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {state.requirements.map((requirement) => (
           <div key={requirement.id} className="space-y-2">
-            <label className="block text-sm font-semibold text-cpc-navy">
+            <label className="block text-sm font-semibold text-enroll-heading">
               {requirement.name} *
             </label>
-            
+
             {requirement.status === "pending" ? (
               <div
                 className={`enroll-upload-box ${dragActive ? "drag-active" : ""}`}
@@ -111,8 +114,8 @@ export function RequirementsStep() {
                 </svg>
                 <div className="enroll-upload-title">Click to upload or drag and drop</div>
                 <div className="enroll-upload-hint">
-                  {requirement.type === "ID Photo" ? 
-                    "JPG, PNG max 2MB" : 
+                  {requirement.type === "ID Photo" ?
+                    "JPG, PNG max 2MB" :
                     "PDF, DOC max 5MB"
                   }
                 </div>
@@ -154,7 +157,7 @@ export function RequirementsStep() {
           <span className="text-sm text-enroll-text">
             Documents Ready: {state.requirements.filter(r => r.status !== "pending").length} of {state.requirements.length}
           </span>
-          <span className="text-sm font-semibold text-cpc-navy">
+          <span className="text-sm font-semibold text-enroll-heading">
             {state.requirements.filter(r => r.status === "verified").length} Verified
           </span>
         </div>

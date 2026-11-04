@@ -7,6 +7,16 @@ export function PersonalInfoStep() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-xl font-semibold text-enroll-heading mb-2">Let's Get to Know You!</h3>
+        <p className="text-sm text-enroll-muted">
+          Start your enrollment journey by providing your personal information. Please make sure all details are accurate and up to date.
+        </p>
+        <p className="text-xs text-enroll-text mt-1">
+          Complete all required fields marked with an asterisk (*) to continue.
+        </p>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="fullName" className="enroll-form-label">

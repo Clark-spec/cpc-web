@@ -7,6 +7,16 @@ export function SubjectsStep() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-xl font-semibold text-enroll-heading mb-2">Choose Your Subjects</h3>
+        <p className="text-sm text-enroll-muted">
+          Select the subjects applicable to your course and enrollment. Review your selections carefully before proceeding to the next step.
+        </p>
+        <p className="text-xs text-enroll-text mt-1">
+          Make sure your selected subjects match your intended academic program.
+        </p>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="course" className="enroll-form-label">
@@ -50,7 +60,7 @@ export function SubjectsStep() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-cpc-navy">Select Subjects</h3>
+        <h3 className="text-lg font-semibold text-enroll-heading">Select Subjects</h3>
         <p className="text-sm text-enroll-text">
           Choose the subjects you want to enroll in for the semester.
         </p>
@@ -76,7 +86,7 @@ export function SubjectsStep() {
                       className="w-5 h-5 text-enroll-primary rounded border-enroll-border focus:ring-enroll-primary"
                     />
                     <div>
-                      <h4 className="font-semibold text-cpc-navy">
+                      <h4 className="font-semibold text-enroll-heading">
                         {subject.code} - {subject.title}
                       </h4>
                       <p className="text-sm text-enroll-text">
@@ -89,7 +99,7 @@ export function SubjectsStep() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-cpc-navy">
+                  <span className="text-sm font-semibold text-enroll-heading">
                     {subject.units} units
                   </span>
                 </div>
@@ -103,7 +113,7 @@ export function SubjectsStep() {
             <span className="text-sm text-enroll-text">
               Total Selected: {enrollmentData.subjects.length} subjects
             </span>
-            <span className="text-lg font-semibold text-cpc-navy">
+            <span className="text-lg font-semibold text-enroll-heading">
               Total Units: {enrollmentData.subjects.reduce((sum: number, s: any) => sum + s.units, 0)}
             </span>
           </div>

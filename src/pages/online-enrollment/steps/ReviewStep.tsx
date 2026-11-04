@@ -8,17 +8,20 @@ export function ReviewStep() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-cpc-navy">Review Your Enrollment</h3>
-        <p className="text-sm text-enroll-text">
-          Please review all information carefully before submitting.
+      <div>
+        <h3 className="text-xl font-semibold text-enroll-heading mb-2">Review Your Application</h3>
+        <p className="text-sm text-enroll-muted">
+          You're almost done! Review all the information you have provided and make sure everything is correct before submitting your enrollment application.
+        </p>
+        <p className="text-xs text-enroll-text mt-1">
+          Once submitted, your application will proceed according to the existing enrollment process.
         </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div className="enroll-card p-6">
-            <h4 className="font-semibold text-cpc-navy mb-4">Personal Information</h4>
+            <h4 className="font-semibold text-enroll-heading mb-4">Personal Information</h4>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-enroll-text">Full Name:</span>
@@ -55,7 +58,7 @@ export function ReviewStep() {
           </div>
 
           <div className="enroll-card p-6">
-            <h4 className="font-semibold text-cpc-navy mb-4">Course & Year Level</h4>
+            <h4 className="font-semibold text-enroll-heading mb-4">Course & Year Level</h4>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-enroll-text">Course:</span>
@@ -78,7 +81,7 @@ export function ReviewStep() {
 
         <div className="space-y-6">
           <div className="enroll-card p-6">
-            <h4 className="font-semibold text-cpc-navy mb-4">Selected Subjects</h4>
+            <h4 className="font-semibold text-enroll-heading mb-4">Selected Subjects</h4>
             <div className="space-y-3">
               {enrollmentData.subjects.map((subject: any) => (
                 <div key={subject.code} className="flex justify-between items-center text-sm">
@@ -108,7 +111,7 @@ export function ReviewStep() {
           </div>
 
           <div className="enroll-card p-6">
-            <h4 className="font-semibold text-cpc-navy mb-4">Requirements</h4>
+            <h4 className="font-semibold text-enroll-heading mb-4">Requirements</h4>
             <div className="space-y-3 text-sm">
               {enrollmentData.requirements.map((req: any) => (
                 <div key={req.id} className="flex justify-between items-center">
@@ -128,7 +131,7 @@ export function ReviewStep() {
             <Button
               variant="secondary"
               className="mt-4"
-              onClick={() => goToStep(2)}
+              onClick={() => goToStep(3)}
             >
               Edit Requirements
             </Button>
@@ -138,7 +141,7 @@ export function ReviewStep() {
 
       <div className="enroll-card p-6 bg-enroll-hero-bg">
         <div className="text-center">
-          <h4 className="font-semibold text-cpc-navy mb-2">Enrollment Summary</h4>
+          <h4 className="font-semibold text-enroll-heading mb-2">Enrollment Summary</h4>
           <div className="grid md:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-enroll-text">Course:</span>

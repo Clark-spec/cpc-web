@@ -1,6 +1,6 @@
 import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Link, Navigate, Route, Routes, Outlet } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes, Outlet } from "react-router";
 import { AuthProvider } from "@/hooks/useAuth";
 import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
@@ -10,25 +10,11 @@ import StudentHomePage from "@/pages/student/home";
 import OnlineEnrollmentPage from "@/pages/online-enrollment";
 import EnrollmentConfirmationPage from "@/pages/online-enrollment/confirmation";
 import EnrollmentStatusPage from "@/pages/online-enrollment/status";
-import EnrollmentStep1Page from "@/pages/online-enrollment/step-1";
-import EnrollmentStep2Page from "@/pages/online-enrollment/step-2";
-import EnrollmentStep3Page from "@/pages/online-enrollment/step-3";
-import EnrollmentStep4Page from "@/pages/online-enrollment/step-4";
+import EnrollmentStepPage from "@/pages/online-enrollment/step";
 
 export function ProtectedEnrollment() {
   return (
-    <div className="enroll-layout">
-      <div className="enroll-content mx-auto w-full max-w-[1200px] px-6 py-10">
-        {/* The enrollment pages have no portal navbar, so this is the only way back. */}
-        <Link
-          to="/student/home"
-          className="mb-6 inline-block font-poppins text-[15px] text-enroll-primary hover:underline"
-        >
-          &larr; Back to Student Portal
-        </Link>
-        <Outlet />
-      </div>
-    </div>
+    <Outlet />
   );
 }
 
@@ -56,10 +42,7 @@ export function AppRoutes() {
         element={<ProtectedEnrollment />}
       >
         <Route index element={<OnlineEnrollmentPage />} />
-        <Route path="step/1" element={<EnrollmentStep1Page />} />
-        <Route path="step/2" element={<EnrollmentStep2Page />} />
-        <Route path="step/3" element={<EnrollmentStep3Page />} />
-        <Route path="step/4" element={<EnrollmentStep4Page />} />
+        <Route path="step/:step" element={<EnrollmentStepPage />} />
         <Route path="confirmation" element={<EnrollmentConfirmationPage />} />
         <Route path="status" element={<EnrollmentStatusPage />} />
       </Route>
