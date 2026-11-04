@@ -738,3 +738,66 @@ body {
 .page-hero-eyebrow {
   font-size: 13px;
 }
+
+/* Class Schedules: ~320ms fade after the section-change skeleton. */
+@keyframes scheduleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.schedule-fade {
+  animation: scheduleFadeIn 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule-fade {
+    animation: none;
+  }
+}
+
+/* Print / Save as PDF: keep the schedule content, drop portal chrome. */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  .print-hide,
+  header,
+  footer {
+    display: none !important;
+  }
+
+  .schedule-fade {
+    animation: none !important;
+  }
+
+  /* Keep the light-blue header strips and status tints in the PDF. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #class-schedules-heading,
+  #weekly-calendar-heading {
+    break-after: avoid;
+  }
+
+  table {
+    font-size: 10pt;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+}

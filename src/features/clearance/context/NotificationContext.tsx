@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useToast } from "../components/Toast";
+import { useToast } from "@/components/ui/toast";
 import { getNotifications, saveNotifications } from "../services/clearanceService";
 import type { AppNotification, OfficeId } from "../types";
 
