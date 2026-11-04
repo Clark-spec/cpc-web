@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/common/navbar";
-import { TopBar } from "@/components/features/student/home/top-bar";
+import { PortalFooter } from "@/components/common/portal-footer";
+import { PortalHeader } from "@/components/common/portal-header";
 import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
 import { HeroSection } from "@/components/features/online-enrollment/components/HeroSection";
 import { FeaturesGrid } from "@/components/features/online-enrollment/components/FeaturesGrid";
@@ -8,10 +8,7 @@ import cpcBg from "@/assets/cpc-bg.png";
 export default function OnlineEnrollmentPage() {
   return (
     <div className="w-full overflow-x-hidden bg-white font-poppins">
-      <header className="relative z-30">
-        <TopBar />
-        <Navbar />
-      </header>
+      <PortalHeader />
 
       <PageHeroBanner
         breadcrumbItems={[
@@ -31,6 +28,8 @@ export default function OnlineEnrollmentPage() {
           <FeaturesGrid />
         </div>
       </div>
+
+      <PortalFooter />
     </div>
   );
 }

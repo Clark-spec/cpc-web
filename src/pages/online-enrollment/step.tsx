@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
-import { Navbar } from "@/components/common/navbar";
-import { TopBar } from "@/components/features/student/home/top-bar";
+import { PortalFooter } from "@/components/common/portal-footer";
+import { PortalHeader } from "@/components/common/portal-header";
 import { EnrollmentFlow } from "@/pages/online-enrollment/EnrollmentFlow";
 import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
 import cpcBg from "@/assets/cpc-bg.png";
@@ -30,10 +30,7 @@ export default function EnrollmentStepPage() {
 
   return (
     <div className="w-full overflow-x-hidden bg-white font-poppins">
-      <header className="relative z-30">
-        <TopBar />
-        <Navbar />
-      </header>
+      <PortalHeader />
 
       <PageHeroBanner
         breadcrumbItems={[
@@ -48,6 +45,7 @@ export default function EnrollmentStepPage() {
       />
 
       <EnrollmentFlow />
+      <PortalFooter />
     </div>
   );
 }

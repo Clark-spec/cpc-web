@@ -8,6 +8,7 @@ import StaffLoginPage from "@/pages/auth/staff";
 import AdminLoginPage from "@/pages/auth/admin";
 import StudentHomePage from "@/pages/student/home";
 import ServiceRequestsPage from "@/pages/student/service-requests";
+import ClearancePage from "@/features/clearance/ClearancePage";
 import OnlineEnrollmentPage from "@/pages/online-enrollment";
 import EnrollmentConfirmationPage from "@/pages/online-enrollment/confirmation";
 import EnrollmentStatusPage from "@/pages/online-enrollment/status";
@@ -39,6 +40,8 @@ export function AppRoutes() {
 
       {/* Student services */}
       <Route path="/student/service-requests" element={<ServiceRequestsPage />} />
+      {/* Student services. */}
+      <Route path="/student-services/online-clearance" element={<ClearancePage />} />
 
       {/* Enrollment routes - no app layout, pages render directly */}
       <Route

@@ -1,6 +1,6 @@
 import { mockEnrollmentStatus } from "@/components/features/online-enrollment/data/mockData";
-import { Navbar } from "@/components/common/navbar";
-import { TopBar } from "@/components/features/student/home/top-bar";
+import { PortalFooter } from "@/components/common/portal-footer";
+import { PortalHeader } from "@/components/common/portal-header";
 import { PageHeroBanner } from "@/components/features/online-enrollment/components/PageHeroBanner";
 import cpcBg from "@/assets/cpc-bg.png";
 
@@ -39,10 +39,7 @@ export default function EnrollmentStatusPage() {
 
   return (
     <div className="w-full overflow-x-hidden bg-white font-poppins">
-      <header className="relative z-30">
-        <TopBar />
-        <Navbar />
-      </header>
+      <PortalHeader />
 
       <PageHeroBanner
         breadcrumbItems={[
@@ -102,7 +99,7 @@ export default function EnrollmentStatusPage() {
               <button className="enroll-btn-primary">
                 Download Receipt
               </button>
-              <button className="px-6 py-3 text-enroll-primary border border-enroll-primary rounded-lg hover:bg-enroll-hero-bg transition-colors">
+              <button className="cursor-pointer rounded-lg border border-cpc-button px-6 py-3 text-cpc-button transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent">
                 Contact Support
               </button>
             </div>
@@ -145,6 +142,8 @@ export default function EnrollmentStatusPage() {
           </div>
         </div>
       </div>
+
+      <PortalFooter />
     </div>
   );
 }
