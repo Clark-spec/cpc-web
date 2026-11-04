@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
     links: [
       { label: "Online Clearance", to: "#" },
       { label: "Online Kiosk", to: "#" },
-      { label: "Service Request", to: "#" },
+      { label: "Service Request", to: "/student/service-requests" },
     ],
   },
   {
