@@ -714,12 +714,21 @@ body {
 /* Page Hero Banner */
 .page-hero-banner {
   position: relative;
-  min-height: 320px;
+  min-height: 310px;
+  background-size: cover;
+  background-position: center;
+}
+
+.page-hero-banner .mx-auto {
+  max-width: 1440px;
 }
 
 @media (max-width: 768px) {
   .page-hero-banner {
-    min-height: 240px;
+    min-height: 260px;
+  }
+  .page-hero-banner .mx-auto {
+    max-width: 100%;
   }
 }
 
