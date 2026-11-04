@@ -36,7 +36,7 @@ const navItems: NavItem[] = [
   {
     label: "Academics",
     links: [
-      { label: "Class Schedules", to: "#" },
+      { label: "Class Schedules", to: "/academics/class-schedules" },
       { label: "Academic Calendar", to: "#" },
       { label: "Grades / Academic Records", to: "#" },
     ],
@@ -60,7 +60,7 @@ const navItems: NavItem[] = [
   {
     label: "My Account",
     links: [
-      { label: "Student Profile", to: "#" },
+      { label: "Student Profile", to: "/my-account/profile" },
       { label: "Enrollment Status", to: "/online-enrollment/status" },
       { label: "Clearance Status", to: "/student-services/online-clearance" },
       { label: "Violations", to: "#" },

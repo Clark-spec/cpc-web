@@ -761,6 +761,32 @@ body {
   }
 }
 
+/* Student Profile: brief flash on rows whose value changed after a save. */
+@keyframes profileHighlight {
+  0% {
+    background-color: var(--color-cpc-section-light);
+    box-shadow: inset 0 0 0 1px var(--color-cpc-tile-border);
+  }
+  70% {
+    background-color: var(--color-cpc-section-light);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+
+.profile-highlight {
+  animation: profileHighlight 2200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-highlight {
+    animation: none;
+    box-shadow: inset 0 0 0 1px var(--color-cpc-blue-accent);
+  }
+}
+
 /* Print / Save as PDF: keep the schedule content, drop portal chrome. */
 @media print {
   @page {

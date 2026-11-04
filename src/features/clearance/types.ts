@@ -34,16 +34,11 @@ export interface OfficeSignature {
   remarks?: string;
 }
 
-export interface AppNotification {
-  id: string;
-  message: string;
-  type: "info" | "success" | "warning";
-  /** ISO date-time. */
-  createdAt: string;
-  read: boolean;
-  /** Lets the bell scroll to (and highlight) the related office card. */
-  officeId?: OfficeId;
-}
+/** The portal-wide notification shape, re-exported for clearance consumers. */
+export type {
+  AppNotification,
+  NotificationType,
+} from "@/context/NotificationContext";
 
 export interface Subject {
   name: string;

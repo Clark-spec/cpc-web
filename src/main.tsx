@@ -1,6 +1,13 @@
 import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Navigate, Route, Routes, Outlet } from "react-router";
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+  Routes,
+} from "react-router";
 import { AuthProvider } from "@/hooks/useAuth";
 import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
@@ -13,6 +20,7 @@ import OnlineEnrollmentPage from "@/pages/online-enrollment";
 import EnrollmentConfirmationPage from "@/pages/online-enrollment/confirmation";
 import EnrollmentStatusPage from "@/pages/online-enrollment/status";
 import EnrollmentStepPage from "@/pages/online-enrollment/step";
+import StudentProfilePage from "@/features/profile/StudentProfilePage";
 
 export function ProtectedEnrollment() {
   return (
@@ -44,6 +52,9 @@ export function AppRoutes() {
       {/* Academics. */}
       <Route path="/academics/class-schedules" element={<ClassSchedulesPage />} />
 
+      {/* My Account. */}
+      <Route path="/my-account/profile" element={<StudentProfilePage />} />
+
       {/* Enrollment routes - no app layout, pages render directly */}
       <Route
         path="/online-enrollment"
@@ -61,10 +72,20 @@ export function AppRoutes() {
   );
 }
 
-createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  </BrowserRouter>,
-);
+/**
+ * The app uses a data router so feature pages can rely on `useBlocker`
+ * (e.g. the Student Profile unsaved-changes guard). The nested <Routes> in
+ * `AppRoutes` keep the existing route definitions unchanged.
+ */
+const router = createBrowserRouter([
+  {
+    path: "*",
+    element: (
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    ),
+  },
+]);
+
+createRoot(document.getElementById("root")!).render(<RouterProvider router={router} />);

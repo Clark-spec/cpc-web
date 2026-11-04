@@ -1,7 +1,6 @@
 import { createInitialOffices, createInitialState, mockHistory, officeSignerNames } from "../data/mockClearance";
 import { createDemoSignature } from "../lib/demoSignature";
 import type {
-  AppNotification,
   ClearanceState,
   OfficeId,
   OfficeSignature,
@@ -267,43 +266,4 @@ export async function resetClearance(): Promise<ClearanceState> {
     // Ignore storage failures.
   }
   return wait(createInitialState(), WRITE_DELAY);
-}
-
-/** Reads persisted notifications, newest first. */
-export async function getNotifications(): Promise<AppNotification[]> {
-  try {
-    const raw = window.localStorage.getItem(NOTIFICATIONS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
-        return wait(
-          parsed
-            .filter(
-              (item): item is AppNotification =>
-                typeof item === "object" &&
-                item !== null &&
-                typeof (item as AppNotification).message === "string" &&
-                typeof (item as AppNotification).createdAt === "string",
-            )
-            .sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-            )
-            .slice(0, 30),
-          READ_DELAY,
-        );
-      }
-    }
-  } catch {
-    // Corrupt notifications: start empty.
-  }
-  return wait([], READ_DELAY);
-}
-
-/** Persists the notification list (staff-side events will reuse this shape). */
-export async function saveNotifications(notifications: AppNotification[]): Promise<void> {
-  try {
-    window.localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications.slice(0, 30)));
-  } catch {
-    // Ignore storage failures.
-  }
 }

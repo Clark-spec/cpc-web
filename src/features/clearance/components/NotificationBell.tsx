@@ -4,7 +4,20 @@ import { cn } from "@/lib/cn";
 import { useClearance } from "../context/ClearanceContext";
 import { useNotifications } from "../context/NotificationContext";
 import { formatRelativeTime } from "../lib/format";
-import type { AppNotification } from "../types";
+import type { AppNotification, OfficeId } from "../types";
+
+const OFFICE_IDS: OfficeId[] = [
+  "instructor",
+  "dean",
+  "library",
+  "registrar",
+  "accounting",
+  "sao",
+];
+
+function isOfficeId(value: string | undefined): value is OfficeId {
+  return value !== undefined && OFFICE_IDS.includes(value as OfficeId);
+}
 
 const typeIcons = {
   info: Info,
@@ -51,7 +64,7 @@ export function NotificationBell() {
 
   function handleNotificationClick(notification: AppNotification) {
     markRead(notification.id);
-    if (notification.officeId) {
+    if (isOfficeId(notification.officeId)) {
       focusOffice(notification.officeId);
     }
     setOpen(false);
