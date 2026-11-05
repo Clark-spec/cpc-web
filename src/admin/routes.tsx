@@ -1,50 +1,43 @@
-import type { ReactNode } from "react";
-import { Navigate } from "react-router";
-import { ToastProvider } from "@/components/ui/toast";
-import { AdminLayout } from "./AdminLayout";
-import { AdminAuthProvider, useAdminAuth } from "./context/AdminAuthContext";
-import { AdminDataProvider } from "./context/AdminDataContext";
-import { SidebarProvider } from "./context/SidebarContext";
-import AdminLoginPage from "./pages/AdminLoginPage";
-
-/** Sends unauthenticated staff to the mock login screen. */
-export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAdminAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
-  }
-
-  return <>{children}</>;
-}
-
-/** /admin/login route element (auth provider + toasts for the sign-in feedback). */
-export function AdminLoginRoute() {
-  return (
-    <AdminAuthProvider>
-      <ToastProvider>
-        <AdminLoginPage />
-      </ToastProvider>
-    </AdminAuthProvider>
-  );
-}
+import { Navigate, Route } from "react-router";
+import { AdminLoginRoute, AdminShell } from "@/admin/layout/AdminShell";
+import ClearanceAdminPage from "@/admin/features/clearance/ClearanceAdminPage";
+import ComingSoonPage from "@/admin/pages/ComingSoonPage";
+import DashboardPage from "@/admin/pages/DashboardPage";
+import EnrollmentApplicationsPage from "@/admin/pages/EnrollmentApplicationsPage";
+import ServiceRequestManagementPage from "@/admin/pages/ServiceRequestsPage";
 
 /**
- * Protected shell. Providers are ordered so the layout can read the session
- * (auth), show toasts, persist the sidebar state, and share live data.
+ * The staff portal's own route subtree, mounted by `@/app/routes`.
+ * Kept as JSX children rather than a component so react-router's
+ * `createRoutesFromChildren` still traverses the `<Route>` elements.
  */
-export function AdminShell() {
-  return (
-    <AdminAuthProvider>
-      <RequireAdmin>
-        <ToastProvider>
-          <SidebarProvider>
-            <AdminDataProvider>
-              <AdminLayout />
-            </AdminDataProvider>
-          </SidebarProvider>
-        </ToastProvider>
-      </RequireAdmin>
-    </AdminAuthProvider>
-  );
-}
+export const AdminRouteElements = (
+  <>
+    {/* Admin / staff portal. */}
+    <Route path="/admin/login" element={<AdminLoginRoute />} />
+    <Route path="/admin" element={<AdminShell />}>
+      <Route index element={<Navigate to="dashboard" replace />} />
+      <Route path="dashboard" element={<DashboardPage />} />
+      <Route path="clearance-requests" element={<ClearanceAdminPage />} />
+      <Route
+        path="enrollment/applications"
+        element={<EnrollmentApplicationsPage view="all" />}
+      />
+      <Route
+        path="enrollment/for-review"
+        element={<EnrollmentApplicationsPage view="for-review" />}
+      />
+      <Route
+        path="enrollment/approved"
+        element={<EnrollmentApplicationsPage view="approved" />}
+      />
+      <Route
+        path="enrollment/needs-requirements"
+        element={<EnrollmentApplicationsPage view="needs-requirements" />}
+      />
+      <Route path="service-requests" element={<ServiceRequestManagementPage />} />
+      {/* Every other sidebar destination renders the shared placeholder. */}
+      <Route path="*" element={<ComingSoonPage />} />
+    </Route>
+  </>
+);
