@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-2 border-t border-cpc-tile-border/60 px-3 py-3">
+              <div className="grid grid-cols-1 gap-2 border-t border-cpc-tile-border/60 px-3 py-3 sm:grid-cols-3">
                 <div className="rounded-lg bg-emerald-50 px-2 py-2 text-center">
                   <CheckCircle2 className="mx-auto h-3.5 w-3.5 text-emerald-600" aria-hidden />
                   <p className="mt-1 font-poppins text-base font-bold text-emerald-700 tabular-nums">

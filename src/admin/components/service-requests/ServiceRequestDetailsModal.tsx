@@ -75,7 +75,7 @@ export function ServiceRequestDetailsModal({
           </p>
         )}
 
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+        <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
           {[
             { label: "Service Requested", value: request.service },
             { label: "Category", value: request.category },

@@ -83,7 +83,7 @@ export function EnrollmentDetailsModal({
       </div>
 
       <div className="space-y-4 px-5 py-4">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+        <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
           {[
             { label: "Program", value: application.program },
             { label: "Year Level", value: application.yearLevel },

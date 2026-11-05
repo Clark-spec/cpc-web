@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Loader2, ShieldCheck, X, XCircle } from "lucide-react";
 import { ConfirmDialog } from "@/admin/components/Modal";
 import { Modal } from "@/components/ui/modal";
@@ -34,6 +34,24 @@ export function BulkActionBar() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const [reserve, setReserve] = useState(0);
+  const hasSelection = checkedIds.length > 0;
+
+  /*
+   * The bar floats at the bottom of the viewport, so an in-flow spacer the same
+   * height is rendered under the queue. Without it the last rows and the
+   * pagination footer stay underneath the bar with no way to scroll clear.
+   */
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!hasSelection || !bar) return;
+    const observer = new ResizeObserver(() => {
+      setReserve(Math.ceil(bar.getBoundingClientRect().height));
+    });
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [hasSelection]);
 
   const selectedRows = useMemo(
     () => rows.filter((row) => checkedIds.includes(row.id)),
@@ -56,12 +74,14 @@ export function BulkActionBar() {
     [actionable, records, staff.name],
   );
 
-  if (checkedIds.length === 0) return null;
+  if (!hasSelection) return null;
 
   const blocker = !defaultSignature
     ? "Save a signature first to bulk approve."
     : issueCount > 0
-      ? `${issueCount} selected request${issueCount === 1 ? "" : "s"} have unresolved issues — review them individually.`
+      ? issueCount === 1
+        ? "1 selected request has unresolved issues — review it individually."
+        : `${issueCount} selected requests have unresolved issues — review them individually.`
       : null;
 
   const exportSelected = () => {
@@ -79,7 +99,10 @@ export function BulkActionBar() {
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:justify-start sm:p-4 sm:pr-[27rem] print:hidden">
+      <div
+        ref={barRef}
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:justify-start sm:p-4 xl:pr-[29rem] print:hidden"
+      >
         <section
           aria-label="Bulk actions for selected requests"
           className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-cpc-tile-border/70 bg-white p-3 shadow-[0_24px_80px_rgba(15,36,104,0.35)]"
@@ -193,6 +216,8 @@ export function BulkActionBar() {
           busy={busy}
         />
       </Modal>
+
+      <div aria-hidden className="pointer-events-none" style={{ height: reserve }} />
     </>
   );
 }

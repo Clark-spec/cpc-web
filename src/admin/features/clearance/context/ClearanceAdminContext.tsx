@@ -16,6 +16,7 @@ import { useAdminData } from "@/admin/context/AdminDataContext";
 import { ADMIN_USERS } from "@/admin/config/navigation";
 import {
   DEFAULT_FILTERS,
+  filterAndSortRows,
   filtersFromParams,
   paramsFromFilters,
   useClearanceQueue,
@@ -92,6 +93,29 @@ function rowForStudent(
     owned[0] ??
     null
   );
+}
+
+/**
+ * A notification link is a request to *see* one row, so the view is widened
+ * enough to hold it: a status or office tab that would hide the target gives
+ * way to "all", and the page jumps to wherever the row actually lands.
+ */
+function focusRow(
+  current: QueueFilters,
+  rows: ClearanceRequestRow[],
+  target: ClearanceRequestRow,
+): QueueFilters {
+  const widened: QueueFilters = {
+    ...current,
+    status: current.status === "all" || current.status === target.status ? current.status : "all",
+    office: current.office === "all" || current.office === target.office ? current.office : "all",
+    page: 1,
+  };
+
+  const index = filterAndSortRows(rows, widened).findIndex((row) => row.id === target.id);
+  if (index < 0) return widened;
+
+  return { ...widened, page: Math.floor(index / widened.pageSize) + 1 };
 }
 
 /**
@@ -176,6 +200,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
           if (row) {
             setSelectedId(row.id);
             deepLink.current = null;
+            setFiltersState((current) => focusRow(current, scoped, row));
           }
         }
       } catch {

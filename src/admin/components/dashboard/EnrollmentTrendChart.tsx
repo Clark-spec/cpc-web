@@ -66,7 +66,7 @@ export function EnrollmentTrendChart({ data }: EnrollmentTrendChartProps) {
               tick={AXIS_TICK}
               tickLine={false}
               axisLine={{ stroke: "#D8E3F5" }}
-              interval={0}
+              minTickGap={8}
               padding={{ left: 4, right: 4 }}
             />
             <YAxis

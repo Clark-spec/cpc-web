@@ -1,11 +1,12 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import { formatEnrollmentDateTime } from "../lib/format";
 import { NextStepsList } from "./NextStepsList";
 
 /** Success receipt: reference number, submission time, next steps, and actions. */
 export function SubmissionReceiptCard() {
-  const referenceNumber = "ENR2026-" + Math.floor(Math.random() * 90000 + 10000);
-  const submissionDate = formatEnrollmentDateTime(new Date());
+  const [referenceNumber] = useState(() => "ENR2026-" + Math.floor(Math.random() * 90000 + 10000));
+  const [submissionDate] = useState(() => formatEnrollmentDateTime(new Date()));
 
   return (
     <div className="enroll-card p-8 text-center">

@@ -104,7 +104,7 @@ export function QueueToolbar({ searchInputRef }: QueueToolbarProps) {
 
         <fieldset className="min-w-0 lg:col-span-3">
           <legend className={LABEL_BASE}>Request date</legend>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <label className="sr-only" htmlFor="queue-from">
               From date
             </label>
@@ -114,7 +114,7 @@ export function QueueToolbar({ searchInputRef }: QueueToolbarProps) {
               value={filters.from}
               max={filters.to || undefined}
               onChange={(event) => setFilter("from", event.target.value)}
-              className={cn(FIELD_BASE, "min-w-0")}
+              className={cn(FIELD_BASE, "min-w-[9.5rem] flex-1")}
             />
             <span aria-hidden className="font-poppins text-xs text-cpc-heading-soft">
               –
@@ -128,7 +128,7 @@ export function QueueToolbar({ searchInputRef }: QueueToolbarProps) {
               value={filters.to}
               min={filters.from || undefined}
               onChange={(event) => setFilter("to", event.target.value)}
-              className={cn(FIELD_BASE, "min-w-0")}
+              className={cn(FIELD_BASE, "min-w-[9.5rem] flex-1")}
             />
           </div>
         </fieldset>

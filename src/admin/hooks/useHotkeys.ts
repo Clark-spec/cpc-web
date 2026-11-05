@@ -28,16 +28,23 @@ export function useHotkeys(
         target?.tagName === "SELECT" ||
         target?.isContentEditable === true;
 
+      const symbolKey = event.key.toLowerCase();
       const combo = [
         event.ctrlKey || event.metaKey ? "ctrl" : "",
         event.shiftKey ? "shift" : "",
         event.altKey ? "alt" : "",
-        event.key.toLowerCase(),
+        symbolKey,
       ]
         .filter(Boolean)
         .join("+");
 
-      const handler = bindingsRef.current[combo];
+      // Shift makes symbols (e.g. "?" from Shift+/), but callers bind the
+      // character itself, so a shifted combo falls back to the bare key.
+      const handler =
+        bindingsRef.current[combo] ??
+        (event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey
+          ? bindingsRef.current[symbolKey]
+          : undefined);
       if (!handler) return;
 
       // Plain letters should not hijack typing.

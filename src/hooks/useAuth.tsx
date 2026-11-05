@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
+/* eslint-disable react-refresh/only-export-components -- provider + hook intentionally share a module */
+import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import { navigate } from "@/lib/router";
 
@@ -25,21 +26,23 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const USER_STORAGE_KEY = "cpc_user";
 
-  useEffect(() => {
-    const storedUser = sessionStorage.getItem("cpc_user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        sessionStorage.removeItem("cpc_user");
-      }
-    }
-    setIsLoading(false);
-  }, []);
+/** Reads the session once, before the first render, so no state update is needed on mount. */
+function readStoredUser(): User | null {
+  const storedUser = sessionStorage.getItem(USER_STORAGE_KEY);
+  if (!storedUser) return null;
+  try {
+    return JSON.parse(storedUser) as User;
+  } catch {
+    sessionStorage.removeItem(USER_STORAGE_KEY);
+    return null;
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(readStoredUser);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (credentials: { id: string; password: string; role: UserRole }) => {
     setIsLoading(true);

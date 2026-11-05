@@ -15,7 +15,6 @@ import StaffLoginPage from "@/pages/auth/staff";
 import { AdminLoginRoute, AdminShell } from "@/admin/routes";
 import DashboardPage from "@/admin/pages/DashboardPage";
 import ClearanceAdminPage from "@/admin/features/clearance/ClearanceAdminPage";
-import ClearanceRequestsPage from "@/admin/pages/ClearanceRequestsPage";
 import EnrollmentApplicationsPage from "@/admin/pages/EnrollmentApplicationsPage";
 import ServiceRequestManagementPage from "@/admin/pages/ServiceRequestsPage";
 import ComingSoonPage from "@/admin/pages/ComingSoonPage";
@@ -55,7 +54,6 @@ export function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="clearance-requests" element={<ClearanceAdminPage />} />
-        <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
         <Route
           path="enrollment/applications"
           element={<EnrollmentApplicationsPage view="all" />}

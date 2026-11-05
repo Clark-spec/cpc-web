@@ -185,7 +185,7 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
             </span>
           </div>
 
-          <div className="grid gap-3.5 xl:grid-cols-3">
+          <div className="grid items-start gap-3.5 xl:grid-cols-3">
             <DashboardPanel
               className="xl:col-span-2"
               title="Enrollment Trends"
@@ -231,7 +231,7 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
       />
 
       {view === "all" && (
-        <div className="grid gap-3.5 xl:grid-cols-3">
+        <div className="grid items-start gap-3.5 xl:grid-cols-3">
           <DashboardPanel
             className="xl:col-span-2"
             title="Recent Enrollment Activity"

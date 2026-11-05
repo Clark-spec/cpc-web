@@ -126,7 +126,10 @@ export function ClearanceWorkspace() {
         <ErrorCard message={error} onRetry={() => void refresh()} />
       ) : (
         <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
-          <section aria-label="Request queue" className="min-w-0 xl:col-span-7">
+          <section
+            aria-label="Request queue"
+            className="min-w-0 xl:col-span-7 2xl:col-span-8"
+          >
             {filters.view === "board" ? (
               <QueueBoard onSelect={openPanel} onSign={handleSign} onReject={handleReject} />
             ) : (
@@ -134,7 +137,11 @@ export function ClearanceWorkspace() {
             )}
           </section>
 
-          <aside role="complementary" aria-label="Student review" className="hidden xl:col-span-5 xl:block">
+          <aside
+            role="complementary"
+            aria-label="Student review"
+            className="hidden xl:col-span-5 xl:block 2xl:col-span-4"
+          >
             <div className="sticky top-24">
               <StudentReviewPanel
                 onSign={handleSign}

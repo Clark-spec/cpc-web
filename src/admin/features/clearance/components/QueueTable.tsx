@@ -24,7 +24,8 @@ const PAGE_SIZES = [10, 25, 50];
  * Table view of the queue (spec §3): semantic table with a sticky light-blue
  * header, internal horizontal scroll (`admin-scrollbar`) so the page itself
  * never scrolls sideways, keyboard row navigation via QueueRow, and a
- * pagination footer wired to `setFilter("page" | "pageSize")`.
+ * pagination footer wired to `setFilter("page" | "pageSize")`. The student
+ * note takes a column only at 2xl, where the queue is wide enough for it.
  */
 export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
   const {
@@ -68,7 +69,7 @@ export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
             <table
               className={cn(
                 "w-full border-collapse",
-                isSuperAdmin ? "min-w-[880px]" : "min-w-[800px]",
+                isSuperAdmin ? "min-w-[660px]" : "min-w-[580px]",
               )}
             >
               <caption className="sr-only">
@@ -104,7 +105,10 @@ export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
                   <th scope="col" className={cn(HEADER_CELL, "text-left")}>
                     Requested
                   </th>
-                  <th scope="col" className={cn(HEADER_CELL, "text-left")}>
+                  <th
+                    scope="col"
+                    className={cn(HEADER_CELL, "text-left", "hidden 2xl:table-cell")}
+                  >
                     Note
                   </th>
                   <th scope="col" className={cn(HEADER_CELL, "text-left")}>

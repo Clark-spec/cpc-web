@@ -110,6 +110,33 @@ function withinRange(row: ClearanceRequestRow, from: string, to: string): boolea
  * (3) The queue is derived from the shared records and filtered here; nothing
  * about filtering is persisted, so two staff members never fight over one view.
  */
+export function filterAndSortRows(
+  rows: ClearanceRequestRow[],
+  filters: QueueFilters,
+): ClearanceRequestRow[] {
+  const term = filters.query.trim().toLowerCase();
+
+  const matched = rows.filter((row) => {
+    if (filters.office !== "all" && row.office !== filters.office) return false;
+    if (filters.status !== "all" && row.status !== filters.status) return false;
+    if (filters.section !== "all" && row.section !== filters.section) return false;
+    if (filters.overdueOnly && !row.isOverdue) return false;
+    if (filters.withNotesOnly && !row.studentNote) return false;
+    if (!withinRange(row, filters.from, filters.to)) return false;
+    if (term && !matchesQuery(row, term)) return false;
+    return true;
+  });
+
+  const byAnchor = (row: ClearanceRequestRow) =>
+    Date.parse(row.requestedAt ?? row.respondedAt ?? "") || 0;
+
+  return matched.sort((a, b) => {
+    if (filters.sort === "name") return a.studentName.localeCompare(b.studentName);
+    const delta = byAnchor(a) - byAnchor(b);
+    return filters.sort === "newest" ? -delta : delta;
+  });
+}
+
 export function useClearanceQueue(
   rows: ClearanceRequestRow[],
   filters: QueueFilters,
@@ -125,29 +152,10 @@ export function useClearanceQueue(
     [rows],
   );
 
-  const visibleRows = useMemo(() => {
-    const term = filters.query.trim().toLowerCase();
-
-    const matched = rows.filter((row) => {
-      if (filters.office !== "all" && row.office !== filters.office) return false;
-      if (filters.status !== "all" && row.status !== filters.status) return false;
-      if (filters.section !== "all" && row.section !== filters.section) return false;
-      if (filters.overdueOnly && !row.isOverdue) return false;
-      if (filters.withNotesOnly && !row.studentNote) return false;
-      if (!withinRange(row, filters.from, filters.to)) return false;
-      if (term && !matchesQuery(row, term)) return false;
-      return true;
-    });
-
-    const byAnchor = (row: ClearanceRequestRow) =>
-      Date.parse(row.requestedAt ?? row.respondedAt ?? "") || 0;
-
-    return matched.sort((a, b) => {
-      if (filters.sort === "name") return a.studentName.localeCompare(b.studentName);
-      const delta = byAnchor(a) - byAnchor(b);
-      return filters.sort === "newest" ? -delta : delta;
-    });
-  }, [rows, filters]);
+  const visibleRows = useMemo(
+    () => filterAndSortRows(rows, filters),
+    [rows, filters],
+  );
 
   const totalPages = Math.max(
     1,

@@ -93,7 +93,7 @@ export function TopBar({ onOpenSearch }: TopBarProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 border-b bg-white/95 backdrop-blur transition-shadow",
+        "sticky top-0 z-30 border-b bg-white transition-shadow",
         scrolled
           ? "border-cpc-tile-border/80 shadow-[0_6px_20px_rgba(15,36,104,0.08)]"
           : "border-transparent",

@@ -58,6 +58,8 @@ export function useEnrollment() {
     };
   });
 
+  const { personalInfo, course, yearLevel, subjects, requirements } = state;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -73,7 +75,10 @@ export function useEnrollment() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [state.personalInfo, state.course, state.yearLevel, state.subjects, state.requirements]);
+    // The form fields are the trigger; `state` also carries isSaved/lastSaved,
+    // which this effect writes, so depending on `state` would loop forever.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personalInfo, course, yearLevel, subjects, requirements]);
 
   const updatePersonalInfo = useCallback((updates: Partial<PersonalInfo>) => {
     setState((prev) => ({

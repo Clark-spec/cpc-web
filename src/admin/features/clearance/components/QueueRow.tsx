@@ -53,6 +53,7 @@ export function QueueRow({
   index,
 }: QueueRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpensUp, setMenuOpensUp] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const actionable = row.status === "requested";
@@ -107,6 +108,22 @@ export function QueueRow({
     }
   }
 
+  /**
+   * The quick-action menu lives inside the table's scroll box, so it flips
+   * above the trigger when the row sits too close to the box's bottom edge —
+   * otherwise the Sign/Reject items would be clipped off-screen.
+   */
+  function toggleMenu() {
+    const trigger = triggerRef.current;
+    const box = trigger?.closest<HTMLElement>(".admin-scrollbar");
+
+    if (trigger && box) {
+      const roomBelow = box.getBoundingClientRect().bottom - trigger.getBoundingClientRect().bottom;
+      setMenuOpensUp(roomBelow < 150);
+    }
+    setMenuOpen((open) => !open);
+  }
+
   return (
     <tr
       data-row-index={index}
@@ -150,7 +167,7 @@ export function QueueRow({
 
       <td className={cn(CELL, "whitespace-nowrap")}>
         <p className="font-poppins text-[11px] text-cpc-navy-text">{row.section}</p>
-        <p className="truncate font-poppins text-[10px] text-cpc-heading-soft" title={row.program}>
+        <p className="max-w-[8rem] truncate font-poppins text-[10px] text-cpc-heading-soft" title={row.program}>
           {row.program}
         </p>
       </td>
@@ -177,7 +194,7 @@ export function QueueRow({
         )}
       </td>
 
-      <td className={cn(CELL, "max-w-[180px]")}>
+      <td className={cn(CELL, "max-w-[180px]", "hidden 2xl:table-cell")}>
         {row.studentNote ? (
           <span className="flex min-w-0 items-center gap-1.5">
             <StickyNote className="h-3.5 w-3.5 shrink-0 text-cpc-muted-blue" aria-hidden />
@@ -214,7 +231,7 @@ export function QueueRow({
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-label={`Quick actions for ${row.studentName}`}
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={toggleMenu}
           className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white p-1.5 text-cpc-blue-accent transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
         >
           <MoreVertical className="h-4 w-4" aria-hidden />
@@ -225,7 +242,10 @@ export function QueueRow({
             ref={menuRef}
             role="menu"
             aria-label={`Quick actions for ${row.studentName}`}
-            className="absolute top-full right-3 z-20 w-40 rounded-xl border border-cpc-tile-border/70 bg-white p-1 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+            className={cn(
+              "absolute right-3 z-20 w-40 rounded-xl border border-cpc-tile-border/70 bg-white p-1 shadow-[0_18px_50px_rgba(15,36,104,0.22)]",
+              menuOpensUp ? "bottom-full" : "top-full",
+            )}
           >
             <button
               type="button"

@@ -41,41 +41,45 @@ export function EnrollmentChart({ rows }: EnrollmentChartProps) {
 
   return (
     <figure className="m-0">
-      <div aria-hidden className="h-48 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e9f5" vertical={false} />
-            <XAxis
-              dataKey="name"
-              tick={{ fill: "#475da0", fontSize: 10, fontFamily: "Poppins, sans-serif" }}
-              tickLine={false}
-              axisLine={{ stroke: "#e0e4f2" }}
-              interval={0}
-            />
-            <YAxis
-              tick={{ fill: "#475da0", fontSize: 10, fontFamily: "Poppins, sans-serif" }}
-              tickLine={false}
-              axisLine={false}
-              width={40}
-            />
-            <Tooltip
-              cursor={{ fill: "rgba(43, 75, 209, 0.06)" }}
-              contentStyle={{
-                borderRadius: 10,
-                border: "1px solid #aebbea",
-                fontFamily: "Poppins, sans-serif",
-                fontSize: 12,
-                color: "#1b2f9e",
-              }}
-              formatter={(value) => [String(value), "Applications"]}
-            />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={44}>
-              {data.map((entry) => (
-                <Cell key={entry.status} fill={COLORS[entry.status]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      {/* The chart scrolls inside the card, so the four pipeline labels never
+          overlap each other in a phone-width column. */}
+      <div className="overflow-x-auto overscroll-x-contain">
+        <div aria-hidden className="h-48 w-full min-w-[440px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e9f5" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: "#475da0", fontSize: 10, fontFamily: "Poppins, sans-serif" }}
+                tickLine={false}
+                axisLine={{ stroke: "#e0e4f2" }}
+                interval={0}
+              />
+              <YAxis
+                tick={{ fill: "#475da0", fontSize: 10, fontFamily: "Poppins, sans-serif" }}
+                tickLine={false}
+                axisLine={false}
+                width={40}
+              />
+              <Tooltip
+                cursor={{ fill: "rgba(43, 75, 209, 0.06)" }}
+                contentStyle={{
+                  borderRadius: 10,
+                  border: "1px solid #aebbea",
+                  fontFamily: "Poppins, sans-serif",
+                  fontSize: 12,
+                  color: "#1b2f9e",
+                }}
+                formatter={(value) => [String(value), "Applications"]}
+              />
+              <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={44}>
+                {data.map((entry) => (
+                  <Cell key={entry.status} fill={COLORS[entry.status]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <figcaption className="mt-2 font-poppins text-[11px] leading-relaxed text-cpc-heading-soft">
