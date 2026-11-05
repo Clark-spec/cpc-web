@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
-import type { OfficeSignature, StudentProfile } from "../types";
-import { formatDate, formatDateTime } from "./format";
+import type { OfficeSignature, StudentProfile } from "@/shared/clearance/types";
+import { formatDate, formatDateTime } from "@/shared/clearance/utils/format";
 
 type SlipOptions = {
   student: StudentProfile;

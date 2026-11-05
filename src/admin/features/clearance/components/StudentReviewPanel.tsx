@@ -15,7 +15,7 @@ import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { StudentQuickViewDrawer } from "@/admin/components/StudentQuickViewDrawer";
 import type { ActivityStudent } from "@/admin/types";
-import { formatDate } from "@/student/features/clearance/utils/format";
+import { formatDate } from "@/shared/clearance/utils/format";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { OFFICE_LABELS } from "../utils/officeChecks";
 import { formatAge, overdueLabel } from "../utils/sla";

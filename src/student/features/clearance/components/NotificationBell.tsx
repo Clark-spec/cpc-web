@@ -1,8 +1,8 @@
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { NotificationBell as SharedNotificationBell } from "@/components/common/notification-bell";
 import { useClearance } from "../context/ClearanceContext";
-import { formatRelativeTime } from "../utils/format";
-import type { AppNotification, OfficeId } from "../types";
+import { formatRelativeTime } from "@/shared/clearance/utils/format";
+import type { AppNotification, OfficeId } from "@/shared/clearance/types";
 
 const OFFICE_IDS: OfficeId[] = [
   "instructor",

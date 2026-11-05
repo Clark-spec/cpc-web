@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { NotificationProvider as PortalNotificationProvider } from "@/shared/context/NotificationContext";
 
-import { CLEARANCE_NOTIFICATIONS_KEY as STUDENT_NOTIFICATIONS_KEY } from "../services/clearanceService";
+import { CLEARANCE_NOTIFICATIONS_KEY as STUDENT_NOTIFICATIONS_KEY } from "@/shared/clearance/services/clearanceService";
 
 /**
  * (1) The staff portal writes decisions into `cpc:notifications:{studentId}`,

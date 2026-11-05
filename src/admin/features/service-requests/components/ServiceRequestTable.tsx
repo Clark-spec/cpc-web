@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/student/features/clearance/utils/format";
+import { formatDateTime } from "@/shared/clearance/utils/format";
 import { EmptyState } from "../../../components/EmptyState";
 import {
   ServicePaymentBadge,

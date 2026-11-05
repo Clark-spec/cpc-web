@@ -9,7 +9,7 @@ import {
   Info,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatRelativeTime } from "@/student/features/clearance/utils/format";
+import { formatRelativeTime } from "@/shared/clearance/utils/format";
 import { useAdminData } from "../context/AdminDataContext";
 import { useClickOutside } from "../hooks/useClickOutside";
 import type { AdminNotification } from "../types";

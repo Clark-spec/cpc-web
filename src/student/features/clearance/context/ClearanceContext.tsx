@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useToast } from "@/components/ui/toast";
-import { createInitialState, mockStudent } from "../data/mockClearance";
+import { createInitialState, mockStudent } from "@/shared/clearance/data/mockClearance";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   cancelRequest as cancelRequestService,
@@ -22,7 +22,7 @@ import {
   requestSignature as requestSignatureService,
   requestSignatures as requestSignaturesService,
   resetClearance as resetClearanceService,
-} from "../services/clearanceService";
+} from "@/shared/clearance/services/clearanceService";
 import { useNotifications } from "./NotificationContext";
 import type {
   ClearanceHistoryItem,
@@ -30,7 +30,7 @@ import type {
   OfficeId,
   OfficeSignature,
   StudentProfile,
-} from "../types";
+} from "@/shared/clearance/types";
 
 type ClearanceContextValue = {
   student: StudentProfile;

@@ -38,7 +38,7 @@ import {
   Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { OfficeId } from "@/student/features/clearance/types";
+import type { OfficeId } from "@/shared/clearance/types";
 import type { AdminBadgeKey, AdminRole, AdminUser } from "../types";
 
 export type NavLeaf = {

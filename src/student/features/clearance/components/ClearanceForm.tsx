@@ -1,9 +1,9 @@
 import cpcLogo from "@/assets/cpc-logo.jpg";
-import { EventsTable } from "./EventsTable";
-import { SubjectsTable } from "./SubjectsTable";
+import { EventsTable } from "@/shared/clearance/components/EventsTable";
+import { SubjectsTable } from "@/shared/clearance/components/SubjectsTable";
 import { useClearance } from "../context/ClearanceContext";
-import { mockEvents, mockSubjects } from "../data/mockClearance";
-import { formatDate } from "../utils/format";
+import { mockEvents, mockSubjects } from "@/shared/clearance/data/mockClearance";
+import { formatDate } from "@/shared/clearance/utils/format";
 
 function ReadOnlyCheck({ label, checked }: { label: string; checked: boolean }) {
   return (

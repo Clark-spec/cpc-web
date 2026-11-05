@@ -2,7 +2,7 @@ import type {
   ClearanceRecord,
   ClearanceRequestRow,
   RequestStatus,
-} from "@/student/features/clearance/types";
+} from "@/shared/clearance/types";
 import {
   deriveRows,
   readPeriod,

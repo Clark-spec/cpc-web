@@ -22,7 +22,7 @@ import { RecentActivityTable } from "@/admin/features/dashboard/components/Recen
 import { StudentQuickViewDrawer } from "../components/StudentQuickViewDrawer";
 import { useAdminAuth } from "../context/AdminAuthContext";
 import { useAdminData } from "../context/AdminDataContext";
-import { formatDateTime } from "@/student/features/clearance/utils/format";
+import { formatDateTime } from "@/shared/clearance/utils/format";
 import type { ActivityStudent } from "../types";
 
 /** Route: /admin/dashboard */

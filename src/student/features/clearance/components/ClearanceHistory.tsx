@@ -3,9 +3,9 @@ import { CheckCircle2, ChevronDown, Download } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { useClearance } from "../context/ClearanceContext";
-import { formatDate } from "../utils/format";
+import { formatDate } from "@/shared/clearance/utils/format";
 import { downloadClearanceSlip } from "../utils/clearancePdf";
-import type { ClearanceHistoryItem } from "../types";
+import type { ClearanceHistoryItem } from "@/shared/clearance/types";
 
 const SEMESTER_FILTERS = ["All semesters", "1st Semester", "2nd Semester"] as const;
 type SemesterFilter = (typeof SEMESTER_FILTERS)[number];

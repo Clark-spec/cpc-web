@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { AlertTriangle, CheckCircle2, Clock3, Eye, X, XCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
-import { formatDateTime } from "@/student/features/clearance/utils/format";
+import { formatDateTime } from "@/shared/clearance/utils/format";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import type { OfficeSignature } from "../types";
 

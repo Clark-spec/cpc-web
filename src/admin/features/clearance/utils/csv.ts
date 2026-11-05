@@ -1,4 +1,4 @@
-import type { ClearanceRequestRow } from "@/student/features/clearance/types";
+import type { ClearanceRequestRow } from "@/shared/clearance/types";
 import { OFFICE_LABELS } from "./officeChecks";
 import { formatAge } from "./sla";
 

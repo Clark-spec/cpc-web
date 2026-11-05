@@ -2,7 +2,7 @@
  * Staff-side Online Clearance module types.
  *
  * The student-facing record types are canonical in
- * `@/student/features/clearance/types` (both portals persist the same
+ * `@/shared/clearance/types` (both portals persist the same
  * `cpc:clearance:records` array); this file re-exports them so the module has
  * one import point, and adds the queue/filter/KPI shapes only staff see.
  */
@@ -23,7 +23,7 @@ export type {
   SaoEvent,
   Subject,
   TimelineEvent,
-} from "@/student/features/clearance/types";
+} from "@/shared/clearance/types";
 
 export type { AppNotification } from "@/shared/context/NotificationContext";
 
@@ -35,7 +35,7 @@ import type {
   OfficeId,
   SavedSignature,
   TimelineEvent,
-} from "@/student/features/clearance/types";
+} from "@/shared/clearance/types";
 
 /** "All Offices" is only selectable by the admin role. */
 export type OfficeFilter = OfficeId | "all";

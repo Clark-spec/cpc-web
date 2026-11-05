@@ -13,8 +13,8 @@ import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { RequestSignatureModal } from "./RequestSignatureModal";
 import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "../context/ClearanceContext";
-import { formatDateTime, formatRelativeTime } from "../utils/format";
-import type { OfficeSignature } from "../types";
+import { formatDateTime, formatRelativeTime } from "@/shared/clearance/utils/format";
+import type { OfficeSignature } from "@/shared/clearance/types";
 
 type OfficeSignatureCardProps = {
   office: OfficeSignature;

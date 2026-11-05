@@ -2,7 +2,7 @@ import type {
   ClearanceRecord,
   OfficeCheckItem,
   OfficeId,
-} from "@/student/features/clearance/types";
+} from "@/shared/clearance/types";
 
 /** Form 3 signature order — the same order the student page renders. */
 export const OFFICE_ORDER: OfficeId[] = [
