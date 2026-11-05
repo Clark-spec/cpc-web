@@ -6,7 +6,7 @@ import {
   ServicePaymentBadge,
   ServiceRequestStatusBadge,
 } from "./ServiceRequestStatusBadge";
-import type { AdminServiceRequest } from "../../data/serviceRequests";
+import type { AdminServiceRequest } from "../../../data/serviceRequests";
 
 type ServiceRequestDetailsModalProps = {
   request: AdminServiceRequest;

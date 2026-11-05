@@ -1,6 +1,6 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { ENROLLMENT_STATUS_LABELS } from "../../data/enrollmentApplications";
-import type { EnrollmentApplicationStatus } from "../../data/enrollmentApplications";
+import { ENROLLMENT_STATUS_LABELS } from "../../../data/enrollmentApplications";
+import type { EnrollmentApplicationStatus } from "../../../data/enrollmentApplications";
 
 type DonutSegment = {
   status: Extract<

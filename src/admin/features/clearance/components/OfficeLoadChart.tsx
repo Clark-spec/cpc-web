@@ -17,7 +17,7 @@ import type { OfficeId, OfficeLoad } from "../types";
 
 /**
  * Hex values are the ones already used by the dashboard chart
- * (`src/admin/components/dashboard/EnrollmentChart.tsx`) so the two portals
+ * (`src/admin/features/dashboard/components/EnrollmentChart.tsx`) so the two portals
  * stay one palette: amber = outstanding work, green = signed, and the grid /
  * tick / tooltip tokens match the precedent exactly.
  */

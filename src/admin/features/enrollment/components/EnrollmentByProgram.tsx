@@ -1,4 +1,4 @@
-import type { ProgramBreakdown } from "../../data/enrollmentApplications";
+import type { ProgramBreakdown } from "../../../data/enrollmentApplications";
 
 const BAR_COLORS = ["#102A83", "#2449A8", "#4785F5", "#8FB4F9"];
 

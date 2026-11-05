@@ -8,12 +8,12 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/student/features/clearance/utils/format";
-import { EmptyState } from "../EmptyState";
+import { EmptyState } from "../../../components/EmptyState";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentActivityEntry,
   type EnrollmentApplicationStatus,
-} from "../../data/enrollmentApplications";
+} from "../../../data/enrollmentApplications";
 
 const META: Record<
   EnrollmentApplicationStatus,

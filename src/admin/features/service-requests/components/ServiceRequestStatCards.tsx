@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock3, RefreshCw, Ticket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useCountUp } from "../../hooks/useCountUp";
-import type { getServiceRequestCounts } from "../../data/serviceRequests";
+import { useCountUp } from "../../../hooks/useCountUp";
+import type { getServiceRequestCounts } from "../../../data/serviceRequests";
 
 type Counts = ReturnType<typeof getServiceRequestCounts>;
 

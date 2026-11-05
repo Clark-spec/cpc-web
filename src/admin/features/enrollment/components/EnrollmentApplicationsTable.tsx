@@ -9,14 +9,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/student/features/clearance/utils/format";
-import { EmptyState } from "../EmptyState";
+import { EmptyState } from "../../../components/EmptyState";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplication,
   type EnrollmentApplicationStatus,
   type EnrollmentStatusFilter,
-} from "../../data/enrollmentApplications";
+} from "../../../data/enrollmentApplications";
 
 const PAGE_SIZE = 8;
 

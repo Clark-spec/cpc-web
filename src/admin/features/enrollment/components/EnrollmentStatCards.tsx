@@ -7,11 +7,11 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useCountUp } from "../../hooks/useCountUp";
+import { useCountUp } from "../../../hooks/useCountUp";
 import type {
   EnrollmentApplicationStatus,
   EnrollmentStatusFilter,
-} from "../../data/enrollmentApplications";
+} from "../../../data/enrollmentApplications";
 
 type CardConfig = {
   status: EnrollmentApplicationStatus;

@@ -7,7 +7,7 @@ import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplication,
-} from "../../data/enrollmentApplications";
+} from "../../../data/enrollmentApplications";
 
 type EnrollmentDetailsModalProps = {
   application: EnrollmentApplication;

@@ -9,8 +9,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { StatusBadge } from "../StatusBadge";
-import type { ActivityItem, ActivityStudent } from "../../types";
+import { StatusBadge } from "./StatusBadge";
+import type { ActivityItem, ActivityStudent } from "../types";
 
 type StudentQuickViewDrawerProps = {
   student: ActivityStudent | null;

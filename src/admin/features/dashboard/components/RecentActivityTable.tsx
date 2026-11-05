@@ -8,9 +8,9 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDateTime, formatRelativeTime } from "@/student/features/clearance/utils/format";
-import { StatusBadge } from "../StatusBadge";
-import { EmptyState } from "../EmptyState";
-import type { ActivityItem, ActivityStudent, ActivityType } from "../../types";
+import { StatusBadge } from "../../../components/StatusBadge";
+import { EmptyState } from "../../../components/EmptyState";
+import type { ActivityItem, ActivityStudent, ActivityType } from "../../../types";
 
 const TYPE_ICONS: Record<ActivityType, LucideIcon> = {
   enrollment: ClipboardList,

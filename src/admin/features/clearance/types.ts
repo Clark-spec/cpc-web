@@ -2,7 +2,7 @@
  * Staff-side Online Clearance module types.
  *
  * The student-facing record types are canonical in
- * `@/features/clearance/types` (both portals persist the same
+ * `@/student/features/clearance/types` (both portals persist the same
  * `cpc:clearance:records` array); this file re-exports them so the module has
  * one import point, and adds the queue/filter/KPI shapes only staff see.
  */
