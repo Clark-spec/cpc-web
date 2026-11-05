@@ -12,8 +12,10 @@ function prefersReducedMotion(): boolean {
  * curve. Respects `prefers-reduced-motion` by returning the target directly.
  */
 export function useCountUp(target: number, duration = 900): number {
-  const [value, setValue] = useState(target);
-  const previous = useRef(target);
+  // Start from zero so statistics count up once when the page loads, then
+  // animate between values whenever the underlying count changes.
+  const [value, setValue] = useState(() => (prefersReducedMotion() ? target : 0));
+  const previous = useRef(0);
   const reduced = prefersReducedMotion();
 
   useEffect(() => {
