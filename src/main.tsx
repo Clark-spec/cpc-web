@@ -15,6 +15,7 @@ import StaffLoginPage from "@/pages/auth/staff";
 import AdminLoginPage from "@/pages/auth/admin";
 import StudentHomePage from "@/pages/student/home";
 import ServiceRequestsPage from "@/pages/student/service-requests";
+import RequestStatusPage from "@/pages/student/request-status";
 import ClearancePage from "@/pages/student-services/online-clearance";
 import ClassSchedulesPage from "@/pages/academics/class-schedules";
 import AcademicCalendarPage from "@/pages/academics/academic-calendar";
@@ -50,6 +51,7 @@ export function AppRoutes() {
 
       {/* Student services */}
       <Route path="/student/service-requests" element={<ServiceRequestsPage />} />
+      <Route path="/student/request-status" element={<RequestStatusPage />} />
       {/* Student services. */}
       <Route path="/student-services/online-clearance" element={<ClearancePage />} />
 

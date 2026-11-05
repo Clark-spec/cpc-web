@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+import { ClipboardList } from "lucide-react";
 import type { ServiceRequest } from "@/services/serviceRequests";
 import { RequestTimeline } from "./RequestTimeline";
 import { StatusBadge } from "./StatusBadge";
@@ -36,10 +38,10 @@ export function RequestStatusCard({ request, loading, error, onRetry }: RequestS
             id="request-status-title"
             className="font-poppins text-[15px] font-semibold text-sr-text"
           >
-            Request Status
+            Track Status
           </h2>
           <p className="mt-1 truncate font-poppins text-[11px] leading-[17px] text-sr-muted">
-            {request ? `Latest request: ${request.service.name}` : "Track your latest request"}
+            {request ? `Latest request: ${request.service.name}` : "Follow your request progress"}
           </p>
         </div>
         {request && <StatusBadge status={request.status} label={request.statusLabel} />}
@@ -90,6 +92,16 @@ export function RequestStatusCard({ request, loading, error, onRetry }: RequestS
             </div>
           )}
         </>
+      )}
+
+      {!loading && (
+        <Link
+          to="/student/request-status"
+          className="sr-btn-primary mt-4 w-full transition-shadow hover:shadow-[0_6px_16px_rgba(25,60,154,0.22)]"
+        >
+          <ClipboardList className="h-4 w-4" aria-hidden />
+          View Request Status
+        </Link>
       )}
     </section>
   );

@@ -60,12 +60,53 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="m3.5 8.5 3 3 6-7" />
+    </svg>
+  );
+}
+
+function RequirementRow({ label, detail }: { label: string; detail: string }) {
+  return (
+    <li className="flex items-start gap-2">
+      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#E3F7EE] text-[#1E8A57]">
+        <CheckIcon className="h-2.5 w-2.5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block font-poppins text-[11.5px] leading-[16px] font-medium text-sr-text">
+          {label}
+        </span>
+        <span className="block truncate font-poppins text-[10px] leading-[14px] text-sr-muted">
+          {detail}
+        </span>
+      </span>
+    </li>
+  );
+}
+
 export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalProps) {
   const [request, setRequest] = useState<ServiceRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  const activeStage = request?.timeline.find((stage) => stage.state === "active") ?? null;
+  const officeRemarks =
+    request?.remarks?.trim() ||
+    activeStage?.description ||
+    "No remarks from the office yet.";
 
   useEffect(() => {
     let active = true;
@@ -126,7 +167,7 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
         role="dialog"
         aria-modal="true"
         aria-labelledby="request-details-title"
-        className="sr-card flex max-h-[90vh] w-full max-w-[520px] flex-col overflow-hidden"
+        className="sr-card flex max-h-[90vh] w-full max-w-[560px] flex-col overflow-hidden"
       >
         <div className="flex items-start justify-between gap-4 border-b border-sr-border px-5 py-4">
           <div>
@@ -182,9 +223,11 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
 
               <div className="grid grid-cols-2 gap-3">
                 <Detail label="Service" value={request.service.name} />
-                <Detail label="Number of Copies" value={String(request.copies)} />
+                <Detail label="Current Status" value={request.statusLabel} />
                 <Detail label="Purpose" value={request.purpose} />
+                <Detail label="Number of Copies" value={String(request.copies)} />
                 <Detail label="Date Submitted" value={formatDateTime(request.submittedAt)} />
+                <Detail label="Last Updated" value={formatDateTime(request.updatedAt)} />
               </div>
 
               {request.notes && (
@@ -200,7 +243,22 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
 
               <div>
                 <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
-                  Valid Student ID
+                  Requirements Submitted
+                </p>
+                <ul className="mt-1.5 grid gap-2 rounded-lg border border-sr-border bg-[#FBFDFF] px-3 py-2.5 sm:grid-cols-2">
+                  <RequirementRow label="Request details" detail="Service, purpose and copies" />
+                  <RequirementRow
+                    label="Valid student ID"
+                    detail={request.document.name || "Uploaded document"}
+                  />
+                  <RequirementRow label="Contact details" detail="From your student account" />
+                  <RequirementRow label="Submission" detail="Received by student services" />
+                </ul>
+              </div>
+
+              <div>
+                <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
+                  Uploaded Document
                 </p>
                 <div className="mt-1 flex items-center gap-3 rounded-lg border border-sr-border px-3 py-2.5">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sr-section text-sr-primary">
@@ -226,6 +284,15 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
                 {downloadError && (
                   <p className="mt-1 font-poppins text-[10px] text-sr-danger">{downloadError}</p>
                 )}
+              </div>
+
+              <div>
+                <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
+                  Office Remarks
+                </p>
+                <p className="mt-1 rounded-lg border border-sr-border bg-[#F8FAFF] px-3 py-2 font-poppins text-[11.5px] leading-[17px] text-sr-text">
+                  {officeRemarks}
+                </p>
               </div>
 
               <div>

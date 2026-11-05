@@ -201,7 +201,8 @@ function normalizeRequest(value: unknown): ServiceRequest {
         submitted: readString(raw.submitted_at, raw.submittedAt, raw.created_at),
         under_review: readString(raw.under_review_at, raw.reviewed_at, raw.review_started_at),
         processing: readString(raw.processing_at, raw.processed_at),
-        ready_for_release: readString(raw.ready_for_release_at, raw.ready_at, raw.released_at),
+        ready_for_release: readString(raw.ready_for_release_at, raw.ready_at),
+        released: readString(raw.released_at, raw.releasedAt),
       });
 
   return {
@@ -212,6 +213,7 @@ function normalizeRequest(value: unknown): ServiceRequest {
     copies: readNumber(raw.copies, raw.number_of_copies, raw.quantity) ?? 1,
     purpose,
     notes: readString(raw.notes, raw.additional_notes) ?? "",
+    remarks: readString(raw.remarks, raw.office_remarks, raw.admin_notes) ?? undefined,
     status,
     statusLabel,
     submittedAt,

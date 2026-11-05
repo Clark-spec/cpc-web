@@ -11,7 +11,7 @@ export type RequestStatus =
 export type StageState = "completed" | "active" | "pending";
 
 export type TimelineStage = {
-  key: Exclude<RequestStatus, "released" | "rejected">;
+  key: Exclude<RequestStatus, "rejected">;
   label: string;
   description: string;
   state: StageState;
@@ -36,6 +36,8 @@ export type ServiceRequest = {
   copies: number;
   purpose: string;
   notes: string;
+  /** Remarks from the handling office, when the backend exposes them. */
+  remarks?: string;
   status: RequestStatus;
   statusLabel: string;
   submittedAt: string;

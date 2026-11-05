@@ -59,6 +59,11 @@ function TimelineRow({ stage, last }: { stage: TimelineStage; last: boolean }) {
         <p className="mt-0.5 font-poppins text-[11px] leading-[16px] text-sr-muted">
           {stage.timestamp ? formatDateTime(stage.timestamp) : stage.description}
         </p>
+        {stage.state === "active" && stage.timestamp && stage.description && (
+          <p className="mt-0.5 font-poppins text-[10.5px] leading-[15px] text-sr-muted">
+            {stage.description}
+          </p>
+        )}
       </div>
     </li>
   );

@@ -137,6 +137,8 @@ function seedRequests(): ServiceRequest[] {
       copies: 1,
       purpose: "Scholarship Application",
       notes: "Please address the certificate to the scholarship committee.",
+      remarks:
+        "The certificate is being signed by the student services office. Please allow 2–3 working days before claiming it.",
       status: "processing",
       statusLabel: STATUS_LABELS.processing,
       submittedAt: daysAgo(7, 9, 15),
@@ -154,6 +156,8 @@ function seedRequests(): ServiceRequest[] {
       copies: 2,
       purpose: "Employment (Abroad)",
       notes: "",
+      remarks:
+        "Your Transcript of Records is ready for pickup at the Registrar's Office, window 3, from 8:00 AM to 5:00 PM.",
       status: "ready_for_release",
       statusLabel: STATUS_LABELS.ready_for_release,
       submittedAt: daysAgo(21, 13, 0),
@@ -173,16 +177,18 @@ function seedRequests(): ServiceRequest[] {
       copies: 1,
       purpose: "Personal Records",
       notes: "",
+      remarks: "Released to the student at the Registrar's Office.",
       status: "released",
       statusLabel: STATUS_LABELS.released,
       submittedAt: daysAgo(450, 10, 0),
-      updatedAt: daysAgo(447, 15, 20),
+      updatedAt: daysAgo(446, 9, 30),
       document: { name: "student-id.png", size: 184320, mime: "image/png" },
       timeline: buildTimeline("released", {
         submitted: daysAgo(450, 10, 0),
         under_review: daysAgo(450, 14, 30),
         processing: daysAgo(448, 9, 5),
         ready_for_release: daysAgo(447, 15, 20),
+        released: daysAgo(446, 9, 30),
       }),
     },
   ];

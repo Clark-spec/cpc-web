@@ -12,6 +12,7 @@ export const STAGE_ORDER: StageKey[] = [
   "under_review",
   "processing",
   "ready_for_release",
+  "released",
 ];
 
 export const STAGE_COPY: Record<StageKey, { label: string; description: string }> = {
@@ -30,6 +31,10 @@ export const STAGE_COPY: Record<StageKey, { label: string; description: string }
   ready_for_release: {
     label: "Ready for Release",
     description: "Waiting for document release",
+  },
+  released: {
+    label: "Released",
+    description: "Document released to the student.",
   },
 };
 

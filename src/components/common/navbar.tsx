@@ -36,13 +36,10 @@ const navItems: NavItem[] = [
   {
     label: "Academics",
     links: [
-<<<<<<< HEAD
+
+
       { label: "Class Schedules", to: "/academics/class-schedules" },
-      { label: "Academic Calendar", to: "#" },
-=======
-      { label: "Class Schedules", to: "#" },
       { label: "Academic Calendar", to: "/academics/academic-calendar" },
->>>>>>> f55728d854b88f955c1e9c1949dfb6350c39599a
       { label: "Grades / Academic Records", to: "#" },
     ],
   },
@@ -69,7 +66,7 @@ const navItems: NavItem[] = [
       { label: "Enrollment Status", to: "/online-enrollment/status" },
       { label: "Clearance Status", to: "/student-services/online-clearance" },
       { label: "Violations", to: "#" },
-      { label: "Scholarship Status", to: "#" },
+      { label: "Request Status", to: "/student/request-status" },
     ],
   },
 ];
