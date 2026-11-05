@@ -25,6 +25,22 @@
   --color-cpc-tile-border: #aebbea;
   --color-cpc-section-light: #eef3ff;
 
+  /* Admin enrollment dashboard palette. */
+  --color-admin-primary: #102a83;
+  --color-admin-navy: #0d2269;
+  --color-admin-secondary: #2449a8;
+  --color-admin-page: #f4f7fc;
+  --color-admin-card: #ffffff;
+  --color-admin-header: #e5eeff;
+  --color-admin-accent: #dce9ff;
+  --color-admin-border: #d8e3f5;
+  --color-admin-text: #18346f;
+  --color-admin-muted: #7183a6;
+  --color-admin-success: #20b77a;
+  --color-admin-warning: #f3a43b;
+  --color-admin-error: #ef5365;
+  --color-admin-info: #4785f5;
+
   /* Online Enrollment feature design tokens - Extracted from design */
   --color-enroll-bg: #EFF6FF;
   --color-enroll-blob: #d6e8ff;

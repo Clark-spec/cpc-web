@@ -1,7 +1,7 @@
 import { useLocation } from "react-router";
 import { Construction, Sparkles } from "lucide-react";
-import { PageBanner } from "../components/PageBanner";
-import { getPageTitle } from "../config/navigation";
+import { AdminPageHeader } from "../components/AdminPageHeader";
+import { getBreadcrumbs, getPageTitle } from "../config/navigation";
 
 /**
  * Placeholder for sidebar destinations that are not built yet. It keeps the
@@ -13,10 +13,11 @@ export default function ComingSoonPage() {
 
   return (
     <div className="space-y-5">
-      <PageBanner
+      <AdminPageHeader
         eyebrow="ADMIN PORTAL"
         title={title}
         subtitle="This workspace is part of the admin portal roadmap and will be available soon."
+        breadcrumbItems={getBreadcrumbs(pathname).slice(1)}
       />
 
       <section className="rounded-2xl border border-cpc-tile-border/70 bg-white px-5 py-12 text-center">
