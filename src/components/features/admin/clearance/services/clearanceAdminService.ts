@@ -4,6 +4,13 @@ import {
   mockSubjects,
   officeSignerNames,
 } from "@/data/mockClearance";
+import {
+  CLEARANCE_CHANNEL_NAME,
+  CLEARANCE_PERIOD_KEY,
+  CLEARANCE_RECORDS_KEY,
+  CLEARANCE_TIMELINE_KEY,
+  studentNotificationsKey,
+} from "@/config/clearanceStorage";
 import type {
   AppNotification,
   ClearancePeriod,
@@ -49,12 +56,8 @@ import { ageHours, isOverdue } from "../utils/sla";
  * loading states; each one notes where a `fetch` replaces the localStorage call.
  */
 
-export const CLEARANCE_RECORDS_KEY = "cpc:clearance:records";
-export const CLEARANCE_TIMELINE_KEY = "cpc:clearance:timeline";
-export const CLEARANCE_PERIOD_KEY = "cpc:clearance:period";
 export const ADMIN_FEED_KEY = "cpc.admin.notifications.v1";
 export const ADMIN_ACTIVITY_KEY = "cpc.admin.activity.v1";
-export const CLEARANCE_CHANNEL_NAME = "cpc-clearance";
 
 const READ_DELAY = 400;
 const WRITE_DELAY = 400;
@@ -641,7 +644,7 @@ function pushStudentNotification(
   studentId: string,
   input: { message: string; type: AppNotification["type"]; officeId?: OfficeId },
 ): void {
-  const key = `cpc:notifications:${studentId}`;
+  const key = studentNotificationsKey(studentId);
   const existing = readJson<AppNotification[]>(key, []);
   const list = Array.isArray(existing) ? existing : [];
   const notification: AppNotification = {
@@ -1352,7 +1355,7 @@ export async function resetClearanceDemo(): Promise<ClearanceRequestRow[]> {
   writeJson(CLEARANCE_PERIOD_KEY, DEFAULT_PERIOD);
 
   for (const record of records) {
-    window.localStorage.removeItem(`cpc:notifications:${record.studentId}`);
+    window.localStorage.removeItem(studentNotificationsKey(record.studentId));
   }
 
   announceClearanceChange("reset");

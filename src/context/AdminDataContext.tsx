@@ -14,7 +14,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/services/clearanceService";
+import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/config/clearanceStorage";
 import { useAdminAuth } from "./AdminAuthContext";
 import {
   generateSampleRequests as generateSampleRequestsService,

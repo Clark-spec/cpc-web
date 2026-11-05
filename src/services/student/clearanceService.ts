@@ -5,8 +5,15 @@ import {
   mockStudent,
   mockSubjects,
   officeSignerNames,
-} from "../data/mockClearance";
-import { createDemoSignature } from "../utils/demoSignature";
+} from "@/data/mockClearance";
+import {
+  CLEARANCE_CHANNEL_NAME,
+  CLEARANCE_NOTIFICATIONS_KEY,
+  CLEARANCE_PERIOD_KEY,
+  CLEARANCE_RECORDS_KEY,
+  CLEARANCE_TIMELINE_KEY,
+} from "@/config/clearanceStorage";
+import { createDemoSignature } from "@/utils/demoSignature";
 import type {
   ClearancePeriod,
   ClearanceRecord,
@@ -33,20 +40,6 @@ import type {
  * When the backend exists only this file changes: swap the storage calls for
  * `fetch` and keep the same exported signatures.
  */
-export const CLEARANCE_RECORDS_KEY = "cpc:clearance:records";
-export const CLEARANCE_TIMELINE_KEY = "cpc:clearance:timeline";
-export const CLEARANCE_PERIOD_KEY = "cpc:clearance:period";
-export const CLEARANCE_CHANNEL_NAME = "cpc-clearance";
-
-/** Kept for existing listeners: the records array is what changes remotely. */
-export const CLEARANCE_STORAGE_KEY = CLEARANCE_RECORDS_KEY;
-
-/** (2) Per-student notification feed; the staff portal writes the same key. */
-export function studentNotificationsKey(studentId: string): string {
-  return `cpc:notifications:${studentId}`;
-}
-
-export const CLEARANCE_NOTIFICATIONS_KEY = studentNotificationsKey(mockStudent.studentId);
 
 /** The single signed-in demo student. A real session supplies this id. */
 export const STUDENT_ID = mockStudent.studentId;

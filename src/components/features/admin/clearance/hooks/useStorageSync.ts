@@ -4,7 +4,7 @@ import {
   CLEARANCE_PERIOD_KEY,
   CLEARANCE_RECORDS_KEY,
   CLEARANCE_TIMELINE_KEY,
-} from "../services/clearanceAdminService";
+} from "@/config/clearanceStorage";
 import type { SyncStatus } from "../types";
 
 /** Keys whose change means "the queue on disk is no longer what we rendered". */

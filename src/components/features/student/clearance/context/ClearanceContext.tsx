@@ -10,19 +10,18 @@ import {
   type ReactNode,
 } from "react";
 import { useToast } from "@/components/ui/toast";
+import { CLEARANCE_PERIOD_KEY, CLEARANCE_STORAGE_KEY } from "@/config/clearanceStorage";
 import { createInitialState, mockStudent } from "@/data/mockClearance";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   cancelRequest as cancelRequestService,
-  CLEARANCE_PERIOD_KEY,
-  CLEARANCE_STORAGE_KEY,
   demoApprove as demoApproveService,
   demoReject as demoRejectService,
   getClearance,
   requestSignature as requestSignatureService,
   requestSignatures as requestSignaturesService,
   resetClearance as resetClearanceService,
-} from "@/services/clearanceService";
+} from "@/services/student/clearanceService";
 import { useNotifications } from "./NotificationContext";
 import type {
   ClearanceHistoryItem,
