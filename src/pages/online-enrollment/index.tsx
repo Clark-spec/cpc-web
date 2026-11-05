@@ -1,25 +1,18 @@
 import { PortalFooter } from "@/components/common/portal-footer";
 import { PortalHeader } from "@/components/common/portal-header";
-import { PageHeroBanner } from "@/components/common/page-hero-banner";
-import { HeroSection } from "@/features/online-enrollment/components/HeroSection";
 import { FeaturesGrid } from "@/features/online-enrollment/components/FeaturesGrid";
-import cpcBg from "@/assets/cpc-bg.png";
+import { EnrollmentHero } from "@/features/online-enrollment/components/EnrollmentHero";
+import { HeroSection } from "@/features/online-enrollment/components/HeroSection";
 
 export default function OnlineEnrollmentPage() {
   return (
     <div className="w-full overflow-x-hidden bg-white font-poppins">
       <PortalHeader />
 
-      <PageHeroBanner
-        breadcrumbItems={[
-          { label: "Home", href: "/" },
-          { label: "Student Services", href: "/student/home" },
-          { label: "Enrollment", href: null },
-        ]}
+      <EnrollmentHero
         eyebrow="ADMISSIONS"
         title="ONLINE ENROLLMENT"
         subtitle="Complete and monitor your enrollment process online."
-        backgroundImage={cpcBg}
       />
 
       <div className="enroll-layout">
