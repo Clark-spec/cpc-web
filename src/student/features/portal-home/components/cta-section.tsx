@@ -1,4 +1,4 @@
-import { ArrowRightIcon, GraduationCapIcon } from "@/components/common/icons";
+import { ArrowRightIcon, GraduationCapIcon } from "@/student/components/icons";
 import ctaBuilding from "@/assets/cta-building.png";
 
 export function CtaSection() {

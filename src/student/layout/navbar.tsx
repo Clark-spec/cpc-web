@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { Menu, X } from "lucide-react";
-import { CaretDownIcon } from "@/components/common/icons";
+import { CaretDownIcon } from "@/student/components/icons";
 import { cn } from "@/lib/cn";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 

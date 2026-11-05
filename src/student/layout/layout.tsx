@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { PortalFooter } from "@/components/common/portal-footer";
-import { PortalHeader } from "@/components/common/portal-header";
+import { PortalFooter } from "@/student/layout/portal-footer";
+import { PortalHeader } from "@/student/layout/portal-header";
 
 type LayoutProps = {
   children: ReactNode;

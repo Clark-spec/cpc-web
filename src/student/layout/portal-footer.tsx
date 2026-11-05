@@ -1,4 +1,4 @@
-import { Footer } from "@/components/common/footer";
+import { Footer } from "@/student/layout/footer";
 import { useChromeFrame } from "@/hooks/useChromeFrame";
 
 /**

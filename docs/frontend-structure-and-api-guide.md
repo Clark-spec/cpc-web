@@ -64,7 +64,7 @@ Routes are declared in [main.tsx](../src/main.tsx).
 ## 4. Add a feature using the same approach
 
 1. Add the feature component under `components/features/<feature>`. Keep its state, request handling, and feature-specific UI together.
-2. Reuse primitives from `components/ui`. Put application UI shared across features in `components/common`.
+2. Reuse primitives from `components/ui`. Put UI shared by one role's features in that role's `components` folder, and page chrome in its `layout` folder; only UI used by both portals belongs under `src/shared`.
 3. Compose the feature inside a page under `src/pages`. Register the URL in `main.tsx`.
 4. Keep endpoint code in `src/services` when the API lands; the login form already marks where the first request will go.
 

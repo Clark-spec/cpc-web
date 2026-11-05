@@ -1,5 +1,5 @@
 import cpcBg from "@/assets/cpc-bg2.png";
-import { PageHeroBanner } from "@/components/common/page-hero-banner";
+import { PageHeroBanner } from "@/student/components/page-hero-banner";
 
 /**
  * Page hero. Reuses the shared banner and only swaps the copy/background, so

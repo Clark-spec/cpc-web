@@ -6,7 +6,7 @@ import {
   UserIcon,
   UsersIcon,
   type IconComponent,
-} from "@/components/common/icons";
+} from "@/student/components/icons";
 
 type QuickAccessTile = {
   label: string;

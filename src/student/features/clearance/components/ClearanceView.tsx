@@ -1,5 +1,5 @@
-import { PortalFooter } from "@/components/common/portal-footer";
-import { PortalHeader } from "@/components/common/portal-header";
+import { PortalFooter } from "@/student/layout/portal-footer";
+import { PortalHeader } from "@/student/layout/portal-header";
 import { useDemoModeShortcut } from "../hooks/useDemoModeShortcut";
 import { ClearanceMain } from "./ClearanceMain";
 import { DemoStaffPanel } from "./DemoStaffPanel";

@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
-import { NotificationBell as SharedNotificationBell } from "@/components/common/notification-bell";
+import { NotificationBell as SharedNotificationBell } from "@/student/components/notification-bell";
 import { useClearance } from "../context/ClearanceContext";
 import { formatRelativeTime } from "@/shared/clearance/utils/format";
 import type { AppNotification, OfficeId } from "@/shared/clearance/types";
