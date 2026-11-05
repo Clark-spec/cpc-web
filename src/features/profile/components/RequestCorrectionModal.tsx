@@ -3,7 +3,7 @@ import { LoaderCircle, Paperclip, Send } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { useNotifications } from "@/context/NotificationContext";
 import { useProfile } from "../context/ProfileContext";
-import { Modal } from "./Modal";
+import { Modal } from "@/components/ui/modal";
 
 const REASON_LIMIT = 200;
 

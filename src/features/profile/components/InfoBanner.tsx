@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Info, ShieldCheck } from "lucide-react";
-import { Modal } from "./Modal";
+import { Modal } from "@/components/ui/modal";
 
 /** Portal-wide reminder plus a short data-privacy modal (placeholder copy). */
 export function InfoBanner() {

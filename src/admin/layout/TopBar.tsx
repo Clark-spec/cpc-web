@@ -22,7 +22,7 @@ import { ALL_ROLES, ROLE_LABELS } from "../config/navigation";
 import type { AdminRole } from "../types";
 import { AdminNotificationBell } from "./AdminNotificationBell";
 import { Breadcrumbs } from "./Breadcrumbs";
-import { ConfirmDialog } from "../components/Modal";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 type TopBarProps = {
   onOpenSearch: () => void;

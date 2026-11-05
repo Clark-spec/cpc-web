@@ -1,7 +1,7 @@
 import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/features/clearance/lib/format";
-import { Modal } from "../Modal";
+import { Modal } from "@/components/ui/modal";
 import {
   ServicePaymentBadge,
   ServiceRequestStatusBadge,

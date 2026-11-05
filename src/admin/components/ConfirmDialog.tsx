@@ -3,8 +3,6 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/cn";
 
-export { Modal };
-
 type ConfirmDialogProps = {
   open: boolean;
   onClose: () => void;

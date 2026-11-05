@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { PageBanner } from "../components/PageBanner";
-import { ConfirmDialog } from "../components/Modal";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ServiceRequestStatCards } from "../components/service-requests/ServiceRequestStatCards";
 import { ServiceRequestTable } from "../components/service-requests/ServiceRequestTable";
 import { ServiceRequestDetailsModal } from "../components/service-requests/ServiceRequestDetailsModal";

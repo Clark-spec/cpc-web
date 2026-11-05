@@ -1,5 +1,5 @@
 import { AlertCircle } from "lucide-react";
-import { Modal } from "./Modal";
+import { Modal } from "@/components/ui/modal";
 
 type ConfirmDialogProps = {
   open: boolean;
