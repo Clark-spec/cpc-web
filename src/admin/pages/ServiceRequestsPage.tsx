@@ -3,9 +3,9 @@ import { ClipboardList } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { PageBanner } from "@/components/ui/admin/PageBanner";
 import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
-import { ServiceRequestStatCards } from "@/admin/features/service-requests/components/ServiceRequestStatCards";
-import { ServiceRequestTable } from "@/admin/features/service-requests/components/ServiceRequestTable";
-import { ServiceRequestDetailsModal } from "@/admin/features/service-requests/components/ServiceRequestDetailsModal";
+import { ServiceRequestStatCards } from "@/components/features/admin/service-requests/components/ServiceRequestStatCards";
+import { ServiceRequestTable } from "@/components/features/admin/service-requests/components/ServiceRequestTable";
+import { ServiceRequestDetailsModal } from "@/components/features/admin/service-requests/components/ServiceRequestDetailsModal";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import {
   buildSampleServiceRequests,

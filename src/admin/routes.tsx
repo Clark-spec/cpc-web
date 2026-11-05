@@ -1,6 +1,6 @@
 import { Navigate, Route } from "react-router";
 import { AdminLoginRoute, AdminShell } from "@/layouts/AdminShell";
-import ClearanceAdminPage from "@/admin/features/clearance/ClearanceAdminPage";
+import ClearanceAdminPage from "@/components/features/admin/clearance/ClearanceAdminPage";
 import ComingSoonPage from "@/admin/pages/ComingSoonPage";
 import DashboardPage from "@/admin/pages/DashboardPage";
 import EnrollmentApplicationsPage from "@/admin/pages/EnrollmentApplicationsPage";

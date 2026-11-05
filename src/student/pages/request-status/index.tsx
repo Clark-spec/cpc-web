@@ -5,10 +5,10 @@ import cpcBg from "@/assets/cpc-bg2.png";
 import { PageHeroBanner } from "@/components/ui/student/PageHeroBanner";
 import { PortalFooter } from "@/components/ui/student/PortalFooter";
 import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { RequestDetailsModal } from "@/student/features/service-requests/components/RequestDetailsModal";
-import { RequestStatusList } from "@/student/features/request-status/components/RequestStatusList";
-import { StatusSummaryCards } from "@/student/features/request-status/components/StatusSummaryCards";
-import { useRequestStatus } from "@/student/features/request-status/hooks/useRequestStatus";
+import { RequestDetailsModal } from "@/components/features/student/service-requests/components/RequestDetailsModal";
+import { RequestStatusList } from "@/components/features/student/request-status/components/RequestStatusList";
+import { StatusSummaryCards } from "@/components/features/student/request-status/components/StatusSummaryCards";
+import { useRequestStatus } from "@/components/features/student/request-status/hooks/useRequestStatus";
 
 export default function RequestStatusPage() {
   const status = useRequestStatus();

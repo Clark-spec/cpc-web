@@ -1,11 +1,11 @@
 import { PortalFooter } from "@/components/ui/student/PortalFooter";
 import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { EnrollContent } from "@/student/features/enrollment/components/EnrollContent";
-import { EnrollmentFollowUpCards } from "@/student/features/enrollment/components/EnrollmentFollowUpCards";
-import { EnrollmentHero } from "@/student/features/enrollment/components/EnrollmentHero";
-import { SubmissionHeading } from "@/student/features/enrollment/components/SubmissionHeading";
-import { SubmissionReceiptCard } from "@/student/features/enrollment/components/SubmissionReceiptCard";
-import { useLogEnrollmentSubmission } from "@/student/features/enrollment/hooks/useLogEnrollmentSubmission";
+import { EnrollContent } from "@/components/features/student/enrollment/components/EnrollContent";
+import { EnrollmentFollowUpCards } from "@/components/features/student/enrollment/components/EnrollmentFollowUpCards";
+import { EnrollmentHero } from "@/components/features/student/enrollment/components/EnrollmentHero";
+import { SubmissionHeading } from "@/components/features/student/enrollment/components/SubmissionHeading";
+import { SubmissionReceiptCard } from "@/components/features/student/enrollment/components/SubmissionReceiptCard";
+import { useLogEnrollmentSubmission } from "@/components/features/student/enrollment/hooks/useLogEnrollmentSubmission";
 
 /** Route: /online-enrollment/confirmation */
 export default function EnrollmentConfirmationPage() {

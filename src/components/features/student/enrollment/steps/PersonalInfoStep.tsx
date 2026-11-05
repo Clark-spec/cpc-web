@@ -1,4 +1,4 @@
-import { useEnrollment } from "@/student/features/enrollment/hooks/useEnrollment";
+import { useEnrollment } from "@/components/features/student/enrollment/hooks/useEnrollment";
 
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const CIVIL_STATUS_OPTIONS = ["Single", "Married", "Widowed", "Divorced", "Separated"];

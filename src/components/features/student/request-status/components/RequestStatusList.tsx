@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import { ChevronDown, ChevronRight, Filter, Inbox, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { StatusBadge } from "@/student/features/service-requests/components/StatusBadge";
-import { formatDate, formatDateTime } from "@/student/features/service-requests/utils/format";
+import { StatusBadge } from "@/components/features/student/service-requests/components/StatusBadge";
+import { formatDate, formatDateTime } from "@/components/features/student/service-requests/utils/format";
 import type { ServiceRequest } from "@/services/student/serviceRequests";
 import {
   STATUS_FILTER_OPTIONS,

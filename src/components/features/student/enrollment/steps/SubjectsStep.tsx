@@ -1,4 +1,4 @@
-import { useEnrollment } from "@/student/features/enrollment/hooks/useEnrollment";
+import { useEnrollment } from "@/components/features/student/enrollment/hooks/useEnrollment";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 

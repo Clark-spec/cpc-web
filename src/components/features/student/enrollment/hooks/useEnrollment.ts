@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import type { EnrollmentData, PersonalInfo, Subject, RequirementDocument } from "@/student/features/enrollment/data/mockData";
-import { mockUserProfile, mockSubjects, mockRequirements } from "@/student/features/enrollment/data/mockData";
+import type { EnrollmentData, PersonalInfo, Subject, RequirementDocument } from "@/components/features/student/enrollment/data/mockData";
+import { mockUserProfile, mockSubjects, mockRequirements } from "@/components/features/student/enrollment/data/mockData";
 
 type EnrollmentState = {
   personalInfo: PersonalInfo;

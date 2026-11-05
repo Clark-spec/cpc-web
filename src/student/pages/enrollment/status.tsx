@@ -1,9 +1,9 @@
 import { PortalFooter } from "@/components/ui/student/PortalFooter";
 import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { EnrollContent } from "@/student/features/enrollment/components/EnrollContent";
-import { EnrollmentHero } from "@/student/features/enrollment/components/EnrollmentHero";
-import { EnrollmentStatusCard } from "@/student/features/enrollment/components/EnrollmentStatusCard";
-import { EnrollmentStatusInfoCards } from "@/student/features/enrollment/components/EnrollmentStatusInfoCards";
+import { EnrollContent } from "@/components/features/student/enrollment/components/EnrollContent";
+import { EnrollmentHero } from "@/components/features/student/enrollment/components/EnrollmentHero";
+import { EnrollmentStatusCard } from "@/components/features/student/enrollment/components/EnrollmentStatusCard";
+import { EnrollmentStatusInfoCards } from "@/components/features/student/enrollment/components/EnrollmentStatusInfoCards";
 
 /** Route: /online-enrollment/status */
 export default function EnrollmentStatusPage() {

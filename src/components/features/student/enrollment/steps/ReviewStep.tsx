@@ -1,4 +1,4 @@
-import { useEnrollment } from "@/student/features/enrollment/hooks/useEnrollment";
+import { useEnrollment } from "@/components/features/student/enrollment/hooks/useEnrollment";
 
 export function ReviewStep() {
   const { state, enrollmentData, goToStep } = useEnrollment();

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { PortalFooter } from "@/components/ui/student/PortalFooter";
 import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { ServiceRequestDialog } from "@/student/features/service-requests/components/ServiceRequestDialog";
-import { ServiceRequestsHero } from "@/student/features/service-requests/components/ServiceRequestsHero";
-import { ServiceRequestsMain } from "@/student/features/service-requests/components/ServiceRequestsMain";
-import { useServiceRequestsPage } from "@/student/features/service-requests/hooks/useServiceRequests";
+import { ServiceRequestDialog } from "@/components/features/student/service-requests/components/ServiceRequestDialog";
+import { ServiceRequestsHero } from "@/components/features/student/service-requests/components/ServiceRequestsHero";
+import { ServiceRequestsMain } from "@/components/features/student/service-requests/components/ServiceRequestsMain";
+import { useServiceRequestsPage } from "@/components/features/student/service-requests/hooks/useServiceRequests";
 
 /** Route: /student/service-requests */
 export default function ServiceRequestsPage() {

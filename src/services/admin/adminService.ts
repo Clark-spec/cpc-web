@@ -9,8 +9,8 @@ import {
   readRecords,
   resetClearanceDemo,
   simulateStudentRequest,
-} from "@/admin/features/clearance/services/clearanceAdminService";
-import { buildOfficeChecks } from "@/admin/features/clearance/utils/officeChecks";
+} from "@/components/features/admin/clearance/services/clearanceAdminService";
+import { buildOfficeChecks } from "@/components/features/admin/clearance/utils/officeChecks";
 import type {
   ActivityItem,
   ActivityStatus,
@@ -30,7 +30,7 @@ import type {
  *
  * (1) SHARED-STORAGE CONTRACT: clearance data lives in exactly one place —
  * the `cpc:clearance:records` array owned by
- * `@/admin/features/clearance/services/clearanceAdminService`, which both
+ * `@/components/features/admin/clearance/services/clearanceAdminService`, which both
  * portals read and write. The shell no longer keeps its own copy of the queue:
  * every clearance number here is an adapter view of those same records, so the
  * dashboard KPI, the sidebar badge and the staff queue can never disagree.

@@ -1,8 +1,8 @@
 import { useParams } from "react-router";
 import { PortalFooter } from "@/components/ui/student/PortalFooter";
 import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { EnrollmentFlow } from "@/student/features/enrollment/EnrollmentFlow";
-import { EnrollmentHero } from "@/student/features/enrollment/components/EnrollmentHero";
+import { EnrollmentFlow } from "@/components/features/student/enrollment/EnrollmentFlow";
+import { EnrollmentHero } from "@/components/features/student/enrollment/components/EnrollmentHero";
 
 const stepConfig: Record<number, { title: string; subtitle: string }> = {
   1: {

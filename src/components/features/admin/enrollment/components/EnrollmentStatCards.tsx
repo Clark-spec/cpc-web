@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useCountUp } from "../../../hooks/useCountUp";
+import { useCountUp } from "@/admin/hooks/useCountUp";
 import type {
   EnrollmentApplicationStatus,
   EnrollmentStatusFilter,

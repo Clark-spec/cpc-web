@@ -1,10 +1,10 @@
 import { PortalFooter } from "@/components/ui/student/PortalFooter";
 import { PortalHeader } from "@/components/ui/student/PortalHeader";
 import { ToastProvider } from "@/components/ui/toast";
-import { PageHero } from "@/student/features/schedules/components/PageHero";
-import { ScheduleContent } from "@/student/features/schedules/components/ScheduleContent";
-import { SelectedSubjectDialog } from "@/student/features/schedules/components/SelectedSubjectDialog";
-import { ScheduleProvider } from "@/student/features/schedules/hooks/useSchedule";
+import { PageHero } from "@/components/features/student/schedules/components/PageHero";
+import { ScheduleContent } from "@/components/features/student/schedules/components/ScheduleContent";
+import { SelectedSubjectDialog } from "@/components/features/student/schedules/components/SelectedSubjectDialog";
+import { ScheduleProvider } from "@/components/features/student/schedules/hooks/useSchedule";
 
 /** Route: /academics/class-schedules */
 export default function ClassSchedulesPage() {

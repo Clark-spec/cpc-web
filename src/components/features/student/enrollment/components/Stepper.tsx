@@ -1,4 +1,4 @@
-import { enrollmentProgressSteps } from "@/student/features/enrollment/data/mockData";
+import { enrollmentProgressSteps } from "@/components/features/student/enrollment/data/mockData";
 
 type StepperProps = {
   currentStep: number;
