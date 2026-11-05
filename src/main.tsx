@@ -12,7 +12,10 @@ import { AuthProvider } from "@/hooks/useAuth";
 import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
 import StaffLoginPage from "@/pages/auth/staff";
-import AdminLoginPage from "@/pages/auth/admin";
+import { AdminLoginRoute, AdminShell } from "@/admin/routes";
+import DashboardPage from "@/admin/pages/DashboardPage";
+import ClearanceRequestsPage from "@/admin/pages/ClearanceRequestsPage";
+import ComingSoonPage from "@/admin/pages/ComingSoonPage";
 import StudentHomePage from "@/pages/student/home";
 import ServiceRequestsPage from "@/pages/student/service-requests";
 import RequestStatusPage from "@/pages/student/request-status";
@@ -40,11 +43,18 @@ export function AppRoutes() {
         <Route index element={<Navigate to="student" replace />} />
         <Route path="student" element={<StudentLoginPage />} />
         <Route path="staff" element={<StaffLoginPage />} />
-        <Route path="admin" element={<AdminLoginPage />} />
+        <Route path="admin" element={<Navigate to="/admin/login" replace />} />
       </Route>
 
-      {/* Plain placeholder so the Admin footer link does not 404. */}
-      <Route path="/login/admin" element={<AdminLoginPage />} />
+      {/* Admin / staff portal. */}
+      <Route path="/admin/login" element={<AdminLoginRoute />} />
+      <Route path="/admin" element={<AdminShell />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
+        {/* Every other sidebar destination renders the shared placeholder. */}
+        <Route path="*" element={<ComingSoonPage />} />
+      </Route>
 
       {/* Student home, shown after the student signs in. */}
       <Route path="/student/home" element={<StudentHomePage />} />

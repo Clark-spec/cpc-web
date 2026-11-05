@@ -1,0 +1,92 @@
+/* Admin portal motion + small utilities. Colors always come from the tokens. */
+
+.admin-sidebar {
+  transition: width 220ms ease;
+}
+
+.admin-fade-in {
+  animation: admin-fade-in 180ms ease-out both;
+}
+
+@keyframes admin-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.admin-drawer {
+  animation: admin-drawer-in 220ms ease-out both;
+}
+
+@keyframes admin-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.admin-drawer-backdrop {
+  animation: admin-fade-in 180ms ease-out both;
+}
+
+.admin-quick-view {
+  animation: admin-quick-view-in 220ms ease-out both;
+}
+
+@keyframes admin-quick-view-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.admin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cpc-tile-border) transparent;
+}
+
+.admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--color-cpc-tile-border);
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.signature-font-dancing {
+  font-family: "Dancing Script", cursive;
+}
+
+.signature-font-vibes {
+  font-family: "Great Vibes", cursive;
+}
+
+.signature-font-caveat {
+  font-family: "Caveat", cursive;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar,
+  .admin-fade-in,
+  .admin-drawer,
+  .admin-drawer-backdrop,
+  .admin-quick-view {
+    transition: none !important;
+    animation: none !important;
+  }
+}

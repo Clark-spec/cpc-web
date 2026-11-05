@@ -36,11 +36,6 @@ const navItems: NavItem[] = [
   {
     label: "Academics",
     links: [
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 5a03c34ab10d4292ae9de2849fdb073db0dc5d86
       { label: "Class Schedules", to: "/academics/class-schedules" },
       { label: "Academic Calendar", to: "/academics/academic-calendar" },
       { label: "Grades / Academic Records", to: "#" },

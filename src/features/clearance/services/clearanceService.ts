@@ -16,8 +16,12 @@ import type {
  * for `fetch` and keep the same signatures.
  */
 
-const CLEARANCE_KEY = "cpc.online-clearance.v1";
-const NOTIFICATIONS_KEY = "cpc.online-clearance.notifications.v1";
+/** Shared with the admin portal so staff actions reach the student page. */
+export const CLEARANCE_STORAGE_KEY = "cpc.online-clearance.v1";
+export const CLEARANCE_NOTIFICATIONS_KEY = "cpc.online-clearance.notifications.v1";
+
+const CLEARANCE_KEY = CLEARANCE_STORAGE_KEY;
+const NOTIFICATIONS_KEY = CLEARANCE_NOTIFICATIONS_KEY;
 
 /** Simulated network latency (ms). */
 const READ_DELAY = 350;
