@@ -1,4 +1,4 @@
-import { LoginForm } from "@/shared/auth/login-form";
+import { LoginForm } from "@/components/common/LoginForm";
 
 export default function StaffLoginPage() {
   return (

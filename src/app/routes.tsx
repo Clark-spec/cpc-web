@@ -1,9 +1,9 @@
 import { Navigate, Route, RouterProvider, Routes } from "react-router";
 import { AppProviders } from "@/app/providers";
 import { createAppRouter } from "@/lib/router";
-import AuthLayout from "@/shared/auth/layout";
-import StudentLoginPage from "@/shared/auth/student-login";
-import StaffLoginPage from "@/shared/auth/staff-login";
+import AuthLayout from "@/pages/auth/layout";
+import StudentLoginPage from "@/pages/auth/student/StudentLoginPage";
+import StaffLoginPage from "@/pages/auth/staff/StaffLoginPage";
 import { AdminRouteElements } from "@/admin/routes";
 import { StudentRouteElements } from "@/student/routes";
 

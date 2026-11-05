@@ -1,6 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { useAuthLayoutMode } from "@/shared/auth/auth-layout-mode";
+import { useAuthLayoutMode } from "@/context/AuthLayoutModeContext";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 
 export type LoginRole = "student" | "staff";

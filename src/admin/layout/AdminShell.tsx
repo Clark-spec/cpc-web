@@ -5,7 +5,7 @@ import { AdminLayout } from "@/admin/AdminLayout";
 import { AdminAuthProvider, useAdminAuth } from "@/context/AdminAuthContext";
 import { AdminDataProvider } from "@/context/AdminDataContext";
 import { SidebarProvider } from "@/context/SidebarContext";
-import AdminLoginPage from "@/admin/pages/AdminLoginPage";
+import AdminLoginPage from "@/pages/auth/admin/AdminLoginPage";
 
 /** Sends unauthenticated staff to the mock login screen. */
 export function RequireAdmin({ children }: { children: ReactNode }) {
