@@ -17,7 +17,7 @@ import { useToast } from "@/components/ui/toast";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useAdminData } from "@/context/AdminDataContext";
 import { useSidebar } from "@/context/SidebarContext";
-import { useClickOutside } from "@/admin/hooks/useClickOutside";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { ALL_ROLES, ROLE_LABELS } from "@/config/navigation";
 import type { AdminRole } from "@/types/admin";
 import { AdminNotificationBell } from "@/components/ui/admin/AdminNotificationBell";

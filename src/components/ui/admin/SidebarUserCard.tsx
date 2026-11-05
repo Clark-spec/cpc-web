@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { ChevronDown, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useClickOutside } from "@/admin/hooks/useClickOutside";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
 

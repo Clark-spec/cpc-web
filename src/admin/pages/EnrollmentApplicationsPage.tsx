@@ -13,7 +13,7 @@ import { EnrollmentDetailsModal } from "@/components/features/admin/enrollment/c
 import { RecentEnrollmentActivity } from "@/components/features/admin/enrollment/components/RecentEnrollmentActivity";
 import { EnrollmentQuickActions } from "@/components/features/admin/enrollment/components/EnrollmentQuickActions";
 import { useAdminAuth } from "@/context/AdminAuthContext";
-import { useEnrollmentApplications } from "../hooks/useEnrollmentApplications";
+import { useEnrollmentApplications } from "@/components/features/admin/enrollment/hooks/useEnrollmentApplications";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplication,

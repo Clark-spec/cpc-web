@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import "@/styles/admin.css";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useSidebar } from "@/context/SidebarContext";
-import { useHotkeys } from "@/admin/hooks/useHotkeys";
+import { useHotkeys } from "@/hooks/useHotkeys";
 import { CommandPalette } from "@/components/ui/admin/CommandPalette";
 import { MobileDrawer } from "@/components/ui/admin/MobileDrawer";
 import { Sidebar } from "@/components/ui/admin/Sidebar";

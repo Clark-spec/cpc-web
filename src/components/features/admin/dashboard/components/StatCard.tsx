@@ -10,7 +10,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "@/lib/cn";
-import { useCountUp } from "@/admin/hooks/useCountUp";
+import { useCountUp } from "@/hooks/useCountUp";
 import type { DashboardStat } from "@/types/admin";
 
 const ICONS: Record<DashboardStat["id"], LucideIcon> = {

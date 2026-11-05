@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useHotkeys } from "@/admin/hooks/useHotkeys";
+import { useHotkeys } from "@/hooks/useHotkeys";
 
 const COLLAPSED_KEY = "cpc.admin.sidebar.collapsed.v1";
 

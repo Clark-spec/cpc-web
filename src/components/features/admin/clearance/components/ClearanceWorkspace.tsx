@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ErrorCard } from "@/components/ui/admin/ErrorCard";
-import { useHotkeys } from "@/admin/hooks/useHotkeys";
+import { useHotkeys } from "@/hooks/useHotkeys";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { ApproveSignModal } from "./ApproveSignModal";
 import { BulkActionBar } from "./BulkActionBar";
