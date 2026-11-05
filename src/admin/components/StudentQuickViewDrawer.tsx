@@ -10,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
-import type { ActivityItem, ActivityStudent } from "../types";
+import type { ActivityItem, ActivityStudent } from "@/types/admin";
 
 type StudentQuickViewDrawerProps = {
   student: ActivityStudent | null;

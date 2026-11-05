@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Layout } from "@/student/layout/layout";
-import { useNotifications } from "@/shared/context/NotificationContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useProfile } from "../context/ProfileContext";
 import { useDemoModeToggle } from "../hooks/useDemoModeToggle";
 import { useProfileCompleteness } from "../hooks/useProfileCompleteness";

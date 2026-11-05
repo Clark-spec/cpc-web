@@ -2,7 +2,7 @@ import { ArrowRight, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Link } from "react-router";
 import { StatusBadge } from "../../../components/StatusBadge";
 import { EmptyState } from "../../../components/EmptyState";
-import type { EnrollmentOverviewRow } from "../../../types";
+import type { EnrollmentOverviewRow } from "@/types/admin";
 
 type EnrollmentOverviewTableProps = {
   rows: EnrollmentOverviewRow[];

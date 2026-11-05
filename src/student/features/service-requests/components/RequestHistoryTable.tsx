@@ -1,4 +1,4 @@
-import type { ServiceRequest } from "@/student/services/serviceRequests";
+import type { ServiceRequest } from "@/services/student/serviceRequests";
 import { StatusBadge } from "./StatusBadge";
 import { formatDate } from "../utils/format";
 

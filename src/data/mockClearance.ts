@@ -6,7 +6,7 @@ import type {
   SaoEvent,
   StudentProfile,
   Subject,
-} from "../types";
+} from "@/types/clearance";
 
 /** Demo student shown on Form 3 and the confirmation slip. */
 export const mockStudent: StudentProfile = {

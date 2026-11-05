@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import type { ServiceRequestNotification } from "@/student/services/serviceRequests";
+import type { ServiceRequestNotification } from "@/services/student/serviceRequests";
 import { formatRelativeTime } from "../utils/format";
 
 type NotificationsCardProps = {

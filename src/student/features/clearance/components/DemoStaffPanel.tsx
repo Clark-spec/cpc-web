@@ -9,8 +9,8 @@ import {
   X,
 } from "lucide-react";
 import { useClearance } from "../context/ClearanceContext";
-import { officeSignerNames } from "@/shared/clearance/data/mockClearance";
-import type { OfficeId } from "@/shared/clearance/types";
+import { officeSignerNames } from "@/data/mockClearance";
+import type { OfficeId } from "@/types/clearance";
 
 const REMARKS_MAX_LENGTH = 200;
 

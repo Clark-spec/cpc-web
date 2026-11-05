@@ -12,7 +12,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import type { AdminStatus } from "../types";
+import type { AdminStatus } from "@/types/admin";
 
 type StatusConfig = {
   tone: BadgeTone;

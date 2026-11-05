@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 import { cn } from "@/lib/cn";
-import { useAdminAuth } from "../context/AdminAuthContext";
-import { ADMIN_USERS, ALL_ROLES, ROLE_LABELS, ROLE_OFFICES } from "../config/navigation";
-import type { AdminRole } from "../types";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { ADMIN_USERS, ALL_ROLES, ROLE_LABELS, ROLE_OFFICES } from "@/config/navigation";
+import type { AdminRole } from "@/types/admin";
 
 const OFFICE_NAMES: Record<string, string> = {
   registrar: "Registrar's Office",

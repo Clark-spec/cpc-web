@@ -1,4 +1,4 @@
-import type { RequestStatus } from "@/student/services/serviceRequests";
+import type { RequestStatus } from "@/services/student/serviceRequests";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-PH", {
   month: "short",

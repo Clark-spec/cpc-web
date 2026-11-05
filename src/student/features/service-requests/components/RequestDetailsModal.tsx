@@ -4,7 +4,7 @@ import {
   getErrorMessage,
   getServiceRequest,
   type ServiceRequest,
-} from "@/student/services/serviceRequests";
+} from "@/services/student/serviceRequests";
 import { RequestTimeline } from "./RequestTimeline";
 import { StatusBadge } from "./StatusBadge";
 import { formatDateTime, formatFileSize } from "../utils/format";

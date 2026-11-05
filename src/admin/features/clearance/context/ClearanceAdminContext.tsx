@@ -11,9 +11,9 @@ import {
 } from "react";
 import { useSearchParams } from "react-router";
 import { useToast } from "@/components/ui/toast";
-import { useAdminAuth } from "@/admin/context/AdminAuthContext";
-import { useAdminData } from "@/admin/context/AdminDataContext";
-import { ADMIN_USERS } from "@/admin/config/navigation";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { useAdminData } from "@/context/AdminDataContext";
+import { ADMIN_USERS } from "@/config/navigation";
 import {
   DEFAULT_FILTERS,
   filterAndSortRows,

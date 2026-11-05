@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { LoaderCircle, Paperclip, Send } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import { useNotifications } from "@/shared/context/NotificationContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useProfile } from "../context/ProfileContext";
 import { Modal } from "@/components/ui/modal";
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Info, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { SaoEvent } from "../types";
+import type { SaoEvent } from "@/types/clearance";
 
 type EventsTableProps = {
   events: SaoEvent[];

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { AlertCircle, Check, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/shared/clearance/utils/format";
+import { formatDateTime } from "@/utils/format";
 import { Modal } from "@/components/ui/modal";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplication,
-} from "../../../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 type EnrollmentDetailsModalProps = {
   application: EnrollmentApplication;

@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplicationStatus,
-} from "../../../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 const CONFIG: Record<
   EnrollmentApplicationStatus,

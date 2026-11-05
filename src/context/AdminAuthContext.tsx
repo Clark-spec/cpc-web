@@ -9,7 +9,7 @@ import {
 import { useNavigate } from "react-router";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ADMIN_USERS } from "../config/navigation";
-import type { AdminRole, AdminUser } from "../types";
+import type { AdminRole, AdminUser } from "@/types/admin";
 
 const SESSION_KEY = "cpc.admin.session.v1";
 const DEMO_MODE_KEY = "cpc.admin.demo-mode.v1";

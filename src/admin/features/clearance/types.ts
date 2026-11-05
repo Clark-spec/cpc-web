@@ -2,14 +2,14 @@
  * Staff-side Online Clearance module types.
  *
  * The student-facing record types are canonical in
- * `@/shared/clearance/types` (both portals persist the same
+ * `@/types/clearance` (both portals persist the same
  * `cpc:clearance:records` array); this file re-exports them so the module has
  * one import point, and adds the queue/filter/KPI shapes only staff see.
  */
 import type { RefObject } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { LucideIcon } from "lucide-react";
-import type { AdminUser } from "@/admin/types";
+import type { AdminUser } from "@/types/admin";
 
 export type {
   ClearancePeriod,
@@ -23,9 +23,9 @@ export type {
   SaoEvent,
   Subject,
   TimelineEvent,
-} from "@/shared/clearance/types";
+} from "@/types/clearance";
 
-export type { AppNotification } from "@/shared/context/NotificationContext";
+export type { AppNotification } from "@/context/NotificationContext";
 
 import type {
   ClearancePeriod,
@@ -35,7 +35,7 @@ import type {
   OfficeId,
   SavedSignature,
   TimelineEvent,
-} from "@/shared/clearance/types";
+} from "@/types/clearance";
 
 /** "All Offices" is only selectable by the admin role. */
 export type OfficeFilter = OfficeId | "all";

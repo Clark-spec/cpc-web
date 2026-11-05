@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDate } from "@/shared/clearance/utils/format";
+import { formatDate } from "@/utils/format";
 import { EmptyState } from "../../../components/EmptyState";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {
@@ -16,7 +16,7 @@ import {
   type EnrollmentApplication,
   type EnrollmentApplicationStatus,
   type EnrollmentStatusFilter,
-} from "../../../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 const PAGE_SIZE = 8;
 

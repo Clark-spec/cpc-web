@@ -1,12 +1,12 @@
 import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/shared/clearance/utils/format";
+import { formatDateTime } from "@/utils/format";
 import { Modal } from "@/components/ui/modal";
 import {
   ServicePaymentBadge,
   ServiceRequestStatusBadge,
 } from "./ServiceRequestStatusBadge";
-import type { AdminServiceRequest } from "../../../data/serviceRequests";
+import type { AdminServiceRequest } from "@/data/serviceRequests";
 
 type ServiceRequestDetailsModalProps = {
   request: AdminServiceRequest;

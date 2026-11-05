@@ -38,8 +38,8 @@ import {
   Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { OfficeId } from "@/shared/clearance/types";
-import type { AdminBadgeKey, AdminRole, AdminUser } from "../types";
+import type { OfficeId } from "@/types/clearance";
+import type { AdminBadgeKey, AdminRole, AdminUser } from "@/types/admin";
 
 export type NavLeaf = {
   type: "link";

@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { EnrollmentOverviewRow } from "../../../types";
+import type { EnrollmentOverviewRow } from "@/types/admin";
 
 const COLORS: Record<EnrollmentOverviewRow["status"], string> = {
   submitted: "#2b4bd1",

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink, useLocation } from "react-router";
 import { cn } from "@/lib/cn";
-import { isRouteActive, type NavLeaf } from "../config/navigation";
-import type { AdminBadgeCounts } from "../types";
+import { isRouteActive, type NavLeaf } from "@/config/navigation";
+import type { AdminBadgeCounts } from "@/types/admin";
 
 type SidebarItemProps = {
   item: NavLeaf;

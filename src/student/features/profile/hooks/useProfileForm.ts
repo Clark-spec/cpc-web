@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/components/ui/toast";
-import { useNotifications } from "@/shared/context/NotificationContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useProfile } from "../context/ProfileContext";
 import { mockProfile } from "../data/mockProfile";
 import { profileFormSchema, type ProfileFormValues } from "../schema";

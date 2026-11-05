@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import type { RequestStatus } from "@/student/services/serviceRequests";
+import type { RequestStatus } from "@/services/student/serviceRequests";
 import { STATUS_BADGE_CLASSES } from "../utils/format";
 
 const STATUS_LABELS: Record<RequestStatus, string> = {

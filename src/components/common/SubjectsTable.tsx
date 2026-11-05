@@ -1,4 +1,4 @@
-import type { Subject } from "../types";
+import type { Subject } from "@/types/clearance";
 
 type SubjectsTableProps = {
   subjects: Subject[];

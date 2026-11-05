@@ -7,13 +7,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatRelativeTime } from "@/shared/clearance/utils/format";
+import { formatRelativeTime } from "@/utils/format";
 import { EmptyState } from "../../../components/EmptyState";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentActivityEntry,
   type EnrollmentApplicationStatus,
-} from "../../../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 const META: Record<
   EnrollmentApplicationStatus,

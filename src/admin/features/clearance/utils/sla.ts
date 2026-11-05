@@ -1,4 +1,4 @@
-import type { ClearanceRequestRow, RequestStatus } from "@/shared/clearance/types";
+import type { ClearanceRequestRow, RequestStatus } from "@/types/clearance";
 
 /** Requests older than this many days are overdue unless the period overrides it. */
 export const DEFAULT_OVERDUE_DAYS = 3;

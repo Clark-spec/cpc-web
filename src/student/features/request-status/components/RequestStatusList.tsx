@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, Filter, Inbox, Search, X } from "lucide-reac
 import { cn } from "@/lib/cn";
 import { StatusBadge } from "@/student/features/service-requests/components/StatusBadge";
 import { formatDate, formatDateTime } from "@/student/features/service-requests/utils/format";
-import type { ServiceRequest } from "@/student/services/serviceRequests";
+import type { ServiceRequest } from "@/services/student/serviceRequests";
 import {
   STATUS_FILTER_OPTIONS,
   type StatusCounts,

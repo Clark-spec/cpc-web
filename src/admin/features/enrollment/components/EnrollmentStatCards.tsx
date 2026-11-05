@@ -11,7 +11,7 @@ import { useCountUp } from "../../../hooks/useCountUp";
 import type {
   EnrollmentApplicationStatus,
   EnrollmentStatusFilter,
-} from "../../../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 type CardConfig = {
   status: EnrollmentApplicationStatus;

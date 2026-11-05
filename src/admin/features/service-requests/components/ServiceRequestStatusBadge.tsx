@@ -4,7 +4,7 @@ import {
   SERVICE_STATUS_LABELS,
   type AdminServiceRequestStatus,
   type ServicePaymentStatus,
-} from "../../../data/serviceRequests";
+} from "@/data/serviceRequests";
 
 const STATUS_STYLES: Record<AdminServiceRequestStatus, { pill: string; dot: string }> = {
   pending: { pill: "bg-[#FEF4E7] text-[#B77416]", dot: "bg-[#F3A43B]" },

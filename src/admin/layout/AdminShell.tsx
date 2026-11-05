@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Navigate } from "react-router";
 import { ToastProvider } from "@/components/ui/toast";
 import { AdminLayout } from "@/admin/AdminLayout";
-import { AdminAuthProvider, useAdminAuth } from "@/admin/context/AdminAuthContext";
-import { AdminDataProvider } from "@/admin/context/AdminDataContext";
-import { SidebarProvider } from "@/admin/context/SidebarContext";
+import { AdminAuthProvider, useAdminAuth } from "@/context/AdminAuthContext";
+import { AdminDataProvider } from "@/context/AdminDataContext";
+import { SidebarProvider } from "@/context/SidebarContext";
 import AdminLoginPage from "@/admin/pages/AdminLoginPage";
 
 /** Sends unauthenticated staff to the mock login screen. */

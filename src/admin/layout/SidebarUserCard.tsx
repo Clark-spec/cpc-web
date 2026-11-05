@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { ChevronDown, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useClickOutside } from "../hooks/useClickOutside";
-import { useAdminAuth } from "../context/AdminAuthContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 
 type SidebarUserCardProps = {

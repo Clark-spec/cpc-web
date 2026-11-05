@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/shared/clearance/utils/format";
+import { formatDateTime } from "@/utils/format";
 import { EmptyState } from "../../../components/EmptyState";
 import {
   ServicePaymentBadge,
@@ -24,7 +24,7 @@ import {
   type AdminServiceRequestStatus,
   type ServiceCategory,
   type ServicePaymentStatus,
-} from "../../../data/serviceRequests";
+} from "@/data/serviceRequests";
 
 const PAGE_SIZE = 8;
 

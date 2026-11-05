@@ -10,7 +10,7 @@ import {
   type EnrollmentActivityEntry,
   type EnrollmentApplication,
   type EnrollmentApplicationStatus,
-} from "../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 type EnrollmentStore = {
   applications: EnrollmentApplication[];

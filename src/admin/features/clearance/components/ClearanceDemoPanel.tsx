@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Loader2, RotateCcw, UserRoundPlus, X } from "lucide-react";
-import { ADMIN_USERS } from "@/admin/config/navigation";
-import { useAdminAuth } from "@/admin/context/AdminAuthContext";
-import type { AdminRole } from "@/admin/types";
+import { ADMIN_USERS } from "@/config/navigation";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import type { AdminRole } from "@/types/admin";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 
 const BTN =

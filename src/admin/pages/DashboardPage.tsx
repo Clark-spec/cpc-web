@@ -20,10 +20,10 @@ import { EnrollmentOverviewTable } from "@/admin/features/dashboard/components/E
 import { QuickActions } from "@/admin/features/dashboard/components/QuickActions";
 import { RecentActivityTable } from "@/admin/features/dashboard/components/RecentActivityTable";
 import { StudentQuickViewDrawer } from "../components/StudentQuickViewDrawer";
-import { useAdminAuth } from "../context/AdminAuthContext";
-import { useAdminData } from "../context/AdminDataContext";
-import { formatDateTime } from "@/shared/clearance/utils/format";
-import type { ActivityStudent } from "../types";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { useAdminData } from "@/context/AdminDataContext";
+import { formatDateTime } from "@/utils/format";
+import type { ActivityStudent } from "@/types/admin";
 
 /** Route: /admin/dashboard */
 export default function DashboardPage() {

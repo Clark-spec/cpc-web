@@ -4,16 +4,16 @@ import { Link, NavLink, useLocation } from "react-router";
 import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 import { cn } from "@/lib/cn";
-import { useAdminAuth } from "../context/AdminAuthContext";
-import { useAdminData } from "../context/AdminDataContext";
-import { useSidebar } from "../context/SidebarContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { useAdminData } from "@/context/AdminDataContext";
+import { useSidebar } from "@/context/SidebarContext";
 import {
   filterNavigation,
   findGroupForPath,
   isRouteActive,
   SETTINGS_NAV,
   type NavGroup,
-} from "../config/navigation";
+} from "@/config/navigation";
 import { SidebarGroup } from "./SidebarGroup";
 import { SidebarItem } from "./SidebarItem";
 import { SidebarUserCard } from "./SidebarUserCard";

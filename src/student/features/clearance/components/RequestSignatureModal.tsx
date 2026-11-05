@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Loader2, Send } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
-import { officeSignerNames } from "@/shared/clearance/data/mockClearance";
-import type { OfficeSignature } from "@/shared/clearance/types";
+import { officeSignerNames } from "@/data/mockClearance";
+import type { OfficeSignature } from "@/types/clearance";
 
 type RequestSignatureModalProps = {
   open: boolean;

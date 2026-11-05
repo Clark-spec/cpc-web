@@ -14,12 +14,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/toast";
-import { useAdminAuth } from "../context/AdminAuthContext";
-import { useAdminData } from "../context/AdminDataContext";
-import { useSidebar } from "../context/SidebarContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { useAdminData } from "@/context/AdminDataContext";
+import { useSidebar } from "@/context/SidebarContext";
 import { useClickOutside } from "../hooks/useClickOutside";
-import { ALL_ROLES, ROLE_LABELS } from "../config/navigation";
-import type { AdminRole } from "../types";
+import { ALL_ROLES, ROLE_LABELS } from "@/config/navigation";
+import type { AdminRole } from "@/types/admin";
 import { AdminNotificationBell } from "./AdminNotificationBell";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ConfirmDialog } from "../components/ConfirmDialog";

@@ -8,7 +8,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "@/lib/cn";
-import type { AdminRole } from "../../../types";
+import type { AdminRole } from "@/types/admin";
 
 type CountKey = "enrollments" | "clearance" | "serviceRequests";
 

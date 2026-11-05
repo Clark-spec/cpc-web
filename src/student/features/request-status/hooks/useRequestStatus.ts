@@ -5,7 +5,7 @@ import {
   STATUS_LABELS,
   type RequestStatus,
   type ServiceRequest,
-} from "@/student/services/serviceRequests";
+} from "@/services/student/serviceRequests";
 
 export type StatusFilter = "all" | RequestStatus;
 

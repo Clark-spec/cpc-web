@@ -14,7 +14,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/shared/clearance/services/clearanceService";
+import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/services/clearanceService";
 import { useAdminAuth } from "./AdminAuthContext";
 import {
   generateSampleRequests as generateSampleRequestsService,
@@ -25,7 +25,7 @@ import {
   getRecentActivity,
   markNotificationsRead as markNotificationsReadService,
   resetDemoData as resetDemoDataService,
-} from "../services/adminService";
+} from "@/services/admin/adminService";
 import type {
   ActivityItem,
   AdminBadgeCounts,
@@ -33,7 +33,7 @@ import type {
   ClearanceRequest,
   DashboardStats,
   EnrollmentOverviewRow,
-} from "../types";
+} from "@/types/admin";
 
 type LoadMode = "initial" | "refresh" | "silent";
 

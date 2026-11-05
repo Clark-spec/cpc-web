@@ -43,7 +43,7 @@ export interface OfficeSignature {
 export type {
   AppNotification,
   NotificationType,
-} from "@/shared/context/NotificationContext";
+} from "@/context/NotificationContext";
 
 export interface Subject {
   name: string;

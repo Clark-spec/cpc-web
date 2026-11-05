@@ -2,15 +2,15 @@ import type {
   ClearanceRecord,
   ClearanceRequestRow,
   RequestStatus,
-} from "@/shared/clearance/types";
+} from "@/types/clearance";
 import {
   deriveRows,
   readPeriod,
   readRecords,
   resetClearanceDemo,
   simulateStudentRequest,
-} from "../features/clearance/services/clearanceAdminService";
-import { buildOfficeChecks } from "../features/clearance/utils/officeChecks";
+} from "@/admin/features/clearance/services/clearanceAdminService";
+import { buildOfficeChecks } from "@/admin/features/clearance/utils/officeChecks";
 import type {
   ActivityItem,
   ActivityStatus,
@@ -22,7 +22,7 @@ import type {
   DashboardStat,
   DashboardStats,
   EnrollmentOverviewRow,
-} from "../types";
+} from "@/types/admin";
 
 /**
  * Mock API layer for the admin portal shell (dashboard, bell, sidebar badge,

@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { Link, useLocation } from "react-router";
-import { getBreadcrumbs } from "../config/navigation";
+import { getBreadcrumbs } from "@/config/navigation";
 
 /** "Admin / Student Services / Clearance Requests" trail for the top bar. */
 export function Breadcrumbs() {

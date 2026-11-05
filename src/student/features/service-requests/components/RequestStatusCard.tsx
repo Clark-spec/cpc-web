@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { ClipboardList } from "lucide-react";
-import type { ServiceRequest } from "@/student/services/serviceRequests";
+import type { ServiceRequest } from "@/services/student/serviceRequests";
 import { RequestTimeline } from "./RequestTimeline";
 import { StatusBadge } from "./StatusBadge";
 

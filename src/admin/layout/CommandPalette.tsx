@@ -11,11 +11,11 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useAdminAuth } from "../context/AdminAuthContext";
-import { useAdminData } from "../context/AdminDataContext";
-import { flattenNavigation, ROLE_LABELS, type FlatNavLink } from "../config/navigation";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { useAdminData } from "@/context/AdminDataContext";
+import { flattenNavigation, ROLE_LABELS, type FlatNavLink } from "@/config/navigation";
 import { StatusBadge } from "../components/StatusBadge";
-import type { ClearanceRequest } from "../types";
+import type { ClearanceRequest } from "@/types/admin";
 
 type CommandPaletteProps = {
   onClose: () => void;

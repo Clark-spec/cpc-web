@@ -7,10 +7,10 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime, formatRelativeTime } from "@/shared/clearance/utils/format";
+import { formatDateTime, formatRelativeTime } from "@/utils/format";
 import { StatusBadge } from "../../../components/StatusBadge";
 import { EmptyState } from "../../../components/EmptyState";
-import type { ActivityItem, ActivityStudent, ActivityType } from "../../../types";
+import type { ActivityItem, ActivityStudent, ActivityType } from "@/types/admin";
 
 const TYPE_ICONS: Record<ActivityType, LucideIcon> = {
   enrollment: ClipboardList,

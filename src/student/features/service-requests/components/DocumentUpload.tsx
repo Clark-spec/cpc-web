@@ -4,7 +4,7 @@ import {
   ACCEPTED_DOCUMENT_LABEL,
   ACCEPTED_DOCUMENT_TYPES,
   type RequestDocument,
-} from "@/student/services/serviceRequests";
+} from "@/services/student/serviceRequests";
 import { formatFileSize } from "../utils/format";
 
 type DocumentUploadProps = {

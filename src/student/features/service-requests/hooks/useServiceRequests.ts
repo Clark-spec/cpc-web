@@ -15,7 +15,7 @@ import {
   type ServiceRequest,
   type ServiceRequestDraft,
   type ServiceRequestNotification,
-} from "@/student/services/serviceRequests";
+} from "@/services/student/serviceRequests";
 
 type Notice = {
   kind: "success" | "error";

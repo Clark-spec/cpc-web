@@ -12,13 +12,13 @@ import { EnrollmentApplicationsTable } from "@/admin/features/enrollment/compone
 import { EnrollmentDetailsModal } from "@/admin/features/enrollment/components/EnrollmentDetailsModal";
 import { RecentEnrollmentActivity } from "@/admin/features/enrollment/components/RecentEnrollmentActivity";
 import { EnrollmentQuickActions } from "@/admin/features/enrollment/components/EnrollmentQuickActions";
-import { useAdminAuth } from "../context/AdminAuthContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useEnrollmentApplications } from "../hooks/useEnrollmentApplications";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplication,
   type EnrollmentStatusFilter,
-} from "../data/enrollmentApplications";
+} from "@/data/enrollmentApplications";
 
 export type EnrollmentView = "all" | "for-review" | "approved" | "needs-requirements";
 

@@ -4,8 +4,8 @@ import { cn } from "@/lib/cn";
 import {
   isRouteActive,
   type NavGroup,
-} from "../config/navigation";
-import type { AdminBadgeCounts } from "../types";
+} from "@/config/navigation";
+import type { AdminBadgeCounts } from "@/types/admin";
 import { SidebarItem } from "./SidebarItem";
 
 type SidebarGroupProps = {

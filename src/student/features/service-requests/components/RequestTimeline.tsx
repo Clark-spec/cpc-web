@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import type { TimelineStage } from "@/student/services/serviceRequests";
+import type { TimelineStage } from "@/services/student/serviceRequests";
 import { formatDateTime } from "../utils/format";
 
 function CheckIcon({ className }: { className?: string }) {

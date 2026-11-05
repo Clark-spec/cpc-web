@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useNotifications } from "@/shared/context/NotificationContext";
-import type { AppNotification, NotificationType } from "@/shared/context/NotificationContext";
+import { useNotifications } from "@/context/NotificationContext";
+import type { AppNotification, NotificationType } from "@/context/NotificationContext";
 
 const TYPE_COLORS: Record<NotificationType, string> = {
   info: "text-cpc-blue-accent",

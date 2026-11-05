@@ -14,7 +14,7 @@ import type {
   OfficeId,
   OfficeSignature,
   TimelineEvent,
-} from "../types";
+} from "@/types/clearance";
 
 /**
  * Mock API layer for the student Online Clearance page.

@@ -6,14 +6,14 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ServiceRequestStatCards } from "@/admin/features/service-requests/components/ServiceRequestStatCards";
 import { ServiceRequestTable } from "@/admin/features/service-requests/components/ServiceRequestTable";
 import { ServiceRequestDetailsModal } from "@/admin/features/service-requests/components/ServiceRequestDetailsModal";
-import { useAdminAuth } from "../context/AdminAuthContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 import {
   buildSampleServiceRequests,
   getServiceRequestCounts,
   SERVICE_STATUS_LABELS,
   type AdminServiceRequest,
   type AdminServiceRequestStatus,
-} from "../data/serviceRequests";
+} from "@/data/serviceRequests";
 
 type PendingChange = {
   request: AdminServiceRequest;

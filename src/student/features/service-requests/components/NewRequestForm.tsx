@@ -7,7 +7,7 @@ import {
   type ServiceOption,
   type ServiceRequest,
   type ServiceRequestDraft,
-} from "@/student/services/serviceRequests";
+} from "@/services/student/serviceRequests";
 import { DocumentUpload } from "./DocumentUpload";
 
 type NewRequestFormProps = {

@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { EnrollmentTrendPoint } from "../../../data/enrollmentApplications";
+import type { EnrollmentTrendPoint } from "@/data/enrollmentApplications";
 
 type EnrollmentTrendChartProps = {
   data: EnrollmentTrendPoint[];
