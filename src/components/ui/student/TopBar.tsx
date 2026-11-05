@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BellIcon, MapPinIcon } from "@/student/components/icons";
+import { BellIcon, MapPinIcon } from "@/components/ui/student/icons";
 
 const LOCATION = "Gabi, Cordova, Cebu";
 

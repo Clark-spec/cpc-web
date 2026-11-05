@@ -1,12 +1,12 @@
-import { Footer } from "@/student/layout/footer";
-import { Navbar } from "@/student/layout/navbar";
+import { Footer } from "@/components/ui/student/Footer";
+import { StudentNavbar } from "@/components/common/navbar/StudentNavbar";
 import { AboutSection } from "@/student/features/portal-home/components/about-section";
 import { CtaSection } from "@/student/features/portal-home/components/cta-section";
 import { HeroSection } from "@/student/features/portal-home/components/hero-section";
 import { ProgramsSection } from "@/student/features/portal-home/components/programs-section";
 import { QuickAccessCard } from "@/student/features/portal-home/components/quick-access-card";
 import { StatsBand } from "@/student/features/portal-home/components/stats-band";
-import { TopBar } from "@/student/layout/top-bar";
+import { TopBar } from "@/components/ui/student/TopBar";
 import { useHomeFrame } from "@/hooks/useHomeFrame";
 
 export default function StudentHomePage() {
@@ -19,7 +19,7 @@ export default function StudentHomePage() {
     >
       <header className="relative z-30">
         <TopBar />
-        <Navbar />
+        <StudentNavbar />
       </header>
 
       <main>

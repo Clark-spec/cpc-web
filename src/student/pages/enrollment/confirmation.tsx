@@ -1,5 +1,5 @@
-import { PortalFooter } from "@/student/layout/portal-footer";
-import { PortalHeader } from "@/student/layout/portal-header";
+import { PortalFooter } from "@/components/ui/student/PortalFooter";
+import { PortalHeader } from "@/components/ui/student/PortalHeader";
 import { EnrollContent } from "@/student/features/enrollment/components/EnrollContent";
 import { EnrollmentFollowUpCards } from "@/student/features/enrollment/components/EnrollmentFollowUpCards";
 import { EnrollmentHero } from "@/student/features/enrollment/components/EnrollmentHero";

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { CheckCircle2, SearchX } from "lucide-react";
-import { EmptyState as SharedEmptyState } from "@/admin/components/EmptyState";
+import { EmptyState as SharedEmptyState } from "@/components/ui/admin/EmptyState";
 
 /**
  * The two "nothing to show" states of the queue: a genuinely empty tab versus a

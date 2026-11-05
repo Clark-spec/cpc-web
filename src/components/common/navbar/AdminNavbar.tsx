@@ -17,18 +17,18 @@ import { useToast } from "@/components/ui/toast";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useAdminData } from "@/context/AdminDataContext";
 import { useSidebar } from "@/context/SidebarContext";
-import { useClickOutside } from "../hooks/useClickOutside";
+import { useClickOutside } from "@/admin/hooks/useClickOutside";
 import { ALL_ROLES, ROLE_LABELS } from "@/config/navigation";
 import type { AdminRole } from "@/types/admin";
-import { AdminNotificationBell } from "./AdminNotificationBell";
-import { Breadcrumbs } from "./Breadcrumbs";
-import { ConfirmDialog } from "../components/ConfirmDialog";
+import { AdminNotificationBell } from "@/components/ui/admin/AdminNotificationBell";
+import { Breadcrumbs } from "@/components/ui/admin/Breadcrumbs";
+import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
 
-type TopBarProps = {
+type AdminNavbarProps = {
   onOpenSearch: () => void;
 };
 
-export function TopBar({ onOpenSearch }: TopBarProps) {
+export function AdminNavbar({ onOpenSearch }: AdminNavbarProps) {
   const { user, demoMode, switchRole, logout } = useAdminAuth();
   const { generateSamples, resetDemo } = useAdminData();
   const { openMobile } = useSidebar();

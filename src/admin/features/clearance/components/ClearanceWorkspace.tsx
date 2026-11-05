@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { ErrorCard } from "@/admin/components/ErrorCard";
+import { ErrorCard } from "@/components/ui/admin/ErrorCard";
 import { useHotkeys } from "@/admin/hooks/useHotkeys";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { ApproveSignModal } from "./ApproveSignModal";

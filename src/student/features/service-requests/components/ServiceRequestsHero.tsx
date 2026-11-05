@@ -1,5 +1,5 @@
-import { PageHeroBanner } from "@/student/components/page-hero-banner";
-import type { HeroBreadcrumb } from "@/student/components/page-hero-banner";
+import { PageHeroBanner } from "@/components/ui/student/PageHeroBanner";
+import type { HeroBreadcrumb } from "@/components/ui/student/PageHeroBanner";
 import cpcBg from "@/assets/cpc-bg2.png";
 
 const breadcrumbItems: HeroBreadcrumb[] = [

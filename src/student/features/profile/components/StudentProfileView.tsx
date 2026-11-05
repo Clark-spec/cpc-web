@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
-import { Layout } from "@/student/layout/layout";
+import { StudentLayout } from "@/layouts/StudentLayout";
 import { useNotifications } from "@/context/NotificationContext";
 import { useProfile } from "../context/ProfileContext";
 import { useDemoModeToggle } from "../hooks/useDemoModeToggle";
@@ -68,7 +68,7 @@ export function StudentProfileView() {
   const closeCorrection = useCallback(() => setCorrectionField(null), []);
 
   return (
-    <Layout bell={<NotificationBell />}>
+    <StudentLayout bell={<NotificationBell />}>
       <div
         className={cn(
           "mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7",
@@ -125,6 +125,6 @@ export function StudentProfileView() {
         correctionField={correctionField}
         onCloseCorrection={closeCorrection}
       />
-    </Layout>
+    </StudentLayout>
   );
 }

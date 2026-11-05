@@ -1,5 +1,5 @@
 import { Route } from "react-router";
-import { ProtectedEnrollment } from "@/student/layout/ProtectedEnrollment";
+import { ProtectedEnrollment } from "@/layouts/ProtectedEnrollment";
 import StudentHomePage from "@/student/pages/home";
 import ServiceRequestsPage from "@/student/pages/service-requests";
 import RequestStatusPage from "@/student/pages/request-status";

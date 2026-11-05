@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import { PortalFooter } from "@/student/layout/portal-footer";
-import { PortalHeader } from "@/student/layout/portal-header";
+import { PortalFooter } from "@/components/ui/student/PortalFooter";
+import { PortalHeader } from "@/components/ui/student/PortalHeader";
 
-type LayoutProps = {
+type StudentLayoutProps = {
   children: ReactNode;
   /** Render the shared portal footer. Defaults to true. */
   showFooter?: boolean;
@@ -15,7 +15,7 @@ type LayoutProps = {
  * main area, then the footer. `min-h-screen flex flex-col` keeps the footer at
  * the bottom even when a page has very little content.
  */
-export function Layout({ children, showFooter = true, bell }: LayoutProps) {
+export function StudentLayout({ children, showFooter = true, bell }: StudentLayoutProps) {
   return (
     <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-white font-poppins">
       <PortalHeader bell={bell} />

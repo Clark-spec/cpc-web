@@ -1,6 +1,6 @@
 import { useLocation } from "react-router";
 import { Construction, Sparkles } from "lucide-react";
-import { AdminPageHeader } from "../components/AdminPageHeader";
+import { AdminPageHeader } from "@/components/ui/admin/AdminPageHeader";
 import { getBreadcrumbs, getPageTitle } from "@/config/navigation";
 
 /**

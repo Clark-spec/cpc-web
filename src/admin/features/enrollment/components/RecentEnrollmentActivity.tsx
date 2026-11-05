@@ -8,7 +8,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/utils/format";
-import { EmptyState } from "../../../components/EmptyState";
+import { EmptyState } from "@/components/ui/admin/EmptyState";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentActivityEntry,

@@ -1,4 +1,4 @@
-import { GraduationCapIcon, HeartIcon, UsersIcon, type IconComponent } from "@/student/components/icons";
+import { GraduationCapIcon, HeartIcon, UsersIcon, type IconComponent } from "@/components/ui/student/icons";
 import aboutBuilding from "@/assets/about-building.png";
 
 type AboutStat = {

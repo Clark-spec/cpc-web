@@ -8,8 +8,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDateTime, formatRelativeTime } from "@/utils/format";
-import { StatusBadge } from "../../../components/StatusBadge";
-import { EmptyState } from "../../../components/EmptyState";
+import { StatusBadge } from "@/components/ui/admin/StatusBadge";
+import { EmptyState } from "@/components/ui/admin/EmptyState";
 import type { ActivityItem, ActivityStudent, ActivityType } from "@/types/admin";
 
 const TYPE_ICONS: Record<ActivityType, LucideIcon> = {

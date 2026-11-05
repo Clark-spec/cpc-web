@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { TableSkeleton } from "@/admin/components/Skeleton";
+import { TableSkeleton } from "@/components/ui/admin/Skeleton";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { EmptyState } from "./EmptyState";

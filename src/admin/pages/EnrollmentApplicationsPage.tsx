@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { ClipboardList } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import { PageBanner } from "../components/PageBanner";
+import { PageBanner } from "@/components/ui/admin/PageBanner";
 import { DashboardPanel } from "@/admin/features/enrollment/components/DashboardPanel";
 import { EnrollmentStatCards } from "@/admin/features/enrollment/components/EnrollmentStatCards";
 import { EnrollmentTrendChart } from "@/admin/features/enrollment/components/EnrollmentTrendChart";

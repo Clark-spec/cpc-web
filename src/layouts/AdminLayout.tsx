@@ -5,11 +5,11 @@ import { cn } from "@/lib/cn";
 import "@/styles/admin.css";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useSidebar } from "@/context/SidebarContext";
-import { useHotkeys } from "./hooks/useHotkeys";
-import { CommandPalette } from "./layout/CommandPalette";
-import { MobileDrawer } from "./layout/MobileDrawer";
-import { Sidebar } from "./layout/Sidebar";
-import { TopBar } from "./layout/TopBar";
+import { useHotkeys } from "@/admin/hooks/useHotkeys";
+import { CommandPalette } from "@/components/ui/admin/CommandPalette";
+import { MobileDrawer } from "@/components/ui/admin/MobileDrawer";
+import { Sidebar } from "@/components/ui/admin/Sidebar";
+import { AdminNavbar } from "@/components/common/navbar/AdminNavbar";
 
 /**
  * Shell for every protected admin page: fixed sidebar, sticky top bar, and the
@@ -55,7 +55,7 @@ export function AdminLayout() {
           collapsed ? "lg:pl-20" : "lg:pl-[280px]",
         )}
       >
-        <TopBar onOpenSearch={() => setSearchOpen(true)} />
+        <AdminNavbar onOpenSearch={() => setSearchOpen(true)} />
 
         <main
           id="admin-main"

@@ -9,7 +9,7 @@ import {
   Timer,
   Undo2,
 } from "lucide-react";
-import { StatCardSkeleton } from "@/admin/components/Skeleton";
+import { StatCardSkeleton } from "@/components/ui/admin/Skeleton";
 import { useCountUp } from "@/admin/hooks/useCountUp";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";

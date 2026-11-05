@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { Navbar } from "@/student/layout/navbar";
+import { StudentNavbar } from "@/components/common/navbar/StudentNavbar";
 import { useChromeFrame } from "@/hooks/useChromeFrame";
-import { TopBar } from "@/student/layout/top-bar";
+import { TopBar } from "@/components/ui/student/TopBar";
 
 type PortalHeaderProps = {
   /** Lets a page swap in its own notification control (e.g. the clearance bell). */
@@ -19,7 +19,7 @@ export function PortalHeader({ bell }: PortalHeaderProps) {
   return (
     <header className="relative z-30" style={{ zoom }}>
       <TopBar bell={bell} />
-      <Navbar fluid />
+      <StudentNavbar fluid />
     </header>
   );
 }

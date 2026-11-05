@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDate } from "@/utils/format";
-import { EmptyState } from "../../../components/EmptyState";
+import { EmptyState } from "@/components/ui/admin/EmptyState";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {
   ENROLLMENT_STATUS_LABELS,

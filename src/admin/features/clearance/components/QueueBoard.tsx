@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { DragEvent } from "react";
 import { AlertCircle, CheckCircle2, Clock3 } from "lucide-react";
-import { CardSkeleton } from "@/admin/components/Skeleton";
+import { CardSkeleton } from "@/components/ui/admin/Skeleton";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { EmptyState } from "./EmptyState";

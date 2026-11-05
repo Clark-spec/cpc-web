@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { Menu, X } from "lucide-react";
-import { CaretDownIcon } from "@/student/components/icons";
+import { CaretDownIcon } from "@/components/ui/student/icons";
 import { cn } from "@/lib/cn";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 
@@ -74,7 +74,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-type NavbarProps = {
+type StudentNavbarProps = {
   /**
    * Reflow at small widths and show the hamburger menu. The Home page scales
    * its 1440px frame with `zoom`, so it keeps the original fixed layout; the
@@ -83,7 +83,7 @@ type NavbarProps = {
   fluid?: boolean;
 };
 
-export function Navbar({ fluid = false }: NavbarProps) {
+export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
