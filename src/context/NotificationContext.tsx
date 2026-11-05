@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -81,14 +82,32 @@ type NotificationProviderProps = {
 export function NotificationProvider({ children, storageKey }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<AppNotification[]>(() => readStored(storageKey));
   const { toast } = useToast();
+  // Avoid writing the value straight back when it arrived from another tab.
+  const skipPersist = useRef(false);
 
   useEffect(() => {
+    if (skipPersist.current) {
+      skipPersist.current = false;
+      return;
+    }
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(notifications.slice(0, MAX_NOTIFICATIONS)));
     } catch {
       // Ignore storage failures (private mode / quota exceeded).
     }
   }, [notifications, storageKey]);
+
+  // The admin portal writes staff notifications into this same key; keep both
+  // tabs in sync without a manual refresh.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== storageKey) return;
+      skipPersist.current = true;
+      setNotifications(readStored(storageKey));
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [storageKey]);
 
   const notify = useCallback(
     ({ message, type = "info", officeId, silent = false }: NotifyInput) => {

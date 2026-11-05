@@ -20,6 +20,7 @@ import {
   requestSignature as requestSignatureService,
   requestSignatures as requestSignaturesService,
   resetClearance as resetClearanceService,
+  CLEARANCE_STORAGE_KEY,
 } from "../services/clearanceService";
 import { useNotifications } from "./NotificationContext";
 import type {
@@ -90,6 +91,20 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     return () => {
       if (highlightTimer.current !== null) window.clearTimeout(highlightTimer.current);
     };
+  }, []);
+
+  // Admin/staff signatures are written to the same key from another tab.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== CLEARANCE_STORAGE_KEY) return;
+      void getClearance()
+        .then((next) => setState(next))
+        .catch(() => {
+          // Keep the current state if the cross-tab read fails.
+        });
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const isCleared = useMemo(

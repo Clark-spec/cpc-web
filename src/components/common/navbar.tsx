@@ -40,6 +40,7 @@ const navItems: NavItem[] = [
 
 
 
+
       { label: "Class Schedules", to: "/academics/class-schedules" },
       { label: "Academic Calendar", to: "/academics/academic-calendar" },
       { label: "Grades / Academic Records", to: "#" },
