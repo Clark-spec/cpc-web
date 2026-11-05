@@ -1,10 +1,10 @@
 import { Navigate, Route } from "react-router";
 import { AdminLoginRoute, AdminShell } from "@/layouts/AdminShell";
 import ClearanceAdminPage from "@/components/features/admin/clearance/ClearanceAdminPage";
-import ComingSoonPage from "@/admin/pages/ComingSoonPage";
-import DashboardPage from "@/admin/pages/DashboardPage";
-import EnrollmentApplicationsPage from "@/admin/pages/EnrollmentApplicationsPage";
-import ServiceRequestManagementPage from "@/admin/pages/ServiceRequestsPage";
+import ComingSoonPage from "@/pages/admin/ComingSoonPage";
+import DashboardPage from "@/pages/admin/DashboardPage";
+import EnrollmentApplicationsPage from "@/pages/admin/EnrollmentApplicationsPage";
+import ServiceRequestManagementPage from "@/pages/admin/ServiceRequestsPage";
 
 /**
  * The staff portal's own route subtree, mounted by `@/app/routes`.

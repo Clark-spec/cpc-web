@@ -1,16 +1,16 @@
 import { Route } from "react-router";
 import { ProtectedEnrollment } from "@/layouts/ProtectedEnrollment";
-import StudentHomePage from "@/student/pages/home";
-import ServiceRequestsPage from "@/student/pages/service-requests";
-import RequestStatusPage from "@/student/pages/request-status";
-import ClearancePage from "@/student/pages/online-clearance";
-import ClassSchedulesPage from "@/student/pages/class-schedules";
-import AcademicCalendarPage from "@/student/pages/academic-calendar";
-import OnlineEnrollmentPage from "@/student/pages/enrollment";
-import EnrollmentConfirmationPage from "@/student/pages/enrollment/confirmation";
-import EnrollmentStatusPage from "@/student/pages/enrollment/status";
-import EnrollmentStepPage from "@/student/pages/enrollment/step";
-import StudentProfilePage from "@/student/pages/StudentProfilePage";
+import StudentHomePage from "@/pages/student/home";
+import ServiceRequestsPage from "@/pages/student/service-requests";
+import RequestStatusPage from "@/pages/student/request-status";
+import ClearancePage from "@/pages/student/online-clearance";
+import ClassSchedulesPage from "@/pages/student/class-schedules";
+import AcademicCalendarPage from "@/pages/student/academic-calendar";
+import OnlineEnrollmentPage from "@/pages/student/enrollment";
+import EnrollmentConfirmationPage from "@/pages/student/enrollment/confirmation";
+import EnrollmentStatusPage from "@/pages/student/enrollment/status";
+import EnrollmentStepPage from "@/pages/student/enrollment/step";
+import StudentProfilePage from "@/pages/student/StudentProfilePage";
 
 /**
  * The student portal's own route subtree, mounted by `@/app/routes`.
