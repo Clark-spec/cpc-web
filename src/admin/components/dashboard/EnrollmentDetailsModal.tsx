@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlertCircle, Check, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/features/clearance/lib/format";
+import { formatDateTime } from "@/student/features/clearance/utils/format";
 import { Modal } from "@/components/ui/modal";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {

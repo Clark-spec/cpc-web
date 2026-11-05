@@ -5,7 +5,7 @@
  * `NotificationType` so both sides of the product speak exactly the same
  * vocabulary (and the same localStorage records).
  */
-import type { NotificationType, OfficeId } from "@/features/clearance/types";
+import type { NotificationType, OfficeId } from "@/student/features/clearance/types";
 
 export type AdminRole =
   | "admin"

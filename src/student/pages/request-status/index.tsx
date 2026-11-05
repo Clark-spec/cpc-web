@@ -1,0 +1,95 @@
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
+import { cn } from "@/lib/cn";
+import cpcBg from "@/assets/cpc-bg2.png";
+import { PageHeroBanner } from "@/components/common/page-hero-banner";
+import { PortalFooter } from "@/components/common/portal-footer";
+import { PortalHeader } from "@/components/common/portal-header";
+import { RequestDetailsModal } from "@/student/features/service-requests/components/RequestDetailsModal";
+import { RequestStatusList } from "@/student/features/request-status/components/RequestStatusList";
+import { StatusSummaryCards } from "@/student/features/request-status/components/StatusSummaryCards";
+import { useRequestStatus } from "@/student/features/request-status/hooks/useRequestStatus";
+
+export default function RequestStatusPage() {
+  const status = useRequestStatus();
+  const [viewRequestId, setViewRequestId] = useState<number | null>(null);
+  const busy = status.loading || status.refreshing;
+
+  return (
+    <div className="w-full overflow-x-hidden bg-white font-poppins">
+      <PortalHeader />
+
+      <PageHeroBanner
+        breadcrumbItems={[
+          { label: "Home", href: "/student/home" },
+          { label: "Student Services", href: null },
+          { label: "Service Requests", href: "/student/service-requests" },
+          { label: "Request Status", href: null },
+        ]}
+        eyebrow="STUDENT SERVICES / REQUEST TRACKING"
+        title="Request Status"
+        subtitle="Track and monitor the progress of your submitted service requests."
+        backgroundImage={cpcBg}
+      />
+
+      <main className="w-full bg-sr-page">
+        <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8 lg:px-[50px] lg:py-10">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-poppins text-[16px] font-semibold text-sr-text">
+                Request Overview
+              </h2>
+              <p className="mt-1 font-poppins text-[11px] leading-[17px] text-sr-muted">
+                Counts reflect the service requests linked to your student account.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={status.reload}
+              disabled={busy}
+              className="sr-btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw
+                className={cn("h-4 w-4", busy && "animate-spin")}
+                aria-hidden
+              />
+              {status.refreshing ? "Refreshing…" : "Refresh"}
+            </button>
+          </div>
+
+          <div className="mt-3.5">
+            <StatusSummaryCards
+              summary={status.summary}
+              loading={status.loading}
+              error={status.error}
+            />
+          </div>
+
+          <div className="mt-5">
+            <RequestStatusList
+              filteredRequests={status.filteredRequests}
+              total={status.summary.total}
+              statusCounts={status.statusCounts}
+              loading={status.loading}
+              error={status.error}
+              query={status.query}
+              statusFilter={status.statusFilter}
+              hasFilters={status.hasFilters}
+              onQueryChange={status.setQuery}
+              onStatusFilterChange={status.setStatusFilter}
+              onClearFilters={status.clearFilters}
+              onRetry={status.reload}
+              onView={(id) => setViewRequestId(id)}
+            />
+          </div>
+        </div>
+      </main>
+
+      <PortalFooter />
+
+      {viewRequestId !== null && (
+        <RequestDetailsModal requestId={viewRequestId} onClose={() => setViewRequestId(null)} />
+      )}
+    </div>
+  );
+}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Check, Clock, Eye, MoreVertical, StickyNote, X } from "lucide-react";
-import { formatDateTime } from "@/features/clearance/lib/format";
+import { formatDateTime } from "@/student/features/clearance/utils/format";
 import { cn } from "@/lib/cn";
 import { StatusBadge } from "./StatusBadge";
 import { OFFICE_LABELS } from "../utils/officeChecks";

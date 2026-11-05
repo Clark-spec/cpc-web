@@ -1,4 +1,4 @@
-import type { ClearanceRequestRow, RequestStatus } from "@/features/clearance/types";
+import type { ClearanceRequestRow, RequestStatus } from "@/student/features/clearance/types";
 
 /** Requests older than this many days are overdue unless the period overrides it. */
 export const DEFAULT_OVERDUE_DAYS = 3;

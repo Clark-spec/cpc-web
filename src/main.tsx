@@ -18,17 +18,17 @@ import ClearanceAdminPage from "@/admin/features/clearance/ClearanceAdminPage";
 import EnrollmentApplicationsPage from "@/admin/pages/EnrollmentApplicationsPage";
 import ServiceRequestManagementPage from "@/admin/pages/ServiceRequestsPage";
 import ComingSoonPage from "@/admin/pages/ComingSoonPage";
-import StudentHomePage from "@/pages/student/home";
-import ServiceRequestsPage from "@/pages/student/service-requests";
-import RequestStatusPage from "@/pages/student/request-status";
-import ClearancePage from "@/pages/student-services/online-clearance";
-import ClassSchedulesPage from "@/pages/academics/class-schedules";
-import AcademicCalendarPage from "@/pages/academics/academic-calendar";
-import OnlineEnrollmentPage from "@/pages/online-enrollment";
-import EnrollmentConfirmationPage from "@/pages/online-enrollment/confirmation";
-import EnrollmentStatusPage from "@/pages/online-enrollment/status";
-import EnrollmentStepPage from "@/pages/online-enrollment/step";
-import StudentProfilePage from "@/features/profile/StudentProfilePage";
+import StudentHomePage from "@/student/pages/home";
+import ServiceRequestsPage from "@/student/pages/service-requests";
+import RequestStatusPage from "@/student/pages/request-status";
+import ClearancePage from "@/student/pages/online-clearance";
+import ClassSchedulesPage from "@/student/pages/class-schedules";
+import AcademicCalendarPage from "@/student/pages/academic-calendar";
+import OnlineEnrollmentPage from "@/student/pages/enrollment";
+import EnrollmentConfirmationPage from "@/student/pages/enrollment/confirmation";
+import EnrollmentStatusPage from "@/student/pages/enrollment/status";
+import EnrollmentStepPage from "@/student/pages/enrollment/step";
+import StudentProfilePage from "@/student/pages/StudentProfilePage";
 
 export function ProtectedEnrollment() {
   return (

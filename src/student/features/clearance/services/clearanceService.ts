@@ -1,0 +1,473 @@
+import {
+  createInitialOffices,
+  mockEvents,
+  mockHistory,
+  mockStudent,
+  mockSubjects,
+  officeSignerNames,
+} from "../data/mockClearance";
+import { createDemoSignature } from "../utils/demoSignature";
+import type {
+  ClearancePeriod,
+  ClearanceRecord,
+  ClearanceState,
+  OfficeId,
+  OfficeSignature,
+  TimelineEvent,
+} from "../types";
+
+/**
+ * Mock API layer for the student Online Clearance page.
+ *
+ * (1) SHARED-STORAGE CONTRACT: this file and the staff portal's
+ * `clearanceAdminService.ts` are two clients of the same four keys. Every
+ * clearance lives in one `ClearanceRecord[]` array keyed by `studentId`
+ * (`cpc:clearance:records`), each record always carrying the six offices. A
+ * student action here flips an office to "requested" and appends a timeline
+ * event; a staff decision writes status, signerName, signatureImage, remarks
+ * and respondedAt back onto that same office. Because both sides write through
+ * `localStorage`, the other tab sees a `storage` event and re-reads — that is
+ * the whole sync mechanism, and the BroadcastChannel below is what makes a
+ * same-tab change visible too.
+ *
+ * When the backend exists only this file changes: swap the storage calls for
+ * `fetch` and keep the same exported signatures.
+ */
+export const CLEARANCE_RECORDS_KEY = "cpc:clearance:records";
+export const CLEARANCE_TIMELINE_KEY = "cpc:clearance:timeline";
+export const CLEARANCE_PERIOD_KEY = "cpc:clearance:period";
+export const CLEARANCE_CHANNEL_NAME = "cpc-clearance";
+
+/** Kept for existing listeners: the records array is what changes remotely. */
+export const CLEARANCE_STORAGE_KEY = CLEARANCE_RECORDS_KEY;
+
+/** (2) Per-student notification feed; the staff portal writes the same key. */
+export function studentNotificationsKey(studentId: string): string {
+  return `cpc:notifications:${studentId}`;
+}
+
+export const CLEARANCE_NOTIFICATIONS_KEY = studentNotificationsKey(mockStudent.studentId);
+
+/** The single signed-in demo student. A real session supplies this id. */
+export const STUDENT_ID = mockStudent.studentId;
+
+const READ_DELAY = 350;
+const WRITE_DELAY = 700;
+const MAX_TIMELINE = 240;
+
+const DEFAULT_PERIOD: ClearancePeriod = {
+  academicYear: "2026-2027",
+  term: "1st Semester",
+  opensAt: "2026-08-03T00:00:00.000Z",
+  closesAt: "2026-12-15T23:59:59.000Z",
+  open: true,
+  overdueDays: 3,
+};
+
+function wait<T>(value: T, ms: number): Promise<T> {
+  return new Promise((resolve) => {
+    window.setTimeout(() => resolve(value), ms);
+  });
+}
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(key: string, value: unknown): void {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Quota or private-mode failure: the in-memory state still renders.
+  }
+}
+
+/** Broadcasts so a second portal open in this same tab group re-reads. */
+function announce(reason: string): void {
+  try {
+    if (typeof BroadcastChannel === "undefined") return;
+    const channel = new BroadcastChannel(CLEARANCE_CHANNEL_NAME);
+    channel.postMessage({ reason });
+    channel.close();
+  } catch {
+    // Storage events already cover cross-tab sync.
+  }
+}
+
+function newId(): string {
+  return typeof crypto !== "undefined" ? crypto.randomUUID() : `id-${Date.now()}`;
+}
+
+/* ------------------------------------------------------------- seed record */
+
+/**
+ * The student's starting point, identical to the staff seed for Harry Styles:
+ * five offices already signed, SAO still awaiting action with the student's
+ * note attached.
+ */
+function seedStudentRecord(now: number): ClearanceRecord {
+  const signedAt = new Date(now - 9 * 86_400_000).toISOString();
+
+  const offices = createInitialOffices().map((office): OfficeSignature => {
+    const base: OfficeSignature = {
+      ...office,
+      status: "signed",
+      requestedAt: signedAt,
+      respondedAt: new Date(Date.parse(signedAt) + 6 * 3_600_000).toISOString(),
+      signerName: officeSignerNames[office.office],
+    };
+
+    return office.office === "sao"
+      ? {
+          ...office,
+          status: "requested",
+          requestedAt: new Date(now - 5 * 3_600_000).toISOString(),
+          studentNote: "Requesting clearance for 2nd semester enrollment.",
+        }
+      : base;
+  });
+
+  return {
+    studentId: mockStudent.studentId,
+    studentName: mockStudent.name,
+    section: "BSIT 3-A",
+    program: mockStudent.program,
+    yearLevel: "3rd Year",
+    term: "1st Semester",
+    academicYear: mockStudent.academicYear,
+    offices,
+    subjects: mockSubjects,
+    saoEvents: mockEvents,
+  };
+}
+
+/* ------------------------------------------------------------------ records */
+
+function normalizeRecord(parsed: Partial<ClearanceRecord>): ClearanceRecord {
+  const fallback = seedStudentRecord(Date.now());
+  const stored = Array.isArray(parsed.offices) ? parsed.offices : [];
+
+  // Always six offices, in Form 3 order, even if storage holds an older shape.
+  const offices = createInitialOffices().map((office) => {
+    const match = stored.find((entry) => entry?.office === office.office);
+    return match ? { ...office, ...match, label: office.label } : office;
+  });
+
+  return {
+    studentId: typeof parsed.studentId === "string" ? parsed.studentId : fallback.studentId,
+    studentName: parsed.studentName ?? fallback.studentName,
+    section: parsed.section ?? fallback.section,
+    program: parsed.program ?? fallback.program,
+    yearLevel: parsed.yearLevel ?? fallback.yearLevel,
+    term: parsed.term ?? fallback.term,
+    academicYear: parsed.academicYear ?? fallback.academicYear,
+    offices,
+    subjects: Array.isArray(parsed.subjects) ? parsed.subjects : mockSubjects,
+    saoEvents: Array.isArray(parsed.saoEvents) ? parsed.saoEvents : mockEvents,
+    referenceNumber: parsed.referenceNumber,
+    completedAt: parsed.completedAt,
+  };
+}
+
+/** Reads the whole shared array, seeding it on first use. */
+function readRecords(): ClearanceRecord[] {
+  const stored = readJson<ClearanceRecord[]>(CLEARANCE_RECORDS_KEY, []);
+  const records = Array.isArray(stored)
+    ? stored.filter(
+        (record) =>
+          typeof record?.studentId === "string" && Array.isArray(record.offices),
+      )
+    : [];
+
+  if (records.length > 0) return records;
+
+  const seeded = [seedStudentRecord(Date.now())];
+  writeJson(CLEARANCE_RECORDS_KEY, seeded);
+  return seeded;
+}
+
+function readStudentRecord(): ClearanceRecord {
+  const records = readRecords();
+  const found = records.find((record) => record.studentId === STUDENT_ID);
+  if (found) return normalizeRecord(found);
+
+  const created = seedStudentRecord(Date.now());
+  writeJson(CLEARANCE_RECORDS_KEY, [...records, created]);
+  return created;
+}
+
+function writeStudentRecord(record: ClearanceRecord, reason: string): void {
+  const records = readRecords();
+  const next = records.some((entry) => entry.studentId === record.studentId)
+    ? records.map((entry) => (entry.studentId === record.studentId ? record : entry))
+    : [...records, record];
+
+  writeJson(CLEARANCE_RECORDS_KEY, next);
+  announce(reason);
+}
+
+function readPeriod(): ClearancePeriod {
+  return { ...DEFAULT_PERIOD, ...readJson<Partial<ClearancePeriod>>(CLEARANCE_PERIOD_KEY, {}) };
+}
+
+/* ----------------------------------------------------------------- timeline */
+
+function readTimeline(): TimelineEvent[] {
+  const stored = readJson<TimelineEvent[]>(CLEARANCE_TIMELINE_KEY, []);
+  return Array.isArray(stored) ? stored : [];
+}
+
+function appendTimeline(events: TimelineEvent[]): void {
+  const next = [...events, ...readTimeline()]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, MAX_TIMELINE);
+  writeJson(CLEARANCE_TIMELINE_KEY, next);
+}
+
+function event(
+  officeId: OfficeId,
+  type: TimelineEvent["type"],
+  actor: string,
+  detail?: string,
+  at = new Date().toISOString(),
+): TimelineEvent {
+  return { id: newId(), requestId: `${STUDENT_ID}:${officeId}`, at, actor, type, detail };
+}
+
+/* ------------------------------------------------------------------ derived */
+
+const isFullySigned = (offices: OfficeSignature[]): boolean =>
+  offices.length > 0 && offices.every((office) => office.status === "signed");
+
+/** Reference numbers continue the sequence the staff portal started. */
+function nextReferenceNumber(records: ClearanceRecord[]): string {
+  const highest = records.reduce((max, record) => {
+    const digits = Number.parseInt((record.referenceNumber ?? "").split("-").pop() ?? "", 10);
+    return Number.isNaN(digits) ? max : Math.max(max, digits);
+  }, 122);
+  return `CPC-${mockStudent.academicYear.slice(0, 4)}-${String(highest + 1).padStart(6, "0")}`;
+}
+
+function toState(record: ClearanceRecord, period: ClearancePeriod): ClearanceState {
+  return {
+    offices: record.offices,
+    history: mockHistory,
+    dateCleared: record.completedAt ?? null,
+    referenceNumber: record.referenceNumber,
+    periodOpen: period.open,
+  };
+}
+
+function patchOffice(
+  record: ClearanceRecord,
+  officeId: OfficeId,
+  patch: Partial<OfficeSignature>,
+): ClearanceRecord {
+  const offices = record.offices.map((office) =>
+    office.office === officeId ? { ...office, ...patch } : office,
+  );
+
+  const complete = isFullySigned(offices);
+  return {
+    ...record,
+    offices,
+    referenceNumber: complete
+      ? (record.referenceNumber ?? nextReferenceNumber(readRecords()))
+      : undefined,
+    completedAt: complete ? (record.completedAt ?? new Date().toISOString()) : undefined,
+  };
+}
+
+/* -------------------------------------------------------------------- API */
+
+/** Loads this student's clearance plus the period flag the page needs. */
+export async function getClearance(): Promise<ClearanceState> {
+  return wait(toState(readStudentRecord(), readPeriod()), READ_DELAY);
+}
+
+/** The registrar's open/closed switch — gates every "Request Signature" button. */
+export async function getClearancePeriod(): Promise<ClearancePeriod> {
+  return wait(readPeriod(), READ_DELAY);
+}
+
+/**
+ * Student request → office becomes "requested" with a timestamp → the card
+ * shows "Awaiting Signature" and the staff queue gains a row on the next read.
+ * A previously returned request is logged as "reopened".
+ */
+export async function requestSignature(
+  officeId: OfficeId,
+  studentNote?: string,
+): Promise<ClearanceState> {
+  const period = readPeriod();
+  const record = readStudentRecord();
+  const current = record.offices.find((office) => office.office === officeId);
+
+  if (!current || !period.open || current.status === "requested" || current.status === "signed") {
+    return wait(toState(record, period), WRITE_DELAY);
+  }
+
+  const at = new Date().toISOString();
+  const note = studentNote?.trim() || undefined;
+  const next = patchOffice(record, officeId, {
+    status: "requested",
+    requestedAt: at,
+    respondedAt: undefined,
+    signerName: undefined,
+    signatureImage: undefined,
+    studentNote: note,
+    remarks: undefined,
+  });
+
+  appendTimeline([
+    event(officeId, current.status === "rejected" ? "reopened" : "requested", record.studentName, note, at),
+  ]);
+  writeStudentRecord(next, "student-request");
+
+  return wait(toState(next, period), WRITE_DELAY);
+}
+
+/** Bulk variant behind "Request All": one write, one broadcast. */
+export async function requestSignatures(officeIds: OfficeId[]): Promise<ClearanceState> {
+  const period = readPeriod();
+  let record = readStudentRecord();
+  const at = new Date().toISOString();
+  const events: TimelineEvent[] = [];
+
+  for (const officeId of officeIds) {
+    const current = record.offices.find((office) => office.office === officeId);
+    if (!current || !period.open) continue;
+    if (current.status === "requested" || current.status === "signed") continue;
+
+    events.push(
+      event(
+        officeId,
+        current.status === "rejected" ? "reopened" : "requested",
+        record.studentName,
+        current.studentNote,
+        at,
+      ),
+    );
+    record = patchOffice(record, officeId, {
+      status: "requested",
+      requestedAt: at,
+      respondedAt: undefined,
+      signerName: undefined,
+      signatureImage: undefined,
+      remarks: undefined,
+    });
+  }
+
+  if (events.length > 0) {
+    appendTimeline(events);
+    writeStudentRecord(record, "student-request");
+  }
+
+  return wait(toState(record, period), WRITE_DELAY);
+}
+
+/**
+ * Withdraws a request still awaiting staff action. The row disappears from the
+ * staff Pending queue and the timeline records the cancellation.
+ */
+export async function cancelRequest(officeId: OfficeId): Promise<ClearanceState> {
+  const period = readPeriod();
+  const record = readStudentRecord();
+  const current = record.offices.find((office) => office.office === officeId);
+
+  if (!current || current.status !== "requested") {
+    return wait(toState(record, period), WRITE_DELAY);
+  }
+
+  const next = patchOffice(record, officeId, {
+    status: "not_requested",
+    requestedAt: undefined,
+    respondedAt: undefined,
+    signerName: undefined,
+    signatureImage: undefined,
+    studentNote: undefined,
+  });
+
+  appendTimeline([event(officeId, "cancelled", record.studentName)]);
+  writeStudentRecord(next, "student-cancel");
+
+  return wait(toState(next, period), WRITE_DELAY);
+}
+
+/**
+ * DEMO ONLY — stands in for the staff portal on the same screen.
+ *
+ * (2) The real path is the staff portal's Approve & Sign flow: signature
+ * (draw/type/upload/saved) becomes a base64 PNG, the staff service writes
+ * status + signatureImage + signerName + respondedAt onto this same office, the
+ * `storage` event reaches this tab, and the card renders the signature.
+ */
+export async function demoApprove(officeId: OfficeId): Promise<ClearanceState> {
+  const period = readPeriod();
+  const record = readStudentRecord();
+  const current = record.offices.find((office) => office.office === officeId);
+
+  if (!current || current.status !== "requested") {
+    return wait(toState(record, period), WRITE_DELAY);
+  }
+
+  const signerName = officeSignerNames[officeId];
+  const signatureImage = await createDemoSignature(signerName);
+  const at = new Date().toISOString();
+  const next = patchOffice(record, officeId, {
+    status: "signed",
+    signerName,
+    signatureImage,
+    respondedAt: at,
+    remarks: undefined,
+  });
+
+  appendTimeline([event(officeId, "signed", signerName, undefined, at)]);
+  writeStudentRecord(next, "decision");
+
+  return wait(toState(next, period), WRITE_DELAY);
+}
+
+/** DEMO ONLY — staff rejection with the remark shown on the student's card. */
+export async function demoReject(
+  officeId: OfficeId,
+  remarks: string,
+): Promise<ClearanceState> {
+  const period = readPeriod();
+  const record = readStudentRecord();
+  const current = record.offices.find((office) => office.office === officeId);
+
+  if (!current || current.status !== "requested") {
+    return wait(toState(record, period), WRITE_DELAY);
+  }
+
+  const at = new Date().toISOString();
+  const note =
+    remarks.trim() || "Please complete the missing requirement and request again.";
+  const next = patchOffice(record, officeId, {
+    status: "rejected",
+    remarks: note,
+    signerName: officeSignerNames[officeId],
+    signatureImage: undefined,
+    respondedAt: at,
+  });
+
+  appendTimeline([event(officeId, "rejected", officeSignerNames[officeId], note, at)]);
+  writeStudentRecord(next, "decision");
+
+  return wait(toState(next, period), WRITE_DELAY);
+}
+
+/** Restores this student's record and clears their notification feed. */
+export async function resetClearance(): Promise<ClearanceState> {
+  const record = seedStudentRecord(Date.now());
+  writeStudentRecord(record, "reset");
+  writeJson(CLEARANCE_NOTIFICATIONS_KEY, []);
+  return wait(toState(record, readPeriod()), WRITE_DELAY);
+}

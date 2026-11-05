@@ -3,7 +3,7 @@ import { BellRing, CalendarDays, CircleSlash, Info, Loader2 } from "lucide-react
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDate } from "@/features/clearance/lib/format";
+import { formatDate } from "@/student/features/clearance/utils/format";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { DEFAULT_OVERDUE_DAYS, daysRemaining } from "../utils/sla";
 import type { ClearancePeriod } from "../types";

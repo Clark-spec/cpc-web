@@ -3,7 +3,7 @@ import {
   mockEvents,
   mockSubjects,
   officeSignerNames,
-} from "@/features/clearance/data/mockClearance";
+} from "@/student/features/clearance/data/mockClearance";
 import type {
   AppNotification,
   ClearancePeriod,
@@ -13,7 +13,7 @@ import type {
   OfficeSignature,
   SavedSignature,
   TimelineEvent,
-} from "@/features/clearance/types";
+} from "@/student/features/clearance/types";
 import type { ActivityItem, AdminNotification } from "@/admin/types";
 import type { ApproveInput, NewSignatureInput, OfficeLoad } from "../types";
 import { OFFICE_LABELS, OFFICE_ORDER } from "../utils/officeChecks";

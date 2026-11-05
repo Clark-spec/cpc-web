@@ -23,9 +23,9 @@ export type {
   SaoEvent,
   Subject,
   TimelineEvent,
-} from "@/features/clearance/types";
+} from "@/student/features/clearance/types";
 
-export type { AppNotification } from "@/context/NotificationContext";
+export type { AppNotification } from "@/shared/context/NotificationContext";
 
 import type {
   ClearancePeriod,
@@ -35,7 +35,7 @@ import type {
   OfficeId,
   SavedSignature,
   TimelineEvent,
-} from "@/features/clearance/types";
+} from "@/student/features/clearance/types";
 
 /** "All Offices" is only selectable by the admin role. */
 export type OfficeFilter = OfficeId | "all";

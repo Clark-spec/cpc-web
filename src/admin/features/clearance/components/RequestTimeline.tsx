@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime } from "@/features/clearance/lib/format";
+import { formatDateTime } from "@/student/features/clearance/utils/format";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import type { TimelineEvent } from "../types";
 

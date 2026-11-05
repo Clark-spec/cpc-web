@@ -1,4 +1,4 @@
-import { LoginForm } from "@/features/auth/login-form";
+import { LoginForm } from "@/shared/auth/login-form";
 
 export default function StudentLoginPage() {
   return (

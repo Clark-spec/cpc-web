@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDateTime, formatRelativeTime } from "@/features/clearance/lib/format";
+import { formatDateTime, formatRelativeTime } from "@/student/features/clearance/utils/format";
 import { StatusBadge } from "../StatusBadge";
 import { EmptyState } from "../EmptyState";
 import type { ActivityItem, ActivityStudent, ActivityType } from "../../types";

@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatDate } from "@/features/clearance/lib/format";
+import { formatDate } from "@/student/features/clearance/utils/format";
 import { EmptyState } from "../EmptyState";
 import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
 import {

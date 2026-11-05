@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ChevronDown, FileText } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { SubjectsTable } from "@/features/clearance/components/SubjectsTable";
-import { EventsTable } from "@/features/clearance/components/EventsTable";
+import { SubjectsTable } from "@/student/features/clearance/components/SubjectsTable";
+import { EventsTable } from "@/student/features/clearance/components/EventsTable";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 
 /**

@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "../context/ClearanceAdminContext";
 import { OFFICE_LABELS, OFFICE_ORDER } from "../utils/officeChecks";
-import { formatDate } from "@/features/clearance/lib/format";
+import { formatDate } from "@/student/features/clearance/utils/format";
 import type { RequestStatus } from "../types";
 
 const STATUS_META: Record<RequestStatus, { label: string; icon: LucideIcon; tone: string }> = {

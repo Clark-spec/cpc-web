@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { formatRelativeTime } from "@/features/clearance/lib/format";
+import { formatRelativeTime } from "@/student/features/clearance/utils/format";
 import { EmptyState } from "../EmptyState";
 import {
   ENROLLMENT_STATUS_LABELS,
