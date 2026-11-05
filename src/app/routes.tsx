@@ -6,11 +6,11 @@ import StudentLoginPage from "@/pages/auth/student/StudentLoginPage";
 import StaffLoginPage from "@/pages/auth/staff/StaffLoginPage";
 import { AdminLoginRoute, AdminShell } from "@/layouts/AdminShell";
 import { ProtectedEnrollment } from "@/layouts/ProtectedEnrollment";
-import ClearanceAdminPage from "@/components/features/admin/clearance/ClearanceAdminPage";
-import ComingSoonPage from "@/pages/admin/ComingSoonPage";
-import DashboardPage from "@/pages/admin/DashboardPage";
-import EnrollmentApplicationsPage from "@/pages/admin/EnrollmentApplicationsPage";
-import ServiceRequestManagementPage from "@/pages/admin/ServiceRequestsPage";
+import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
+import ComingSoonPage from "@/pages/admin/coming-soon";
+import DashboardPage from "@/pages/admin/dashboard";
+import EnrollmentApplicationsPage from "@/pages/admin/enrollment/applications";
+import ServiceRequestManagementPage from "@/pages/admin/service-requests";
 import StudentHomePage from "@/pages/student/home";
 import ServiceRequestsPage from "@/pages/student/service-requests";
 import RequestStatusPage from "@/pages/student/request-status";
@@ -21,7 +21,7 @@ import OnlineEnrollmentPage from "@/pages/student/enrollment";
 import EnrollmentConfirmationPage from "@/pages/student/enrollment/confirmation";
 import EnrollmentStatusPage from "@/pages/student/enrollment/status";
 import EnrollmentStepPage from "@/pages/student/enrollment/step";
-import StudentProfilePage from "@/pages/student/StudentProfilePage";
+import StudentProfilePage from "@/pages/student/profile";
 
 export function AppRoutes() {
   return (
@@ -40,7 +40,7 @@ export function AppRoutes() {
       <Route path="/admin" element={<AdminShell />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="clearance-requests" element={<ClearanceAdminPage />} />
+        <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
         <Route
           path="enrollment/applications"
           element={<EnrollmentApplicationsPage view="all" />}
