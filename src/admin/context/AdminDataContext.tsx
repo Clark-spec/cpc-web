@@ -1,4 +1,10 @@
 /* eslint-disable react-refresh/only-export-components -- provider + hook intentionally share a module */
+/**
+ * Read-only shell data: dashboard, bell, sidebar badges and command palette.
+ * Clearance decisions live in the clearance module's own context, which writes
+ * the shared record store; this provider only re-reads it, on the `storage`
+ * event and whenever the workspace calls `afterDecision()`.
+ */
 import {
   createContext,
   useCallback,
@@ -11,8 +17,6 @@ import {
 import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/features/clearance/services/clearanceService";
 import { useAdminAuth } from "./AdminAuthContext";
 import {
-  approveRequest as approveRequestService,
-  bulkApproveRequests as bulkApproveRequestsService,
   generateSampleRequests as generateSampleRequestsService,
   getAdminNotifications,
   getClearanceRequests,
@@ -20,7 +24,6 @@ import {
   getEnrollmentOverview,
   getRecentActivity,
   markNotificationsRead as markNotificationsReadService,
-  rejectRequest as rejectRequestService,
   resetDemoData as resetDemoDataService,
 } from "../services/adminService";
 import type {
@@ -30,8 +33,6 @@ import type {
   ClearanceRequest,
   DashboardStats,
   EnrollmentOverviewRow,
-  RejectPayload,
-  SignaturePayload,
 } from "../types";
 
 type LoadMode = "initial" | "refresh" | "silent";
@@ -52,9 +53,6 @@ type AdminDataContextValue = AdminDataState & {
   badges: AdminBadgeCounts;
   unreadNotifications: number;
   refresh: () => Promise<void>;
-  approve: (requestId: string, signature: SignaturePayload) => Promise<void>;
-  reject: (requestId: string, rejection: RejectPayload) => Promise<void>;
-  bulkApprove: (requestIds: string[], signature: SignaturePayload) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   generateSamples: () => Promise<void>;
@@ -151,30 +149,6 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     await load("refresh");
   }, [load]);
 
-  const approve = useCallback(
-    async (requestId: string, signature: SignaturePayload) => {
-      await approveRequestService(requestId, signature);
-      await load("silent");
-    },
-    [load],
-  );
-
-  const reject = useCallback(
-    async (requestId: string, rejection: RejectPayload) => {
-      await rejectRequestService(requestId, rejection);
-      await load("silent");
-    },
-    [load],
-  );
-
-  const bulkApprove = useCallback(
-    async (requestIds: string[], signature: SignaturePayload) => {
-      await bulkApproveRequestsService(requestIds, signature);
-      await load("silent");
-    },
-    [load],
-  );
-
   const markAllNotificationsRead = useCallback(async () => {
     await markNotificationsReadService();
     setState((current) => ({
@@ -230,18 +204,13 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       badges,
       unreadNotifications,
       refresh,
-      approve,
-      reject,
-      bulkApprove,
       markAllNotificationsRead,
       markNotificationRead,
       generateSamples,
       resetDemo,
     }),
     [
-      approve,
       badges,
-      bulkApprove,
       error,
       generateSamples,
       loading,
@@ -249,7 +218,6 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       markNotificationRead,
       refresh,
       refreshing,
-      reject,
       resetDemo,
       state,
       unreadNotifications,

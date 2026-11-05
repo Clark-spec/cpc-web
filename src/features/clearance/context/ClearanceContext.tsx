@@ -14,13 +14,14 @@ import { createInitialState, mockStudent } from "../data/mockClearance";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   cancelRequest as cancelRequestService,
+  CLEARANCE_PERIOD_KEY,
+  CLEARANCE_STORAGE_KEY,
   demoApprove as demoApproveService,
   demoReject as demoRejectService,
   getClearance,
   requestSignature as requestSignatureService,
   requestSignatures as requestSignaturesService,
   resetClearance as resetClearanceService,
-  CLEARANCE_STORAGE_KEY,
 } from "../services/clearanceService";
 import { useNotifications } from "./NotificationContext";
 import type {
@@ -39,6 +40,8 @@ type ClearanceContextValue = {
   referenceNumber: string;
   loading: boolean;
   isCleared: boolean;
+  /** False while the admin keeps the clearance period closed (shared record). */
+  periodOpen: boolean;
   demoMode: boolean;
   toggleDemoMode: () => void;
   requestSignature: (officeId: OfficeId, note?: string) => Promise<void>;
@@ -55,6 +58,9 @@ type ClearanceContextValue = {
 const ClearanceContext = createContext<ClearanceContextValue | null>(null);
 
 const DEMO_MODE_KEY = "cpc.online-clearance.demo-mode";
+
+/** Shown wherever a request action is disabled while the period is closed. */
+export const CLEARANCE_CLOSED_MESSAGE = "Clearance period is closed";
 
 const findOffice = (state: ClearanceState, officeId: OfficeId): OfficeSignature | undefined =>
   state.offices.find((office) => office.office === officeId);
@@ -93,10 +99,11 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Admin/staff signatures are written to the same key from another tab.
+  // Admin/staff signatures and the period switch are written to the same keys
+  // from another tab.
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
-      if (event.key !== CLEARANCE_STORAGE_KEY) return;
+      if (event.key !== CLEARANCE_STORAGE_KEY && event.key !== CLEARANCE_PERIOD_KEY) return;
       void getClearance()
         .then((next) => setState(next))
         .catch(() => {
@@ -116,13 +123,20 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
    * Request flow: the modal calls this → the service flips the office to
    * "requested" and persists it → the notification appears in the bell and as
    * a toast → the card re-renders as "Awaiting Signature".
+   *
+   * (1) `period.open` is the admin's switch in the shared record; a closed
+   * period never reaches the staff queue.
    */
   const requestSignature = useCallback(
     async (officeId: OfficeId, note?: string) => {
+      if (!state.periodOpen) {
+        toast(CLEARANCE_CLOSED_MESSAGE, "warning");
+        return;
+      }
       const next = await requestSignatureService(officeId, note);
       setState(next);
       const office = findOffice(next, officeId);
-      if (office) {
+      if (office && office.status === "requested") {
         notify({
           message: `Request sent to ${office.label}`,
           type: "info",
@@ -130,18 +144,22 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         });
       }
     },
-    [notify],
+    [notify, state.periodOpen, toast],
   );
 
   /** "Request All": one service call, one summary toast, one notification each. */
   const requestAll = useCallback(
     async (officeIds: OfficeId[]) => {
       if (officeIds.length === 0) return;
+      if (!state.periodOpen) {
+        toast(CLEARANCE_CLOSED_MESSAGE, "warning");
+        return;
+      }
       const next = await requestSignaturesService(officeIds);
       setState(next);
       officeIds.forEach((officeId) => {
         const office = findOffice(next, officeId);
-        if (!office) return;
+        if (!office || office.status !== "requested") return;
         notify({
           message: `Request sent to ${office.label}`,
           type: "info",
@@ -156,7 +174,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         "success",
       );
     },
-    [notify, toast],
+    [notify, state.periodOpen, toast],
   );
 
   const cancelRequest = useCallback(
@@ -247,9 +265,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       offices: state.offices,
       history: state.history,
       dateCleared: state.dateCleared,
-      referenceNumber: mockStudent.referenceNumber,
+      referenceNumber: state.referenceNumber ?? mockStudent.referenceNumber,
       loading,
       isCleared,
+      periodOpen: state.periodOpen ?? true,
       demoMode,
       toggleDemoMode,
       requestSignature,

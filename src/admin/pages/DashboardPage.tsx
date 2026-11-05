@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/toast";
 import { PageBanner } from "../components/PageBanner";
+import { EmptyState } from "../components/EmptyState";
 import { ErrorCard } from "../components/ErrorCard";
 import { DashboardSkeleton } from "../components/Skeleton";
 import { StatCard } from "../components/dashboard/StatCard";
@@ -49,8 +50,8 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <PageBanner
         eyebrow="STAFF PORTAL"
-        title={`Welcome back, ${user.name.split(" ")[0]}`}
-        subtitle="Here is what needs your attention across enrollment, clearance and student services today."
+        title="Dashboard"
+        subtitle={`Welcome back, ${user.name.split(" ")[0]}. Here's what needs your attention today.`}
         right={
           <div className="flex flex-col items-start gap-2 sm:items-end">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-cpc-tile-border bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text">
@@ -85,11 +86,19 @@ export default function DashboardPage() {
       ) : stats ? (
         <>
           <section aria-label="Key metrics">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {stats.stats.map((stat, index) => (
-                <StatCard key={stat.id} stat={stat} index={index} />
-              ))}
-            </div>
+            {stats.stats.length === 0 ? (
+              <EmptyState
+                className="rounded-2xl border border-cpc-tile-border/70 bg-white"
+                title="No metrics yet"
+                description="Counts appear here as soon as requests start coming in."
+              />
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {stats.stats.map((stat, index) => (
+                  <StatCard key={stat.id} stat={stat} index={index} />
+                ))}
+              </div>
+            )}
           </section>
 
           <div className="grid gap-5 xl:grid-cols-12">
@@ -106,7 +115,7 @@ export default function DashboardPage() {
                     Enrollment Overview
                   </h2>
                   <p className="font-poppins text-[11px] text-cpc-heading-soft">
-                    Applications by pipeline status for the current period.
+                    Current applications and their status for AY 2026-2027.
                   </p>
                 </div>
                 <Link
@@ -136,12 +145,19 @@ export default function DashboardPage() {
                   Quick Actions
                 </h2>
                 <p className="font-poppins text-[11px] text-cpc-heading-soft">
-                  Shortcuts for your role.
+                  Common administrator tasks
                 </p>
               </div>
 
               <div className="p-3">
-                <QuickActions role={user.role} />
+                <QuickActions
+                  role={user.role}
+                  counts={{
+                    enrollments: stats.pendingEnrollments,
+                    clearance: stats.pendingClearance,
+                    serviceRequests: stats.openRequests,
+                  }}
+                />
               </div>
 
               <div className="grid grid-cols-3 gap-2 border-t border-cpc-tile-border/60 px-3 py-3">

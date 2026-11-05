@@ -14,7 +14,7 @@ import StudentLoginPage from "@/pages/auth/student";
 import StaffLoginPage from "@/pages/auth/staff";
 import { AdminLoginRoute, AdminShell } from "@/admin/routes";
 import DashboardPage from "@/admin/pages/DashboardPage";
-import ClearanceRequestsPage from "@/admin/pages/ClearanceRequestsPage";
+import ClearanceAdminPage from "@/admin/features/clearance/ClearanceAdminPage";
 import ComingSoonPage from "@/admin/pages/ComingSoonPage";
 import StudentHomePage from "@/pages/student/home";
 import ServiceRequestsPage from "@/pages/student/service-requests";
@@ -51,7 +51,7 @@ export function AppRoutes() {
       <Route path="/admin" element={<AdminShell />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
+        <Route path="clearance-requests" element={<ClearanceAdminPage />} />
         {/* Every other sidebar destination renders the shared placeholder. */}
         <Route path="*" element={<ComingSoonPage />} />
       </Route>

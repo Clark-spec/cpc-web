@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
+  CalendarOff,
   CheckCircle2,
   Clock3,
   Loader2,
@@ -11,7 +12,7 @@ import {
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { RequestSignatureModal } from "./RequestSignatureModal";
-import { useClearance } from "../context/ClearanceContext";
+import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "../context/ClearanceContext";
 import { formatDateTime, formatRelativeTime } from "../lib/format";
 import type { OfficeSignature } from "../types";
 
@@ -30,6 +31,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     requestSignature,
     cancelRequest,
     highlightedOffice,
+    periodOpen,
   } = useClearance();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -186,24 +188,43 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-cpc-navy-text px-3 py-2 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-          >
-            <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-            Request Again
-          </button>
+          <div className="space-y-1.5">
+            {!periodOpen && (
+              <p className="flex items-center justify-center gap-1.5 font-poppins text-[11px] font-semibold text-cpc-heading-soft">
+                <CalendarOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {CLEARANCE_CLOSED_MESSAGE}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              disabled={!periodOpen}
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-cpc-navy-text px-3 py-2 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:border-cpc-tile-border disabled:text-cpc-heading-soft disabled:hover:bg-transparent"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+              Request Again
+            </button>
+          </div>
         </div>
       ) : (
         <div className="mt-3 flex flex-1 flex-col justify-between gap-3">
-          <p className="font-poppins text-xs leading-relaxed text-cpc-heading-soft">
-            No request sent yet. Ask this office to review and sign your clearance.
-          </p>
+          <div>
+            <p className="font-poppins text-xs leading-relaxed text-cpc-heading-soft">
+              No request sent yet. Ask this office to review and sign your clearance.
+            </p>
+            {/* (1) The admin's clearance period switch gates every request action. */}
+            {!periodOpen && (
+              <p className="mt-1.5 flex items-center gap-1.5 font-poppins text-[11px] font-semibold text-cpc-heading-soft">
+                <CalendarOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {CLEARANCE_CLOSED_MESSAGE}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-3 py-2 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            disabled={!periodOpen}
+            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-3 py-2 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-cpc-button"
           >
             <Send className="h-3.5 w-3.5" aria-hidden />
             Request Signature

@@ -2,8 +2,13 @@
 import type { ReactNode } from "react";
 import { NotificationProvider as PortalNotificationProvider } from "@/context/NotificationContext";
 
-/** Clearance keeps its own persisted feed inside the shared portal store. */
-export const CLEARANCE_NOTIFICATIONS_KEY = "cpc.online-clearance.notifications.v1";
+import { CLEARANCE_NOTIFICATIONS_KEY as STUDENT_NOTIFICATIONS_KEY } from "../services/clearanceService";
+
+/**
+ * (1) The staff portal writes decisions into `cpc:notifications:{studentId}`,
+ * so the bell and the admin queue read and write one shared feed.
+ */
+export const CLEARANCE_NOTIFICATIONS_KEY = STUDENT_NOTIFICATIONS_KEY;
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   return (

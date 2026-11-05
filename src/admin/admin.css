@@ -80,6 +80,10 @@
   font-family: "Caveat", cursive;
 }
 
+.signature-font-allura {
+  font-family: "Allura", cursive;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin-sidebar,
   .admin-fade-in,

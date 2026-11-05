@@ -1,19 +1,16 @@
-import type { AppNotification } from "@/context/NotificationContext";
-import {
-  mockStudent,
-  officeOrder,
-  officeSignerNames,
-} from "@/features/clearance/data/mockClearance";
-import {
-  CLEARANCE_NOTIFICATIONS_KEY,
-  CLEARANCE_STORAGE_KEY,
-} from "@/features/clearance/services/clearanceService";
 import type {
-  ClearanceState,
-  OfficeId,
-  OfficeSignature,
+  ClearanceRecord,
+  ClearanceRequestRow,
   RequestStatus,
 } from "@/features/clearance/types";
+import {
+  deriveRows,
+  readPeriod,
+  readRecords,
+  resetClearanceDemo,
+  simulateStudentRequest,
+} from "../features/clearance/services/clearanceAdminService";
+import { buildOfficeChecks } from "../features/clearance/utils/officeChecks";
 import type {
   ActivityItem,
   ActivityStatus,
@@ -25,44 +22,33 @@ import type {
   DashboardStat,
   DashboardStats,
   EnrollmentOverviewRow,
-  RejectPayload,
-  SavedSignature,
-  SignatureMethod,
-  SignaturePayload,
 } from "../types";
 
 /**
- * Mock API layer for the admin portal.
+ * Mock API layer for the admin portal shell (dashboard, bell, sidebar badge,
+ * command palette).
  *
- * Every function returns a promise with a small artificial delay so the UI
- * exercises real loading states. The clearance functions read and write the
- * SAME localStorage keys as the student portal:
- *   cpc.online-clearance.v1
- *   cpc.online-clearance.notifications.v1
- * so a student request appears here immediately and a staff signature shows up
- * on the student's Online Clearance page. Replace the localStorage calls with
- * `fetch` calls when the backend lands; the function signatures stay the same.
+ * (1) SHARED-STORAGE CONTRACT: clearance data lives in exactly one place —
+ * the `cpc:clearance:records` array owned by
+ * `@/admin/features/clearance/services/clearanceAdminService`, which both
+ * portals read and write. The shell no longer keeps its own copy of the queue:
+ * every clearance number here is an adapter view of those same records, so the
+ * dashboard KPI, the sidebar badge and the staff queue can never disagree.
+ * Decisions are made inside the clearance module; this file only reads.
+ *
+ * The remaining functions still read and write their own admin keys. Replace
+ * the localStorage calls with `fetch` when the backend lands; the function
+ * signatures stay the same.
  */
 
-export const ADMIN_REQUESTS_KEY = "cpc.admin.clearance-requests.v1";
 export const ADMIN_ACTIVITY_KEY = "cpc.admin.activity.v1";
 export const ADMIN_NOTIFICATIONS_KEY = "cpc.admin.notifications.v1";
 export const ADMIN_SESSION_KEY = "cpc.admin.session.v1";
 export const ADMIN_DEMO_MODE_KEY = "cpc.admin.demo-mode.v1";
 export const ADMIN_SIDEBAR_KEY = "cpc.admin.sidebar.collapsed.v1";
-export const SAVED_SIGNATURE_PREFIX = "cpc.admin.saved-signature.v1";
 
 const READ_DELAY = 400;
 const WRITE_DELAY = 400;
-
-const OFFICE_LABELS: Record<OfficeId, string> = {
-  instructor: "Instructor",
-  dean: "Dean",
-  library: "Library",
-  registrar: "Registrar",
-  accounting: "Accounting",
-  sao: "SAO / SSG Adviser",
-};
 
 function wait<T>(value: T, ms = READ_DELAY): Promise<T> {
   return new Promise((resolve) => {
@@ -98,102 +84,6 @@ function removeKey(key: string): void {
   } catch {
     // Ignore storage failures.
   }
-}
-
-function normalizeStatus(value: unknown): RequestStatus {
-  return value === "requested" || value === "signed" || value === "rejected"
-    ? value
-    : "not_requested";
-}
-
-/* ------------------------------------------------------------------ */
-/* Student clearance bridge                                            */
-/* ------------------------------------------------------------------ */
-
-function createDefaultOffices(): OfficeSignature[] {
-  return officeOrder.map((office) => ({
-    office,
-    label: OFFICE_LABELS[office],
-    status: "not_requested",
-  }));
-}
-
-function readStudentClearance(): ClearanceState {
-  const parsed = readJson(CLEARANCE_STORAGE_KEY, null);
-
-  if (!isRecord(parsed) || !Array.isArray(parsed.offices)) {
-    return { offices: createDefaultOffices(), history: [], dateCleared: null };
-  }
-
-  const rawOffices = parsed.offices;
-  const offices = createDefaultOffices().map((fallback) => {
-    const match = rawOffices.find(
-      (entry) => isRecord(entry) && entry.office === fallback.office,
-    );
-    if (!isRecord(match)) return fallback;
-
-    return {
-      ...fallback,
-      status: normalizeStatus(match.status),
-      requestedAt: typeof match.requestedAt === "string" ? match.requestedAt : undefined,
-      respondedAt: typeof match.respondedAt === "string" ? match.respondedAt : undefined,
-      signerName: typeof match.signerName === "string" ? match.signerName : undefined,
-      signatureImage:
-        typeof match.signatureImage === "string" ? match.signatureImage : undefined,
-      studentNote: typeof match.studentNote === "string" ? match.studentNote : undefined,
-      remarks: typeof match.remarks === "string" ? match.remarks : undefined,
-    };
-  });
-
-  return {
-    offices,
-    history: Array.isArray(parsed.history)
-      ? (parsed.history as ClearanceState["history"])
-      : [],
-    dateCleared: typeof parsed.dateCleared === "string" ? parsed.dateCleared : null,
-  };
-}
-
-function writeStudentClearance(state: ClearanceState): void {
-  writeJson(CLEARANCE_STORAGE_KEY, state);
-}
-
-/** Builds the admin rows that mirror the live student clearance record. */
-function buildLiveRequests(): ClearanceRequest[] {
-  const state = readStudentClearance();
-
-  return state.offices.flatMap<ClearanceRequest>((office) => {
-    if (office.status === "not_requested") return [];
-
-    const status: ClearanceRequestStatus =
-      office.status === "requested"
-        ? "pending"
-        : office.status === "signed"
-          ? "signed"
-          : "rejected";
-
-    return [
-      {
-        id: `live-${mockStudent.studentId}-${office.office}`,
-        studentName: mockStudent.name,
-        studentId: mockStudent.studentId,
-        program: mockStudent.program,
-        section: `${mockStudent.course} 3-A`,
-        yearLevel: mockStudent.yearLevel,
-        email: "harry.styles@cpc.edu.ph",
-        office: office.office,
-        requestedAt: office.requestedAt ?? new Date().toISOString(),
-        studentNote: office.studentNote,
-        status,
-        respondedAt: office.respondedAt,
-        signerName: office.signerName,
-        signatureImage: office.signatureImage,
-        remarks: office.remarks,
-        checklist: CHECKLIST_TEMPLATES[office.office].map((item) => ({ ...item })),
-        live: true,
-      },
-    ];
-  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -267,50 +157,6 @@ const PROGRAM_SECTIONS = [
   { program: "BS Computer Science", section: "BSCS 3-B", yearLevel: "3rd Year" },
 ];
 
-const STUDENT_NOTES: Array<string | undefined> = [
-  "Requesting clearance for 2nd semester enrollment.",
-  "Please review my clearance before the enrollment deadline.",
-  "I have completed all my library requirements.",
-  "For scholarship renewal, thank you.",
-  "Kindly sign my clearance for the current term.",
-  undefined,
-  undefined,
-];
-
-const REJECTION_NOTES = [
-  "Please settle the ₱350.00 laboratory fee at the Accounting Office before requesting again.",
-  "Your Exhibit (Index Card) attendance sheet is still missing. Submit it to the SAO.",
-  "One library book is still on loan. Return it and request again.",
-  "Your enrollment records need verification at the Registrar's Office.",
-];
-
-const CHECKLIST_TEMPLATES: Record<OfficeId, ChecklistItem[]> = {
-  instructor: [
-    { label: "Class attendance completed", done: true },
-    { label: "Final project submitted", done: true },
-  ],
-  dean: [
-    { label: "Program requirements completed", done: true },
-    { label: "Dean's approval requested", done: true },
-  ],
-  library: [
-    { label: "All borrowed books returned", done: true },
-    { label: "Library fines settled", done: false, note: "A ₱25.00 overdue fine is still on record." },
-  ],
-  registrar: [
-    { label: "Enrollment records verified", done: true },
-    { label: "Student ID validated", done: true },
-  ],
-  accounting: [
-    { label: "Tuition balance settled", done: true },
-    { label: "Miscellaneous fees paid", done: false, note: "The ₱350.00 laboratory fee is still unpaid." },
-  ],
-  sao: [
-    { label: "Organization clearance completed", done: true },
-    { label: "Attendance sheet submitted", done: false, note: "The Exhibit (Index Card) attendance sheet is missing." },
-  ],
-};
-
 type SeedStudent = {
   studentName: string;
   studentId: string;
@@ -337,137 +183,73 @@ function makeStudent(index: number): SeedStudent {
   };
 }
 
-function cloneChecklist(office: OfficeId): ChecklistItem[] {
-  return CHECKLIST_TEMPLATES[office].map((item) => ({ ...item }));
+/* ------------------------------------------------------------------ */
+/* Clearance adapter — the shared record store is the only source       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * (1) The queue is not stored here. `deriveRows` turns the shared
+ * `cpc:clearance:records` array into one row per student + office — exactly the
+ * rows the staff clearance page renders — and this adapter only reshapes them
+ * into the legacy `ClearanceRequest` consumed by the dashboard KPI, the bell,
+ * the sidebar badge and the command palette. Nothing in this section writes.
+ */
+function studentEmail(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0] ?? "student";
+  const last = parts.length > 1 ? parts[parts.length - 1] : first;
+
+  return `${first.toLowerCase().replace(/\s+/g, ".")}.${last
+    .toLowerCase()
+    .replace(/\s+/g, "")}@cpc.edu.ph`;
 }
 
-function seedRequests(): ClearanceRequest[] {
-  const now = Date.now();
-  const requests: ClearanceRequest[] = [];
-
-  // 84 pending rows keep the dashboard KPI, sidebar badge and table in sync.
-  for (let index = 0; index < 84; index += 1) {
-    const office = officeOrder[index % officeOrder.length];
-    const student = makeStudent(index);
-    const requestedAt = new Date(
-      now - ((index % 14) * 24 + (index % 9) * 3 + 1) * 60 * 60 * 1000,
-    ).toISOString();
-
-    requests.push({
-      id: `seed-${index + 1}`,
-      ...student,
-      office,
-      requestedAt,
-      studentNote: STUDENT_NOTES[index % STUDENT_NOTES.length],
-      status: "pending",
-      checklist: cloneChecklist(office),
-    });
-  }
-
-  // Signed and rejected rows give the other tabs realistic content.
-  for (let index = 0; index < 8; index += 1) {
-    const office = officeOrder[index % officeOrder.length];
-    const student = makeStudent(84 + index);
-    const respondedAt = new Date(now - (index + 1) * 42 * 60 * 1000).toISOString();
-
-    requests.push({
-      id: `seed-signed-${index + 1}`,
-      ...student,
-      office,
-      requestedAt: new Date(now - (index + 2) * 5 * 60 * 60 * 1000).toISOString(),
-      status: "signed",
-      respondedAt,
-      signerName: officeSignerNames[office],
-      checklist: cloneChecklist(office).map((item) => ({ ...item, done: true })),
-    });
-  }
-
-  for (let index = 0; index < 4; index += 1) {
-    const office = officeOrder[index % officeOrder.length];
-    const student = makeStudent(92 + index);
-
-    requests.push({
-      id: `seed-rejected-${index + 1}`,
-      ...student,
-      office,
-      requestedAt: new Date(now - (index + 3) * 9 * 60 * 60 * 1000).toISOString(),
-      status: "rejected",
-      respondedAt: new Date(now - (index + 1) * 3 * 60 * 60 * 1000).toISOString(),
-      signerName: officeSignerNames[office],
-      remarks: REJECTION_NOTES[index % REJECTION_NOTES.length],
-      checklist: cloneChecklist(office),
-    });
-  }
-
-  return requests;
+/** "requested" is the record's word for a queue row staff has not answered. */
+function shellStatus(status: RequestStatus): ClearanceRequestStatus {
+  if (status === "requested") return "pending";
+  if (status === "signed") return "signed";
+  return "rejected";
 }
 
-function isChecklistItem(value: unknown): value is ChecklistItem {
-  return (
-    isRecord(value) &&
-    typeof value.label === "string" &&
-    typeof value.done === "boolean" &&
-    (value.note === undefined || typeof value.note === "string")
-  );
-}
-
-function normalizeRequest(value: unknown): ClearanceRequest | null {
-  if (!isRecord(value)) return null;
-  if (
-    typeof value.id !== "string" ||
-    typeof value.studentName !== "string" ||
-    typeof value.studentId !== "string" ||
-    typeof value.office !== "string" ||
-    (value.status !== "pending" && value.status !== "signed" && value.status !== "rejected")
-  ) {
-    return null;
-  }
-
+function toShellRequest(
+  row: ClearanceRequestRow,
+  record: ClearanceRecord,
+): ClearanceRequest {
   return {
-    id: value.id,
-    studentName: value.studentName,
-    studentId: value.studentId,
-    program: typeof value.program === "string" ? value.program : "BS Information Technology",
-    section: typeof value.section === "string" ? value.section : "BSIT 3-A",
-    yearLevel: typeof value.yearLevel === "string" ? value.yearLevel : "3rd Year",
-    email: typeof value.email === "string" ? value.email : "",
-    office: value.office as OfficeId,
-    requestedAt:
-      typeof value.requestedAt === "string" ? value.requestedAt : new Date().toISOString(),
-    studentNote: typeof value.studentNote === "string" ? value.studentNote : undefined,
-    status: value.status,
-    respondedAt: typeof value.respondedAt === "string" ? value.respondedAt : undefined,
-    signerName: typeof value.signerName === "string" ? value.signerName : undefined,
-    signatureImage:
-      typeof value.signatureImage === "string" ? value.signatureImage : undefined,
-    remarks: typeof value.remarks === "string" ? value.remarks : undefined,
-    checklist: Array.isArray(value.checklist)
-      ? value.checklist.filter(isChecklistItem)
-      : [],
-    live: value.live === true,
+    id: row.id,
+    studentName: row.studentName,
+    studentId: row.studentId,
+    program: row.program,
+    section: row.section,
+    yearLevel: row.yearLevel,
+    email: studentEmail(row.studentName),
+    office: row.office,
+    requestedAt: row.requestedAt ?? record.completedAt ?? new Date().toISOString(),
+    studentNote: row.studentNote,
+    status: shellStatus(row.status),
+    respondedAt: row.respondedAt,
+    signerName: row.signerName,
+    signatureImage: row.signatureImage,
+    remarks: row.remarks,
+    checklist: buildOfficeChecks(row.office, record).map<ChecklistItem>((check) => ({
+      label: check.label,
+      done: check.result === "ok",
+      note: check.detail,
+    })),
+    live: true,
   };
 }
 
-function readStoredAdminRequests(): ClearanceRequest[] {
-  const stored = readJson(ADMIN_REQUESTS_KEY, null);
-
-  if (Array.isArray(stored)) {
-    const normalized = stored
-      .map(normalizeRequest)
-      .filter((request): request is ClearanceRequest => request !== null);
-    if (normalized.length > 0) return normalized;
-  }
-
-  const seeded = seedRequests();
-  writeJson(ADMIN_REQUESTS_KEY, seeded);
-  return seeded;
-}
-
 function readAdminRequests(): ClearanceRequest[] {
-  return [
-    ...buildLiveRequests(),
-    ...readStoredAdminRequests().filter((request) => request.live !== true),
-  ];
+  const records = readRecords();
+  const byId = new Map(records.map((record) => [record.studentId, record]));
+
+  return deriveRows(records, readPeriod().overdueDays).flatMap<ClearanceRequest>(
+    (row) => {
+      const record = byId.get(row.studentId);
+      return record ? [toShellRequest(row, record)] : [];
+    },
+  );
 }
 
 function visibleRequests(user: AdminUser): ClearanceRequest[] {
@@ -619,22 +401,6 @@ function readActivity(): ActivityItem[] {
   const seeded = seedActivity();
   writeJson(ADMIN_ACTIVITY_KEY, seeded);
   return seeded;
-}
-
-function isAppNotification(value: unknown): value is AppNotification {
-  return (
-    isRecord(value) &&
-    typeof value.id === "string" &&
-    typeof value.message === "string" &&
-    typeof value.createdAt === "string" &&
-    typeof value.read === "boolean" &&
-    (value.type === "info" || value.type === "success" || value.type === "warning")
-  );
-}
-
-function readStudentNotifications(): AppNotification[] {
-  const stored = readJson(CLEARANCE_NOTIFICATIONS_KEY, null);
-  return Array.isArray(stored) ? stored.filter(isAppNotification) : [];
 }
 
 function seedAdminNotifications(): AdminNotification[] {
@@ -855,188 +621,7 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
 }
 
 /* ------------------------------------------------------------------ */
-/* Decisions                                                           */
-/* ------------------------------------------------------------------ */
-
-type Decision =
-  | { kind: "approve"; signature: SignaturePayload }
-  | { kind: "reject"; rejection: RejectPayload };
-
-/**
- * Signature flow (staff side):
- *   draw / type / upload -> base64 PNG (SignaturePadModal)
- *   -> this function -> cpc.online-clearance.v1
- *   -> the student portal reads the same record and renders the image.
- */
-async function applyDecision(
-  ids: string[],
-  decision: Decision,
-): Promise<ClearanceRequest[]> {
-  const all = readAdminRequests();
-  const targets = all.filter((request) => ids.includes(request.id));
-
-  if (targets.length === 0) return wait([]);
-
-  const stored = readStoredAdminRequests();
-  const now = new Date().toISOString();
-  const updated: ClearanceRequest[] = [];
-
-  const studentState = readStudentClearance();
-  const studentOffices = studentState.offices.map((office) => ({ ...office }));
-  let studentChanged = false;
-
-  for (const target of targets) {
-    const approved = decision.kind === "approve";
-    const respondedAt = approved ? decision.signature.signedAt : decision.rejection.respondedAt;
-    const signerName = approved ? decision.signature.signerName : decision.rejection.signerName;
-    const signatureImage = approved ? decision.signature.image : undefined;
-    const remarks = approved ? undefined : decision.rejection.remarks;
-
-    if (target.live) {
-      const office = studentOffices.find((entry) => entry.office === target.office);
-      if (!office) continue;
-
-      office.status = approved ? "signed" : "rejected";
-      office.respondedAt = respondedAt || now;
-      office.signerName = signerName;
-      office.signatureImage = signatureImage;
-      office.remarks = remarks;
-      studentChanged = true;
-
-      updated.push({
-        ...target,
-        status: approved ? "signed" : "rejected",
-        respondedAt: respondedAt || now,
-        signerName,
-        signatureImage,
-        remarks,
-      });
-      continue;
-    }
-
-    const index = stored.findIndex((request) => request.id === target.id);
-    if (index === -1) continue;
-
-    const next: ClearanceRequest = {
-      ...stored[index],
-      status: approved ? "signed" : "rejected",
-      respondedAt: respondedAt || now,
-      signerName,
-      signatureImage,
-      remarks,
-    };
-    stored[index] = next;
-    updated.push(next);
-  }
-
-  if (studentChanged) {
-    const cleared = studentOffices.every((office) => office.status === "signed");
-    const nextState: ClearanceState = {
-      ...studentState,
-      offices: studentOffices,
-      dateCleared: cleared ? (studentState.dateCleared ?? now) : null,
-    };
-    writeStudentClearance(nextState);
-
-    // Notify the student feed read by the clearance page.
-    const studentNotifications = readStudentNotifications();
-    const newStudentNotifications: AppNotification[] = targets
-      .filter((target) => target.live)
-      .map((target) => ({
-        id: crypto.randomUUID(),
-        message:
-          decision.kind === "approve"
-            ? `${OFFICE_LABELS[target.office]} signed your clearance.`
-            : `${OFFICE_LABELS[target.office]} needs action: ${decision.rejection.remarks}`,
-        type: decision.kind === "approve" ? "success" : "warning",
-        createdAt: now,
-        read: false,
-        officeId: target.office,
-      }));
-
-    if (newStudentNotifications.length > 0) {
-      writeJson(CLEARANCE_NOTIFICATIONS_KEY, [
-        ...newStudentNotifications,
-        ...studentNotifications,
-      ].slice(0, 30));
-    }
-  }
-
-  writeJson(ADMIN_REQUESTS_KEY, stored);
-
-  const adminNotifications = readAdminNotifications();
-  const newAdminNotifications: AdminNotification[] = targets.map((target) => ({
-    id: crypto.randomUUID(),
-    message:
-      decision.kind === "approve"
-        ? `${target.studentName}'s ${OFFICE_LABELS[target.office]} clearance was signed.`
-        : `${target.studentName}'s ${OFFICE_LABELS[target.office]} clearance needs action.`,
-    type: decision.kind === "approve" ? "success" : "warning",
-    createdAt: now,
-    read: false,
-    href: "/admin/clearance-requests",
-  }));
-
-  writeJson(ADMIN_NOTIFICATIONS_KEY, [
-    ...newAdminNotifications,
-    ...adminNotifications,
-  ].slice(0, 30));
-
-  const activity = readActivity();
-  const newActivity: ActivityItem[] = targets.map((target) => ({
-    id: crypto.randomUUID(),
-    type: "clearance",
-    message:
-      decision.kind === "approve"
-        ? `${OFFICE_LABELS[target.office]} clearance signed for ${target.studentName}`
-        : `${OFFICE_LABELS[target.office]} requested changes from ${target.studentName}`,
-    actor:
-      decision.kind === "approve"
-        ? decision.signature.signerName
-        : decision.rejection.signerName,
-    student: {
-      id: target.studentId,
-      name: target.studentName,
-      program: target.program,
-      section: target.section,
-      yearLevel: target.yearLevel,
-      email: target.email,
-    },
-    status: decision.kind === "approve" ? "completed" : "pending",
-    createdAt: now,
-    href: "/admin/clearance-requests",
-  }));
-
-  writeJson(ADMIN_ACTIVITY_KEY, [...newActivity, ...activity].slice(0, 40));
-
-  return wait(updated, WRITE_DELAY);
-}
-
-export async function approveRequest(
-  requestId: string,
-  signature: SignaturePayload,
-): Promise<ClearanceRequest | null> {
-  const [updated] = await applyDecision([requestId], { kind: "approve", signature });
-  return updated ?? null;
-}
-
-export async function rejectRequest(
-  requestId: string,
-  rejection: RejectPayload,
-): Promise<ClearanceRequest | null> {
-  const [updated] = await applyDecision([requestId], { kind: "reject", rejection });
-  return updated ?? null;
-}
-
-export async function bulkApproveRequests(
-  requestIds: string[],
-  signature: SignaturePayload,
-): Promise<ClearanceRequest[]> {
-  return applyDecision(requestIds, { kind: "approve", signature });
-}
-
-/* ------------------------------------------------------------------ */
-/* Notifications, demo controls, saved signatures                      */
+/* Notifications and demo controls                                     */
 /* ------------------------------------------------------------------ */
 
 export async function markNotificationsRead(ids?: string[]): Promise<void> {
@@ -1050,46 +635,39 @@ export async function markNotificationsRead(ids?: string[]): Promise<void> {
   return wait(undefined, 200);
 }
 
+/**
+ * Demo reset: the shared clearance store goes back to its 40-student seed and
+ * the shell's own activity/bell feeds are cleared, so every number on the
+ * dashboard is regenerated from the same seed the next time it is read.
+ */
 export async function resetDemoData(): Promise<void> {
-  [
-    ADMIN_REQUESTS_KEY,
-    ADMIN_ACTIVITY_KEY,
-    ADMIN_NOTIFICATIONS_KEY,
-    CLEARANCE_STORAGE_KEY,
-    CLEARANCE_NOTIFICATIONS_KEY,
-  ].forEach(removeKey);
+  await resetClearanceDemo();
+  [ADMIN_ACTIVITY_KEY, ADMIN_NOTIFICATIONS_KEY].forEach(removeKey);
   return wait(undefined, WRITE_DELAY);
 }
 
+/**
+ * Demo "generate sample requests": each call asks the shared service to behave
+ * like a student tapping Request Signature, so the new rows appear in the staff
+ * queue, the dashboard badge and the bell through the same write path.
+ */
 export async function generateSampleRequests(count = 6): Promise<ClearanceRequest[]> {
-  const stored = readStoredAdminRequests();
-  const now = Date.now();
-  const generated: ClearanceRequest[] = [];
+  const ids: string[] = [];
 
   for (let index = 0; index < count; index += 1) {
-    const office = officeOrder[(index + Math.floor(now / 1000)) % officeOrder.length];
-    const student = makeStudent(300 + index + (now % 17));
-
-    generated.push({
-      id: crypto.randomUUID(),
-      ...student,
-      office,
-      requestedAt: new Date(now - index * 60 * 1000).toISOString(),
-      studentNote: "Sample request generated from demo mode.",
-      status: "pending",
-      checklist: cloneChecklist(office),
-    });
+    const row = await simulateStudentRequest();
+    if (row) ids.push(row.id);
   }
 
-  writeJson(ADMIN_REQUESTS_KEY, [...generated, ...stored]);
+  const generated = readAdminRequests().filter((request) => ids.includes(request.id));
 
   const notifications = readAdminNotifications();
   writeJson(ADMIN_NOTIFICATIONS_KEY, [
     {
       id: crypto.randomUUID(),
-      message: `${count} sample clearance requests were generated.`,
+      message: `${generated.length} sample clearance requests were generated.`,
       type: "info",
-      createdAt: new Date(now).toISOString(),
+      createdAt: new Date().toISOString(),
       read: false,
       href: "/admin/clearance-requests",
     },
@@ -1097,36 +675,4 @@ export async function generateSampleRequests(count = 6): Promise<ClearanceReques
   ].slice(0, 30));
 
   return wait(generated, WRITE_DELAY);
-}
-
-export function getSavedSignature(userId: string): SavedSignature | null {
-  const stored = readJson(`${SAVED_SIGNATURE_PREFIX}.${userId}`, null);
-  if (
-    !isRecord(stored) ||
-    typeof stored.image !== "string" ||
-    typeof stored.signerName !== "string" ||
-    typeof stored.savedAt !== "string"
-  ) {
-    return null;
-  }
-
-  const method: SignatureMethod =
-    stored.method === "draw" || stored.method === "type" || stored.method === "upload"
-      ? stored.method
-      : "draw";
-
-  return {
-    image: stored.image,
-    signerName: stored.signerName,
-    method,
-    savedAt: stored.savedAt,
-  };
-}
-
-export function saveSignature(userId: string, signature: SavedSignature): void {
-  writeJson(`${SAVED_SIGNATURE_PREFIX}.${userId}`, signature);
-}
-
-export function clearSavedSignature(userId: string): void {
-  removeKey(`${SAVED_SIGNATURE_PREFIX}.${userId}`);
 }

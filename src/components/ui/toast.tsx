@@ -14,17 +14,28 @@ import { cn } from "@/lib/cn";
 
 export type ToastTone = "success" | "error" | "info" | "warning";
 
+/** Optional button rendered inside the toast (e.g. Undo on a signing action). */
+export type ToastAction = {
+  label: string;
+  onClick: () => void;
+  /** Defaults to the standard 4.2s; the clearance Undo flow asks for 8s. */
+  durationMs?: number;
+};
+
 type ToastItem = {
   id: string;
   message: string;
   tone: ToastTone;
+  action?: ToastAction;
 };
 
 type ToastContextValue = {
-  toast: (message: string, tone?: ToastTone) => void;
+  toast: (message: string, tone?: ToastTone, action?: ToastAction) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
+
+const AUTO_DISMISS_MS = 4200;
 
 const toneStyles: Record<ToastTone, string> = {
   success: "border-l-emerald-500 text-emerald-700",
@@ -55,10 +66,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toast = useCallback(
-    (message: string, tone: ToastTone = "success") => {
+    (message: string, tone: ToastTone = "success", action?: ToastAction) => {
       const id = crypto.randomUUID();
-      setToasts((current) => [...current.slice(-2), { id, message, tone }]);
-      const timer = window.setTimeout(() => dismiss(id), 4200);
+      setToasts((current) => [...current.slice(-2), { id, message, tone, action }]);
+      const duration = action?.durationMs ?? AUTO_DISMISS_MS;
+      const timer = window.setTimeout(() => dismiss(id), duration);
       timers.current.set(id, timer);
     },
     [dismiss],
@@ -84,6 +96,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       >
         {toasts.map((item) => {
           const Icon = toneIcons[item.tone];
+          const action = item.action;
           return (
             <div
               key={item.id}
@@ -96,6 +109,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <p className="flex-1 font-poppins text-sm leading-snug text-cpc-navy-text">
                 {item.message}
               </p>
+              {action && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    dismiss(item.id);
+                    action.onClick();
+                  }}
+                  className="shrink-0 cursor-pointer rounded-md px-2 py-1 font-poppins text-xs font-semibold text-cpc-blue-accent ring-1 ring-cpc-tile-border transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                >
+                  {action.label}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => dismiss(item.id)}

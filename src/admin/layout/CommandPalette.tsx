@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import {
   ArrowRight,
   CornerDownLeft,
+  FileText,
   Search,
   ShieldCheck,
   UserRound,
@@ -13,6 +14,7 @@ import { cn } from "@/lib/cn";
 import { useAdminAuth } from "../context/AdminAuthContext";
 import { useAdminData } from "../context/AdminDataContext";
 import { flattenNavigation, ROLE_LABELS, type FlatNavLink } from "../config/navigation";
+import { StatusBadge } from "../components/StatusBadge";
 import type { ClearanceRequest } from "../types";
 
 type CommandPaletteProps = {
@@ -21,14 +23,26 @@ type CommandPaletteProps = {
 
 type Result =
   | { kind: "page"; link: FlatNavLink }
-  | { kind: "student"; request: ClearanceRequest };
+  | { kind: "student"; request: ClearanceRequest }
+  | { kind: "request"; request: ClearanceRequest };
 
-const MAX_RESULTS = 9;
+type Group = { id: string; label: string; items: Result[] };
+type RenderedGroup = Group & { start: number };
+
+const STATUS_WORDS: Record<ClearanceRequest["status"], string> = {
+  pending: "pending",
+  signed: "signed",
+  rejected: "rejected",
+};
+
+const MAX_PAGES = 6;
+const MAX_STUDENTS = 4;
+const MAX_REQUESTS = 4;
 
 /**
- * Ctrl+K command palette. It searches the role-filtered navigation plus the
- * clearance queue (student name / id), so a staff member can jump straight to
- * a request without leaving the keyboard.
+ * Ctrl+K command palette. Results come back in three groups — students,
+ * clearance requests and navigation pages — but keyboard focus walks one flat
+ * list, so ↑/↓/Enter behave the way people expect.
  */
 export function CommandPalette({ onClose }: CommandPaletteProps) {
   const { user } = useAdminAuth();
@@ -42,7 +56,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
 
   const links = useMemo(() => (user ? flattenNavigation(user.role) : []), [user]);
 
-  const results = useMemo<Result[]>(() => {
+  const groups = useMemo<Group[]>(() => {
     const term = query.trim().toLowerCase();
 
     const pageMatches = links
@@ -51,26 +65,73 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
           ? true
           : `${link.label} ${link.group}`.toLowerCase().includes(term),
       )
+      .slice(0, MAX_PAGES)
       .map<Result>((link) => ({ kind: "page", link }));
 
-    const seen = new Set<string>();
-    const studentMatches = requests
-      .filter((request) => {
-        if (term.length === 0) return false;
-        const haystack = `${request.studentName} ${request.studentId} ${request.office}`.toLowerCase();
-        return haystack.includes(term);
-      })
-      .filter((request) => {
-        // One row per student keeps the list short and predictable.
-        if (seen.has(request.studentId)) return false;
-        seen.add(request.studentId);
-        return true;
-      })
-      .slice(0, 4)
-      .map<Result>((request) => ({ kind: "student", request }));
+    if (term.length === 0) {
+      return pageMatches.length > 0 ? [{ id: "pages", label: "Pages", items: pageMatches }] : [];
+    }
 
-    return [...studentMatches, ...pageMatches].slice(0, MAX_RESULTS);
+    const matched = requests.filter((request) =>
+      `${request.studentName} ${request.studentId} ${request.office} ${request.program} ${request.section} ${STATUS_WORDS[request.status]} ${request.studentNote ?? ""}`
+        .toLowerCase()
+        .includes(term),
+    );
+
+    // Students match on who they are; requests match on what is outstanding.
+    const seenStudents = new Set<string>();
+    const studentItems: Result[] = [];
+    for (const request of matched) {
+      if (seenStudents.has(request.studentId)) continue;
+      seenStudents.add(request.studentId);
+      studentItems.push({ kind: "student", request });
+      if (studentItems.length >= MAX_STUDENTS) break;
+    }
+
+    const requestItems: Result[] = [];
+    for (const request of matched) {
+      const aboutStatusOrOffice =
+        request.office.toLowerCase().includes(term) ||
+        STATUS_WORDS[request.status].includes(term) ||
+        (request.studentNote ?? "").toLowerCase().includes(term);
+      if (!aboutStatusOrOffice) continue;
+      requestItems.push({ kind: "request", request });
+      if (requestItems.length >= MAX_REQUESTS) break;
+    }
+
+    const next: Group[] = [];
+    if (studentItems.length > 0) next.push({ id: "students", label: "Students", items: studentItems });
+    if (requestItems.length > 0)
+      next.push({ id: "requests", label: "Clearance requests", items: requestItems });
+    if (pageMatches.length > 0) next.push({ id: "pages", label: "Pages", items: pageMatches });
+    return next;
   }, [links, query, requests]);
+
+  const results = useMemo(() => groups.flatMap((group) => group.items), [groups]);
+
+  // Each group keeps its offset into the flat list so ↑/↓/Enter can walk every
+  // option while the headers stay unselectable.
+  const renderedGroups = useMemo<RenderedGroup[]>(() => {
+    let start = 0;
+    return groups.map((group) => {
+      const rendered = { ...group, start };
+      start += group.items.length;
+      return rendered;
+    });
+  }, [groups]);
+
+  const openResult = useCallback(
+    (result: Result) => {
+      if (result.kind === "page") {
+        navigate(result.link.to);
+        return;
+      }
+      navigate(
+        `/admin/clearance-requests?student=${encodeURIComponent(result.request.studentId)}`,
+      );
+    },
+    [navigate],
+  );
 
   // Restore focus to the trigger when the palette unmounts.
   useEffect(() => {
@@ -109,11 +170,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
         event.preventDefault();
         const result = results[activeIndex];
         if (!result) return;
-        if (result.kind === "page") {
-          navigate(result.link.to);
-        } else {
-          navigate(`/admin/clearance-requests?student=${encodeURIComponent(result.request.studentId)}`);
-        }
+        openResult(result);
         onClose();
       }
     };
@@ -126,7 +183,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [activeIndex, navigate, onClose, results]);
+  }, [activeIndex, onClose, openResult, results]);
 
   useEffect(() => {
     const active = listRef.current?.querySelector<HTMLElement>('[data-active="true"]');
@@ -200,77 +257,100 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
             aria-label="Search results"
             className="admin-scrollbar max-h-[min(24rem,50vh)] overflow-y-auto p-1.5"
           >
-            {results.map((result, index) => {
-              const active = index === activeIndex;
-              const key =
-                result.kind === "page"
-                  ? `page-${result.link.to}`
-                  : `student-${result.request.studentId}`;
-
-              return (
-                <li key={key}>
-                  <button
-                    type="button"
-                    id={`admin-command-result-${index}`}
-                    role="option"
-                    aria-selected={active}
-                    data-active={active}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onClick={() => {
-                      if (result.kind === "page") {
-                        navigate(result.link.to);
-                      } else {
-                        navigate(
-                          `/admin/clearance-requests?student=${encodeURIComponent(result.request.studentId)}`,
-                        );
-                      }
-                      onClose();
-                    }}
-                    className={cn(
-                      "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
-                      active ? "bg-cpc-section-light" : "hover:bg-cpc-section-light/60",
-                    )}
+            {renderedGroups.map((group) => (
+              <Fragment key={group.id}>
+                <li role="presentation" className="px-2.5 pb-1 pt-2">
+                  <span
+                    aria-hidden
+                    className="block font-poppins text-[10px] font-semibold tracking-[0.12em] text-cpc-heading-soft uppercase"
                   >
-                    <span
-                      className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                        result.kind === "page"
-                          ? "bg-cpc-section-light text-cpc-blue-accent"
-                          : "bg-rose-50 text-rose-600",
-                      )}
-                    >
-                      {result.kind === "page" ? (
-                        <result.link.icon className="h-4 w-4" aria-hidden />
-                      ) : (
-                        <UserRound className="h-4 w-4" aria-hidden />
-                      )}
-                    </span>
-
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-poppins text-xs font-semibold text-cpc-navy-text">
-                        {result.kind === "page" ? result.link.label : result.request.studentName}
-                      </span>
-                      <span className="block truncate font-poppins text-[10px] text-cpc-heading-soft">
-                        {result.kind === "page"
-                          ? result.link.group
-                          : `${result.request.studentId} · ${result.request.program}`}
-                      </span>
-                    </span>
-
-                    {result.kind === "student" && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 font-poppins text-[9px] font-semibold text-rose-700">
-                        <ShieldCheck className="h-2.5 w-2.5" aria-hidden />
-                        Clearance
-                      </span>
-                    )}
-
-                    {active && (
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-cpc-blue-accent" aria-hidden />
-                    )}
-                  </button>
+                    {group.label}
+                  </span>
                 </li>
-              );
-            })}
+
+                {group.items.map((result, itemIndex) => {
+                  const index = group.start + itemIndex;
+                  const active = index === activeIndex;
+                  const key =
+                    result.kind === "page"
+                      ? `page-${result.link.to}`
+                      : `${result.kind}-${result.request.id}`;
+
+                  return (
+                    <li key={key}>
+                      <button
+                        type="button"
+                        id={`admin-command-result-${index}`}
+                        role="option"
+                        aria-selected={active}
+                        data-active={active}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => {
+                          openResult(result);
+                          onClose();
+                        }}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                          active ? "bg-cpc-section-light" : "hover:bg-cpc-section-light/60",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                            result.kind === "page" &&
+                              "bg-cpc-section-light text-cpc-blue-accent",
+                            result.kind === "student" && "bg-rose-50 text-rose-600",
+                            result.kind === "request" &&
+                              "bg-cpc-navy/5 text-cpc-navy",
+                          )}
+                        >
+                          {result.kind === "page" ? (
+                            <result.link.icon className="h-4 w-4" aria-hidden />
+                          ) : result.kind === "student" ? (
+                            <UserRound className="h-4 w-4" aria-hidden />
+                          ) : (
+                            <FileText className="h-4 w-4" aria-hidden />
+                          )}
+                        </span>
+
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-poppins text-xs font-semibold text-cpc-navy-text">
+                            {result.kind === "page"
+                              ? result.link.label
+                              : result.request.studentName}
+                          </span>
+                          <span className="block truncate font-poppins text-[10px] text-cpc-heading-soft">
+                            {result.kind === "page"
+                              ? result.link.group
+                              : result.kind === "student"
+                                ? `${result.request.studentId} · ${result.request.program}`
+                                : `${result.request.studentId} · ${result.request.office}`}
+                          </span>
+                        </span>
+
+                        {result.kind === "student" && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 font-poppins text-[9px] font-semibold text-rose-700">
+                            <ShieldCheck className="h-2.5 w-2.5" aria-hidden />
+                            Clearance
+                          </span>
+                        )}
+
+                        {result.kind === "request" && (
+                          <StatusBadge
+                            status={result.request.status}
+                            className="shrink-0 border-0 px-1.5 py-0.5 text-[9px]"
+                          />
+                        )}
+
+                        {active && (
+                          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-cpc-blue-accent" aria-hidden />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </Fragment>
+            ))}
           </ul>
         )}
 

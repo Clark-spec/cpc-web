@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Loader2, Send } from "lucide-react";
+import { CalendarOff, Loader2, Send } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { OfficeSignatureCard } from "./OfficeSignatureCard";
-import { useClearance } from "../context/ClearanceContext";
+import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "../context/ClearanceContext";
 
 /** Section 4: the six office tiles plus the bulk "Request All" action. */
 export function OfficeSignatureGrid() {
-  const { offices, requestAll } = useClearance();
+  const { offices, requestAll, periodOpen } = useClearance();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -42,12 +42,16 @@ export function OfficeSignatureGrid() {
         <button
           type="button"
           onClick={() => setConfirmOpen(true)}
-          disabled={notRequested.length === 0}
+          disabled={notRequested.length === 0 || !periodOpen}
           className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-cpc-navy-text px-3.5 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:border-cpc-tile-border disabled:text-cpc-heading-soft disabled:hover:bg-transparent"
         >
-          <Send className="h-3.5 w-3.5" aria-hidden />
-          Request All
-          {notRequested.length > 0 && (
+          {periodOpen ? (
+            <Send className="h-3.5 w-3.5" aria-hidden />
+          ) : (
+            <CalendarOff className="h-3.5 w-3.5" aria-hidden />
+          )}
+          {periodOpen ? "Request All" : CLEARANCE_CLOSED_MESSAGE}
+          {periodOpen && notRequested.length > 0 && (
             <span className="rounded-full bg-cpc-section-light px-1.5 py-0.5 text-[10px] font-bold text-cpc-blue-accent">
               {notRequested.length}
             </span>

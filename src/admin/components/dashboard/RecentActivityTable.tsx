@@ -33,7 +33,11 @@ const FILTERS: Array<{ id: FilterId; label: string }> = [
   { id: "enrollment", label: "Enrollment" },
   { id: "clearance", label: "Clearance" },
   { id: "complaint", label: "Complaints" },
+  { id: "announcement", label: "Announcements" },
 ];
+
+/** Rows shown before the feed has to be expanded with "View all". */
+const PREVIEW_ROWS = 4;
 
 type RecentActivityTableProps = {
   items: ActivityItem[];
@@ -43,14 +47,18 @@ type RecentActivityTableProps = {
 /** Recent activity feed with type filters and a student quick-view trigger. */
 export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTableProps) {
   const [filter, setFilter] = useState<FilterId>("all");
+  const [showAll, setShowAll] = useState(false);
 
-  const visible = useMemo(
+  const filtered = useMemo(
     () => (filter === "all" ? items : items.filter((item) => item.type === filter)),
     [filter, items],
   );
 
+  const hidden = Math.max(filtered.length - PREVIEW_ROWS, 0);
+  const visible = showAll || hidden === 0 ? filtered : filtered.slice(0, PREVIEW_ROWS);
+
   return (
-    <div>
+    <div className="pb-2">
       <div className="flex flex-wrap items-center gap-1.5 border-b border-cpc-tile-border/60 px-4 py-3">
         <span className="mr-1 font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">
           Filter
@@ -87,21 +95,40 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
             </button>
           );
         })}
+
+        {hidden > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAll((previous) => !previous)}
+            aria-expanded={showAll}
+            className="ml-auto cursor-pointer font-poppins text-[11px] font-semibold text-cpc-blue-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          >
+            {showAll ? "Show less" : `View all (+${hidden})`}
+          </button>
+        )}
       </div>
 
       {visible.length === 0 ? (
         <EmptyState
           title="No activity in this filter"
-          description="New enrollment, clearance and complaint events will appear here."
+          description="New enrollment, clearance, complaint and announcement events will appear here."
         />
       ) : (
         <>
-          {/* Table on wide screens. */}
-          <div className="hidden overflow-x-auto sm:block">
+          {/* Table on wide screens; scrolls inside the card so it can never spill over the border. */}
+          <div className="hidden max-h-80 overflow-auto sm:block">
             <table className="w-full border-collapse">
-              <caption className="sr-only">Recent admin activity</caption>
-              <thead>
-                <tr className="border-b border-cpc-tile-border/60 bg-cpc-section-light/30">
+              <caption className="sr-only">
+                Recent admin activity, newest first. Selecting a user opens their quick view.
+              </caption>
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-cpc-tile-border/60 bg-cpc-section-light/60">
+                  <th
+                    scope="col"
+                    className="px-4 py-2 text-left font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase whitespace-nowrap"
+                  >
+                    Time
+                  </th>
                   <th
                     scope="col"
                     className="px-4 py-2 text-left font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase"
@@ -112,7 +139,7 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
                     scope="col"
                     className="px-4 py-2 text-left font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase"
                   >
-                    Student
+                    User
                   </th>
                   <th
                     scope="col"
@@ -120,22 +147,22 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
                   >
                     Status
                   </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-2 text-right font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase"
-                  >
-                    When
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cpc-tile-border/50">
                 {visible.map((item) => {
                   const Icon = TYPE_ICONS[item.type];
                   return (
-                    <tr
-                      key={item.id}
-                      className="transition-colors hover:bg-cpc-section-light/30"
-                    >
+                    <tr key={item.id} className="transition-colors hover:bg-cpc-section-light/30">
+                      <td className="px-4 py-2.5 align-top">
+                        <time
+                          dateTime={item.createdAt}
+                          title={formatDateTime(item.createdAt)}
+                          className="font-poppins text-[11px] whitespace-nowrap text-cpc-heading-soft"
+                        >
+                          {formatRelativeTime(item.createdAt)}
+                        </time>
+                      </td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-start gap-2.5">
                           <span
@@ -146,17 +173,12 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
                           >
                             <Icon className="h-3.5 w-3.5" aria-hidden />
                           </span>
-                          <div className="min-w-0">
-                            <p className="font-poppins text-xs font-medium text-cpc-navy-text">
-                              {item.message}
-                            </p>
-                            <p className="font-poppins text-[10px] text-cpc-heading-soft">
-                              by {item.actor}
-                            </p>
-                          </div>
+                          <p className="min-w-0 font-poppins text-xs font-medium text-cpc-navy-text">
+                            {item.message}
+                          </p>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 py-2.5 align-top">
                         {item.student ? (
                           <button
                             type="button"
@@ -169,20 +191,13 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
                             </span>
                           </button>
                         ) : (
-                          <span className="font-poppins text-xs text-cpc-heading-soft">—</span>
+                          <span className="font-poppins text-xs text-cpc-heading-soft">
+                            {item.actor}
+                          </span>
                         )}
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 py-2.5 align-top">
                         <StatusBadge status={item.status} />
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <time
-                          dateTime={item.createdAt}
-                          title={formatDateTime(item.createdAt)}
-                          className="font-poppins text-[11px] whitespace-nowrap text-cpc-heading-soft"
-                        >
-                          {formatRelativeTime(item.createdAt)}
-                        </time>
                       </td>
                     </tr>
                   );
