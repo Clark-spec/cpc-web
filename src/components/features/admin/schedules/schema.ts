@@ -33,7 +33,9 @@ export const entryFormSchema = z
     roomBId: z.string().min(1, "Choose a Set B room."),
     instructorId: z.string().min(1, "Choose an instructor."),
     status: z.enum(STATUS_VALUES),
-    note: z.string().max(240, "Keep the note under 240 characters.").optional().default(""),
+    /** Required rather than defaulted: `z.input` and `z.infer` must agree, or
+     * react-hook-form's resolver types split in two. The form always seeds it. */
+    note: z.string().max(240, "Keep the note under 240 characters."),
   })
   .refine((values) => values.endMin > values.startMin, {
     message: "The end time must be after the start time.",

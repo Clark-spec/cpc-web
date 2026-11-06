@@ -1,28 +1,10 @@
 import { useMemo } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import type { ConflictKind } from "@/types/scheduleAdmin";
 import { formatTimeRange } from "@/utils/scheduleTime";
 import { useScheduleAdmin } from "../context/ScheduleAdminContext";
+import { KIND_GROUPS } from "../utils/conflictKinds";
 import type { Conflict } from "../types";
-
-const KIND_GROUPS: { kind: ConflictKind; label: string; hint: string }[] = [
-  {
-    kind: "section",
-    label: "Same section twice",
-    hint: "One class would be in two rooms at once.",
-  },
-  {
-    kind: "instructor",
-    label: "Teacher double-booked",
-    hint: "The same instructor is timetabled in two classes at the same hour.",
-  },
-  {
-    kind: "room",
-    label: "Room double-booked",
-    hint: "Two classes claim the same room in the same room set.",
-  },
-];
 
 /**
  * Conflict panel (spec §9).

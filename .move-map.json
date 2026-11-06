@@ -1,0 +1,7 @@
+{
+  "src/components/features/student/schedules/data/mockSchedules.ts": "src/data/mockSchedules.ts",
+  "src/components/features/student/schedules/types.ts": "src/types/schedule.ts",
+  "src/components/features/student/schedules/utils/colors.ts": "src/utils/scheduleColors.ts",
+  "src/components/features/student/schedules/utils/layoutEvents.ts": "src/utils/layoutEvents.ts",
+  "src/components/features/student/schedules/utils/time.ts": "src/utils/scheduleTime.ts"
+}

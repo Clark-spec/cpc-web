@@ -1,5 +1,9 @@
 import { useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import { CalendarOff } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { EmptyState } from "@/components/ui/admin/EmptyState";
@@ -23,6 +27,9 @@ import { GridEventBlock } from "./GridEventBlock";
 
 /** Shortest class the editor accepts, so a resize can never erase a block. */
 const MIN_DURATION_MIN = 30;
+
+/** How much of the day a click-to-create reserves, so the prefill ends before 8 PM. */
+const NEW_CLASS_MIN = 60;
 
 type DragMode = "move" | "resize";
 
@@ -53,6 +60,8 @@ function swapDay(days: DayCode[], from: DayCode, to: DayCode): DayCode[] {
 type ScheduleGridEditorProps = {
   /** Opens the entry form; a read-only role opens the same form in view mode. */
   onOpenEntry: (entry: ScheduleEntry, section: SectionId) => void;
+  /** An empty cell was clicked: the section it belongs in, the day and the half hour. */
+  onCreateAt: (slot: { day: DayCode; startMin: number; section: SectionId }) => void;
 };
 
 /**
@@ -75,7 +84,7 @@ type ScheduleGridEditorProps = {
  * there is still allowed: shunting a class through a busy afternoon is real
  * work, and the conflict panel is what tells the registrar it needs fixing.
  */
-export function ScheduleGridEditor({ onOpenEntry }: ScheduleGridEditorProps) {
+export function ScheduleGridEditor({ onOpenEntry, onCreateAt }: ScheduleGridEditorProps) {
   const {
     canEditSection,
     deleteEntry,
@@ -86,14 +95,25 @@ export function ScheduleGridEditor({ onOpenEntry }: ScheduleGridEditorProps) {
     overlay,
     publishDiff,
     roomSet,
+    sectionsForRole,
     selectedEntryId,
     selectEntry,
     section: activeSection,
     visibleEntries,
   } = useScheduleAdmin();
 
+  /* Where a click-to-create class would be written: the open tab, or the first
+   * section this role owns when looking at "All sections". */
+  const targetSection: SectionId =
+    activeSection === "all" ? sectionsForRole[0] : activeSection;
+  const canCreate = canEditSection(targetSection);
+
   const columnsRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
+  /* A drag releases over empty canvas, and the browser then fires a click on
+   * that canvas too. Without this gate every dropped class would also open a
+   * new-class form. */
+  const dragJustEndedRef = useRef(false);
 
   /* One class can hang in several day columns; this says which section owns it,
    * so the block and the clash check read from the same source. */
@@ -156,6 +176,29 @@ export function ScheduleGridEditor({ onOpenEntry }: ScheduleGridEditorProps) {
     };
   }
 
+  /**
+   * The other way in: click a cell that holds nothing and the form opens
+   * prefilled with that day and that half hour. The canvas itself is the
+   * target, so a click that lands on a class, a ghost or a grid line is not a
+   * request to create one.
+   */
+  function createAt(day: DayCode, event: ReactMouseEvent<HTMLDivElement>) {
+    if (dragJustEndedRef.current) {
+      dragJustEndedRef.current = false;
+      return;
+    }
+    if (event.target !== event.currentTarget) return;
+    const at = pointToSlot(event.clientX, event.clientY);
+    onCreateAt({
+      day,
+      section: targetSection,
+      startMin: Math.max(
+        snapToStep(Math.min(at.minutes, DAY_END_MIN - NEW_CLASS_MIN)),
+        DAY_START_MIN,
+      ),
+    });
+  }
+
   function beginDrag(
     mode: DragMode,
     entry: ScheduleEntry,
@@ -205,6 +248,7 @@ export function ScheduleGridEditor({ onOpenEntry }: ScheduleGridEditorProps) {
     const current = drag;
     setDrag(null);
     if (current === null) return;
+    dragJustEndedRef.current = true;
     const row = rowsById.get(current.entryId);
     if (row === undefined) return;
 
@@ -432,7 +476,11 @@ export function ScheduleGridEditor({ onOpenEntry }: ScheduleGridEditorProps) {
                     key={day}
                     className="relative min-w-0 flex-1 overflow-hidden border-r border-cpc-input-border last:border-r-0"
                   >
-                    <div className="relative" style={{ height: totalHeight }}>
+                    <div
+                      className="relative"
+                      style={{ height: totalHeight, cursor: canCreate ? "pointer" : undefined }}
+                      onClick={(event) => createAt(day, event)}
+                    >
                       {hours.map((hour) => (
                         <div
                           key={hour}

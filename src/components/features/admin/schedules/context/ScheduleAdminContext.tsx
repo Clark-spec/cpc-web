@@ -71,6 +71,7 @@ import type {
 } from "../types";
 import { EMPTY_FILTERS } from "../types";
 import { conflictCountBySection } from "../utils/conflicts";
+import { entryFromFormValues } from "../utils/entryForm";
 
 const ScheduleAdminContext = createContext<ScheduleAdminContextValue | null>(null);
 
@@ -165,55 +166,6 @@ function writeFilters(params: URLSearchParams, filters: ScheduleFilters): void {
   set("room", filters.room === "all" ? null : filters.room);
   set("status", filters.status === "all" ? null : filters.status);
   set("clash", filters.onlyConflicts ? "1" : null);
-}
-
-/* ----------------------------------------------------------- entry factory */
-
-function entryIdFor(section: SectionId, code: string, existing: ScheduleEntry[]): string {
-  const base = `${section}-${code.replace(/\s+/g, "-").toLowerCase()}`;
-  if (!existing.some((entry) => entry.id === base)) return base;
-  let suffix = 2;
-  while (existing.some((entry) => entry.id === `${base}-${suffix}`)) suffix += 1;
-  return `${base}-${suffix}`;
-}
-
-/**
- * Form values -> a student-side `ScheduleEntry`. Every string is copied from a
- * master record rather than typed by hand, which is what lets a later rename
- * propagate by id and keeps the student page's rendering truthful.
- */
-function entryFromFormValues(
-  values: EntryFormValues,
-  master: ScheduleMasterData,
-  section: SectionId,
-  existing: ScheduleEntry[],
-  replaceId?: string,
-): ScheduleEntry {
-  const subject = master.subjects.find((item) => item.id === values.subjectId);
-  const teacher = master.instructors.find((item) => item.id === values.instructorId);
-  const roomA = master.rooms.find((item) => item.id === values.roomAId);
-  const roomB = master.rooms.find((item) => item.id === values.roomBId);
-  const previous = replaceId === undefined ? undefined : existing.find((item) => item.id === replaceId);
-  const code = subject?.code ?? previous?.subjectCode ?? "NEW CLASS";
-  return {
-    id: previous?.id ?? entryIdFor(section, code, existing),
-    subjectCode: code,
-    title: subject?.title ?? previous?.title ?? code,
-    days: values.days,
-    startMin: values.startMin,
-    endMin: values.endMin,
-    roomSetA: roomA?.name ?? previous?.roomSetA ?? "ONLINE",
-    roomSetB: roomB?.name ?? previous?.roomSetB ?? "ONLINE",
-    units: subject?.units ?? previous?.units ?? 3,
-    instructor: teacher?.displayName ?? "",
-    status: values.status,
-    colorKey: subject?.colorKey ?? previous?.colorKey ?? "blue",
-    subjectId: subject?.id,
-    instructorId: teacher?.id,
-    roomAId: roomA?.id,
-    roomBId: roomB?.id,
-    note: values.note ?? "",
-  };
 }
 
 /* ------------------------------------------------------------ exported view */

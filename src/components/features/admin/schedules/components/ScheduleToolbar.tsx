@@ -1,9 +1,10 @@
 import type { RefObject } from "react";
-import { Check, LayoutGrid, List, RefreshCw, Search, X } from "lucide-react";
+import { Check, Copy, LayoutGrid, List, Plus, RefreshCw, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { DAY_CODES, DAY_LABELS } from "@/utils/scheduleTime";
 import { useScheduleAdmin } from "../context/ScheduleAdminContext";
-import type { GridOverlayMode, ScheduleEditorView, ScheduleFilters } from "../types";
+import type { GridOverlayMode, ScheduleEditorView, ScheduleFilters, SectionId } from "../types";
+import { BTN_NEUTRAL, BTN_PRIMARY } from "../utils/formStyles";
 
 const FIELD_BASE =
   "w-full rounded-lg border border-cpc-input-border bg-white px-3 py-2 font-poppins text-xs text-cpc-navy-text placeholder:text-cpc-placeholder transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent";
@@ -32,6 +33,10 @@ const OVERLAY_MODES: { value: GridOverlayMode; label: string }[] = [
 type ScheduleToolbarProps = {
   /** The page passes this so the `/` shortcut can focus the search box. */
   searchInputRef?: RefObject<HTMLInputElement | null>;
+  /** Opens the entry form for a new class. */
+  onNewClass: () => void;
+  /** Opens the copy-a-section dialog for the section being looked at. */
+  onDuplicate: () => void;
 };
 
 /**
@@ -41,22 +46,36 @@ type ScheduleToolbarProps = {
  * set into the URL — so a filtered view is shareable, survives a refresh, and
  * the KPI cards can narrow the same list without duplicating this state.
  */
-export function ScheduleToolbar({ searchInputRef }: ScheduleToolbarProps) {
+export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: ScheduleToolbarProps) {
   const {
     activeFilterCount,
+    canEditSection,
     clearFilters,
+    editDisabledReason,
     filters,
     loading,
     master,
     overlay,
     reload,
     roomSet,
+    section,
+    sectionsForRole,
     setFilters,
     setOverlay,
     setRoomSet,
     setView,
     view,
   } = useScheduleAdmin();
+
+  /* New class and duplicate both write into one section. On "All sections" a
+   * new class still has a home — the first section this role owns — but a copy
+   * would be aimed at nothing, so that one waits for a tab. */
+  const targetSection: SectionId = section === "all" ? sectionsForRole[0] : section;
+  const roleReason = editDisabledReason(targetSection) ?? "";
+  const newDisabled = !canEditSection(targetSection);
+  const duplicateDisabled = newDisabled || section === "all";
+  const duplicateReason =
+    roleReason !== "" ? roleReason : "Open one section tab to duplicate it.";
 
   const setFilter = <K extends keyof ScheduleFilters>(key: K, value: ScheduleFilters[K]) =>
     setFilters({ ...filters, [key]: value });
@@ -198,6 +217,33 @@ export function ScheduleToolbar({ searchInputRef }: ScheduleToolbarProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-5 lg:justify-end">
+          {/* Role-aware: a control that cannot write stays visible and says why
+              it is off, rather than vanishing and leaving the toolbar to
+              rearrange itself per login. */}
+          <button
+            type="button"
+            id="schedule-new-class"
+            onClick={onNewClass}
+            disabled={newDisabled}
+            title={newDisabled ? roleReason : undefined}
+            className={cn(BTN_PRIMARY, "ml-auto")}
+          >
+            <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            New class
+          </button>
+
+          <button
+            type="button"
+            id="schedule-duplicate"
+            onClick={onDuplicate}
+            disabled={duplicateDisabled}
+            title={duplicateDisabled ? duplicateReason : undefined}
+            className={BTN_NEUTRAL}
+          >
+            <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            Duplicate section
+          </button>
+
           <button
             type="button"
             onClick={() => void reload()}
