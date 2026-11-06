@@ -1,8 +1,8 @@
 /**
- * Domain types for the student-side Class Schedules page.
+ * Domain types for the Class Schedules pages, shared by both portals.
  *
- * Schedules are read-only for students: the registrar owns the data, and the
- * page only filters, sorts and lays it out.
+ * Schedules are read-only for students: the staff portal owns the data, and the
+ * student page only filters, sorts and lays it out.
  */
 
 export type SectionId = "BSIT-3A" | "BSIT-3B" | "BSIT-3C" | "BSIT-3D";
@@ -33,8 +33,25 @@ export interface ScheduleEntry {
   units: number;
   instructor: string;
   status: EntryStatus;
-  /** Maps to a palette token in `utils/colors.ts`. */
+  /** Maps to a palette token in `utils/scheduleColors.ts`. */
   colorKey: string;
+  /**
+   * ADMIN-ONLY FIELDS BELOW. They are optional so the student page — which
+   * never reads them — keeps compiling and rendering exactly as before, while
+   * the staff portal resolves the ids to master data. `subjectId` /
+   * `instructorId` / `roomAId` / `roomBId` are the stable keys, so renaming a
+   * subject, instructor or room propagates without touching every entry.
+   */
+  subjectId?: string;
+  instructorId?: string;
+  roomAId?: string;
+  roomBId?: string;
+  /** ISO date-time of the last draft edit, shown in the change history. */
+  updatedAt?: string;
+  /** Staff display name that made that edit. */
+  updatedBy?: string;
+  /** Registrar note, optional on the entry form. */
+  note?: string;
 }
 
 export interface SectionSchedule {
