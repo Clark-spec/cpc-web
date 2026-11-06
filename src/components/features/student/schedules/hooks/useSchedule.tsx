@@ -13,15 +13,33 @@ import { useSearchParams } from "react-router";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/components/ui/toast";
 import {
-  getSchedule,
+  formatPublishedCaption,
+  readPublishedSchedule,
+  subscribeToPublishedSchedule,
+} from "@/services/student/scheduleService";
+import {
+  ACADEMIC_YEAR,
   isSectionId,
   MY_SECTION,
   SECTION_IDS,
+  SEMESTER,
 } from "@/data/mockSchedules";
-import type { RoomSet, ScheduleEntry, SectionId } from "@/types/schedule";
+import type { RoomSet, ScheduleEntry, SectionId, SectionSchedule } from "@/types/schedule";
+import type { PublishedSchedule } from "@/types/scheduleAdmin";
 
 const SECTION_KEY = "cpc.class-schedules.section.v1";
 const ROOM_SET_KEY = "cpc.class-schedules.room-set.v1";
+/** Which published version this student has already been told about. */
+const SEEN_VERSION_KEY = "cpc.class-schedules.seen-version.v1";
+
+function readSeenVersion(): number | null {
+  const raw = Number(localStorage.getItem(SEEN_VERSION_KEY));
+  return Number.isInteger(raw) && raw > 0 ? raw : null;
+}
+
+function writeSeenVersion(version: number): void {
+  localStorage.setItem(SEEN_VERSION_KEY, String(version));
+}
 
 type ScheduleContextValue = {
   /** Selected section, kept in sync with `?section=`. */
@@ -29,7 +47,12 @@ type ScheduleContextValue = {
   setSection: (section: SectionId) => void;
   sections: SectionId[];
   mySection: SectionId;
-  schedule: ReturnType<typeof getSchedule>;
+  schedule: SectionSchedule;
+  /** "Updated Oct 04, 2026 · v7" — what staff last sent to students. */
+  updatedCaption: string;
+  /** True when the published version moved on since this student last looked. */
+  showUpdateNotice: boolean;
+  dismissUpdateNotice: () => void;
   loading: boolean;
   roomSet: RoomSet;
   setRoomSet: (roomSet: RoomSet) => void;
@@ -61,6 +84,8 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   // URL wins over storage, so a shared link always opens the right section.
   const section: SectionId = isSectionId(paramSection) ? paramSection : storedSection;
 
+  const [published, setPublished] = useState<PublishedSchedule>(() => readPublishedSchedule());
+  const [seenVersion, setSeenVersion] = useState<number | null>(() => readSeenVersion());
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
@@ -70,7 +95,42 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const initialTimer = useRef<number | null>(null);
   const firstSection = useRef(true);
 
-  const schedule = useMemo(() => getSchedule(section), [section]);
+  // Students read the PUBLISHED record only; a section nobody has published yet
+  // renders through the page's existing empty state rather than inventing rows.
+  const schedule = useMemo<SectionSchedule>(
+    () =>
+      published.schedules.find((item) => item.section === section) ?? {
+        section,
+        semester: SEMESTER,
+        academicYear: ACADEMIC_YEAR,
+        entries: [],
+      },
+    [published, section],
+  );
+
+  // A publish in the staff portal — same tab or another window — lands here.
+  useEffect(
+    () =>
+      subscribeToPublishedSchedule(() => {
+        setPublished(readPublishedSchedule());
+      }),
+    [],
+  );
+
+  // First visit records the version this student is already looking at, so the
+  // update banner can only ever announce a change made after that point.
+  useEffect(() => {
+    if (seenVersion !== null) return;
+    writeSeenVersion(published.version);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- recording the baseline the first time the store is read
+    setSeenVersion(published.version);
+  }, [published.version, seenVersion]);
+
+  const dismissUpdateNotice = useCallback(() => {
+    if (seenVersion === published.version) return;
+    writeSeenVersion(published.version);
+    setSeenVersion(published.version);
+  }, [published.version, seenVersion]);
 
   // First paint: a short skeleton so the page settles like the rest of the portal.
   useEffect(() => {
@@ -164,6 +224,9 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       sections: SECTION_IDS,
       mySection: MY_SECTION,
       schedule,
+      updatedCaption: formatPublishedCaption(published),
+      showUpdateNotice: seenVersion !== null && seenVersion !== published.version,
+      dismissUpdateNotice,
       loading,
       roomSet,
       setRoomSet,
@@ -183,6 +246,9 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
       section,
       setSection,
       schedule,
+      published,
+      seenVersion,
+      dismissUpdateNotice,
       loading,
       roomSet,
       setRoomSet,

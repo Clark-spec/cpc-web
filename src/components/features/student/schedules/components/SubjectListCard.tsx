@@ -8,7 +8,7 @@ import { EmptySchedule } from "./EmptySchedule";
 
 /** The "My Class Schedules" card: section picker, summary tiles, and subject table. */
 export function SubjectListCard() {
-  const { schedule, section, setSection, loading, openEntry } = useSchedule();
+  const { schedule, section, setSection, loading, openEntry, updatedCaption } = useSchedule();
   const hasEntries = schedule.entries.length > 0;
 
   return (
@@ -31,6 +31,7 @@ export function SubjectListCard() {
             <p className="mt-0.5 font-poppins text-xs text-cpc-heading-soft">
               {schedule.semester}, AY {schedule.academicYear}
             </p>
+            <p className="mt-0.5 font-poppins text-[11px] text-cpc-heading-soft">{updatedCaption}</p>
           </div>
         </div>
 
