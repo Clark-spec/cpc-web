@@ -31,7 +31,17 @@ import { DAY_CODES, DAY_END_MIN, DAY_START_MIN, formatTimeRange } from "@/utils/
 /** The only room name exempt from the room rule. */
 export const ONLINE_ROOM = "ONLINE";
 
-const STEP_MIN = 30;
+/**
+ * The editor's resolution: every free-slot search and every drag lands on a
+ * half-hour mark, so a class can never be dropped at 10:07.
+ */
+export const STEP_MIN = 30;
+
+/** Snaps a raw minute value to the nearest half hour inside the day. */
+export function snapToStep(minutes: number): number {
+  const snapped = Math.round(minutes / STEP_MIN) * STEP_MIN;
+  return Math.min(Math.max(snapped, DAY_START_MIN), DAY_END_MIN);
+}
 
 /** Rule 1: the whole overlap test lives here so every caller agrees on `<`. */
 export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {

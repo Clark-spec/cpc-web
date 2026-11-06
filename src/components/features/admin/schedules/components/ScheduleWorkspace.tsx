@@ -1,8 +1,11 @@
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
+import type { ScheduleEntry } from "@/types/schedule";
 import { ErrorCard } from "@/components/ui/admin/ErrorCard";
 import { useScheduleAdmin } from "../context/ScheduleAdminContext";
+import { ConflictPanel } from "./ConflictPanel";
 import { PublishStatusBar } from "./PublishStatusBar";
 import { ScheduleBanner } from "./ScheduleBanner";
+import { ScheduleGridEditor } from "./ScheduleGridEditor";
 import { ScheduleKpiStrip } from "./ScheduleKpiStrip";
 import { ScheduleTable } from "./ScheduleTable";
 import { ScheduleToolbar } from "./ScheduleToolbar";
@@ -19,8 +22,13 @@ import { SectionTabs } from "./SectionTabs";
  * function of the store plus the address bar.
  */
 export function ScheduleWorkspace() {
-  const { error, reload } = useScheduleAdmin();
+  const { error, reload, selectEntry, view } = useScheduleAdmin();
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const openEntry = useCallback(
+    (entry: ScheduleEntry) => selectEntry(entry.id),
+    [selectEntry],
+  );
 
   if (error) {
     return (
@@ -43,7 +51,9 @@ export function ScheduleWorkspace() {
 
       <ScheduleToolbar searchInputRef={searchRef} />
 
-      <ScheduleTable />
+      {view === "grid" ? <ScheduleGridEditor onOpenEntry={openEntry} /> : <ScheduleTable />}
+
+      <ConflictPanel />
     </div>
   );
 }

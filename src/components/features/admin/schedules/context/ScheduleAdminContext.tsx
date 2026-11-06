@@ -937,10 +937,15 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
   /** "Go to entry" from the conflict panel: select the row/block and open its section. */
   const selectEntry = useCallback(
     (entryId: string | null) => {
-      setSelectedEntryId(entryId);
-      if (entryId === null) return;
+      if (entryId === null) {
+        setSelectedEntryId(null);
+        return;
+      }
+      /* Switching tabs clears the selection, so the id has to be written after
+       * the jump; the last one queued is the one the render sees. */
       const owner = sectionOfEntry(entryId);
       if (owner !== null && section !== "all" && owner !== section) setSection(owner);
+      setSelectedEntryId(entryId);
     },
     [section, sectionOfEntry, setSection],
   );
