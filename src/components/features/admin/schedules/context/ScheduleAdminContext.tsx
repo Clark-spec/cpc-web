@@ -15,7 +15,7 @@ import { useAdminAuth } from "@/context/AdminAuthContext";
 import { isSectionId } from "@/data/mockSchedules";
 import { DAY_CODES } from "@/utils/scheduleTime";
 import type { AdminRole } from "@/types/admin";
-import type { DayCode, SectionId, ScheduleEntry } from "@/types/schedule";
+import type { DayCode, ScheduleEntry, SectionId, SectionSchedule } from "@/types/schedule";
 import type {
   Conflict,
   DraftSchedule,
@@ -70,6 +70,7 @@ import type {
   SyncStatus,
 } from "../types";
 import { EMPTY_FILTERS } from "../types";
+import { conflictCountBySection } from "../utils/conflicts";
 
 const ScheduleAdminContext = createContext<ScheduleAdminContextValue | null>(null);
 
@@ -236,6 +237,7 @@ export type ScheduleAdminContextValue = {
   master: ScheduleMasterData;
   history: ScheduleChange[];
 
+  /** Clashes touching a class this staff member can see; detection reads the whole draft. */
   conflicts: Conflict[];
   conflictCount: number;
   conflictsBySection: Record<string, number>;
@@ -252,6 +254,8 @@ export type ScheduleAdminContextValue = {
   canEditSection: (section: SectionId) => boolean;
   editDisabledReason: (section?: SectionId) => string | null;
   sectionsForRole: SectionId[];
+  /** Sections this staff member is answerable for, with only the entries they see. */
+  scopedSchedules: SectionSchedule[];
   /** The master record the signed-in instructor maps to, for "My teaching load". */
   myInstructor: Instructor | null;
 
@@ -362,7 +366,7 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
   const history = snapshot?.history ?? EMPTY_HISTORY;
 
   const draftState = useScheduleDraft(draft, published);
-  const { conflicts, count: conflictCount, bySection: conflictsBySection } = useConflicts(draft);
+  const { conflicts: draftConflicts } = useConflicts(draft);
   const leaveGuard = useUnsavedGuard(draftState);
 
   // The service is the writer, the context the reader: keep the latest draft in
@@ -430,11 +434,72 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
     return stored.length > 0 ? stored : DEAN_SECTIONS;
   }, [canEditSection, draft.schedules, role]);
 
+  /**
+   * The classes this staff member is answerable for, before any filter or
+   * section tab is applied.
+   *
+   * (1) One scope, three readers. The tabs, the KPI cards and the working list
+   * all derive from this, so a page can never announce a total that includes
+   * rows the person on screen is not allowed to open — a dean's "All sections"
+   * is their two sections, and an instructor's is the rooms they teach in.
+   * (2) A section an instructor teaches nothing in is dropped rather than shown
+   * as an empty tab; a registrar keeps it, because an empty section is a gap
+   * they still have to fill.
+   */
+  const scopedSchedules = useMemo<SectionSchedule[]>(() => {
+    const allowed = new Set(sectionsForRole);
+    const schedules = draft.schedules
+      .filter((schedule) => allowed.has(schedule.section))
+      .map((schedule) =>
+        role === "instructor"
+          ? {
+              ...schedule,
+              entries: schedule.entries.filter(
+                (entry) => entry.instructorId !== undefined && entry.instructorId === myInstructor?.id,
+              ),
+            }
+          : schedule,
+      );
+    return role === "instructor" ? schedules.filter((schedule) => schedule.entries.length > 0) : schedules;
+  }, [draft.schedules, myInstructor, role, sectionsForRole]);
+
+  /**
+   * Clashes are detected across the WHOLE draft — a room booked by two
+   * schedules is only findable by reading both at once — but the counts the
+   * page shows are the ones involving a class this staff member can open.
+   * `conflicts` keeps that filter; a registrar's scope is the college, so for
+   * the role that publishes, the number is the full picture.
+   */
+  const conflicts = useMemo<Conflict[]>(() => {
+    const visible = new Set<string>();
+    for (const schedule of scopedSchedules) {
+      for (const entry of schedule.entries) visible.add(entry.id);
+    }
+    return draftConflicts.filter((conflict) =>
+      conflict.entryIds.some((entryId) => visible.has(entryId)),
+    );
+  }, [draftConflicts, scopedSchedules]);
+
+  const conflictCount = conflicts.length;
+
+  const conflictsBySection = useMemo(
+    () => conflictCountBySection(conflicts, scopedSchedules),
+    [conflicts, scopedSchedules],
+  );
+
   /* ------------------------------------------------------------ view state */
 
   const sectionParam = params.get(SECTION_PARAM);
-  const section: SectionTab =
+  const requested: SectionTab =
     sectionParam === "all" ? "all" : isSectionId(sectionParam) ? sectionParam : "BSIT-3A";
+  const scopedSections = useMemo(
+    () => scopedSchedules.map((schedule) => schedule.section),
+    [scopedSchedules],
+  );
+  // A deep link to a section outside the staff member's scope falls back to
+  // their first section rather than rendering an empty table.
+  const section: SectionTab =
+    requested === "all" || scopedSections.includes(requested) ? requested : (scopedSections[0] ?? "all");
   const view: ScheduleEditorView = params.get(VIEW_PARAM) === "grid" ? "grid" : "table";
   const filters = useMemo(() => filtersFromParams(params), [params]);
 
@@ -457,6 +522,15 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
     },
     [patchParams],
   );
+
+  /* The clamp above only picks what renders; this rewrites the address bar so a
+   * shared link to a section outside the staff member's scope cannot leave a
+   * URL that disagrees with the tab highlighted on screen. Waits for the load
+   * so it cannot mistake an empty scope for a forbidden one. */
+  useEffect(() => {
+    if (loading || scopedSections.length === 0 || requested === section) return;
+    patchParams((next) => next.set(SECTION_PARAM, section));
+  }, [loading, patchParams, requested, scopedSections.length, section]);
 
   const setView = useCallback(
     (value: ScheduleEditorView) => {
@@ -488,27 +562,29 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
     return count;
   }, [filters]);
 
-  /** A KPI card is a filter, not a navigation: clicking it narrows this view. */
+  /**
+   * A KPI card is a filter, not a navigation: clicking it narrows this view.
+   *
+   * The writes are composed into ONE params patch on purpose. `setFilters`,
+   * `setSection` and `setView` each rebuild the query string from the params
+   * captured in their own closure, so calling two of them from the same click
+   * makes the second write discard the first — the card would change the
+   * section and silently drop the filter it had just applied.
+   */
   const applyKpiFilter = useCallback(
     (target: KpiFilterTarget) => {
-      if (target === "conflicts") {
-        setFilters({ ...EMPTY_FILTERS, onlyConflicts: true });
-        setSection("all");
-        return;
-      }
-      if (target === "sections") {
-        setFilters(EMPTY_FILTERS);
-        setSection("all");
-        return;
-      }
-      if (target === "rooms") {
-        setFilters(EMPTY_FILTERS);
-        setView("grid");
-        return;
-      }
-      setFilters(EMPTY_FILTERS);
+      const wanted: ScheduleFilters =
+        target === "conflicts" ? { ...EMPTY_FILTERS, onlyConflicts: true } : EMPTY_FILTERS;
+      const scope: SectionTab = target === "sections" || target === "conflicts" ? "all" : section;
+      patchParams((next) => {
+        writeFilters(next, wanted);
+        next.set(SECTION_PARAM, scope);
+        if (target === "rooms") next.set(VIEW_PARAM, "grid");
+        else next.delete(VIEW_PARAM);
+      });
+      setSelectedEntryId(null);
     },
-    [setFilters, setSection, setView],
+    [patchParams, section],
   );
 
   const conflictCountByEntry = useMemo(() => {
@@ -524,11 +600,9 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
   const visibleEntries = useMemo<VisibleEntry[]>(() => {
     const needle = filters.search.trim().toLowerCase();
     const rows: VisibleEntry[] = [];
-    for (const schedule of draft.schedules) {
+    for (const schedule of scopedSchedules) {
       if (section !== "all" && schedule.section !== section) continue;
       for (const entry of schedule.entries) {
-        // An instructor's tabs are their own teaching load, nothing else.
-        if (role === "instructor" && entry.instructorId !== myInstructor?.id) continue;
         if (filters.day !== "all" && !entry.days.includes(filters.day)) continue;
         if (filters.status !== "all" && entry.status !== filters.status) continue;
         if (filters.instructorId !== "all" && entry.instructorId !== filters.instructorId) continue;
@@ -560,18 +634,21 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
       }
     }
     return rows;
-  }, [conflictCountByEntry, draft.schedules, filters, master.rooms, myInstructor, role, section]);
+  }, [conflictCountByEntry, filters, master.rooms, scopedSchedules, section]);
 
+  /* Both helpers answer "where does this class live in the data", so they read
+   * the scoped schedules rather than the whole draft: a "go to entry" jump must
+   * never land on a tab this staff member cannot open. */
   const entriesBySection = useCallback(
-    (value: SectionId) => draft.schedules.find((schedule) => schedule.section === value)?.entries ?? [],
-    [draft.schedules],
+    (value: SectionId) => scopedSchedules.find((schedule) => schedule.section === value)?.entries ?? [],
+    [scopedSchedules],
   );
 
   const sectionOfEntry = useCallback(
     (entryId: string) =>
-      draft.schedules.find((schedule) => schedule.entries.some((entry) => entry.id === entryId))
+      scopedSchedules.find((schedule) => schedule.entries.some((entry) => entry.id === entryId))
         ?.section ?? null,
-    [draft.schedules],
+    [scopedSchedules],
   );
 
   /* ------------------------------------------------------------- mutations */
@@ -893,6 +970,7 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
       canEditSection,
       editDisabledReason,
       sectionsForRole,
+      scopedSchedules,
       myInstructor,
       section,
       setSection,
@@ -977,6 +1055,7 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
       saveInstructor,
       saveRoom,
       saveSubject,
+      scopedSchedules,
       section,
       sectionOfEntry,
       sectionsForRole,
