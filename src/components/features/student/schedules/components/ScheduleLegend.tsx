@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { ArrowRight, Check, Info } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useSchedule } from "../hooks/useSchedule";
-import type { ScheduleEntry } from "../types";
-import { getSubjectColor } from "../utils/colors";
+import type { ScheduleEntry } from "@/types/schedule";
+import { getSubjectColor } from "@/utils/scheduleColors";
 
 type ScheduleLegendProps = {
   entries: ScheduleEntry[];

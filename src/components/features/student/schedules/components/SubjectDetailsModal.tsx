@@ -1,9 +1,9 @@
 import { CalendarDays } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useSchedule } from "../hooks/useSchedule";
-import type { ScheduleEntry } from "../types";
-import { getSubjectColor } from "../utils/colors";
-import { daysToLabel, formatTimeRange } from "../utils/time";
+import type { ScheduleEntry } from "@/types/schedule";
+import { getSubjectColor } from "@/utils/scheduleColors";
+import { daysToLabel, formatTimeRange } from "@/utils/scheduleTime";
 import { StatusBadge } from "./Badge";
 import { Modal } from "@/components/ui/modal";
 

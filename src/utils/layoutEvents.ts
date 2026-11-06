@@ -1,5 +1,5 @@
-import type { ConflictPair, DayCode, ScheduleEntry } from "../types";
-import { DAY_CODES, DAY_END_MIN, DAY_START_MIN, HOUR_HEIGHT } from "./time";
+import type { ConflictPair, DayCode, ScheduleEntry } from "@/types/schedule";
+import { DAY_CODES, DAY_END_MIN, DAY_START_MIN, HOUR_HEIGHT } from "@/utils/scheduleTime";
 
 /**
  * A single event after the time → pixel and overlap-lane math has run.

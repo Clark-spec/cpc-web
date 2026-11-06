@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { CalendarX2 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import type { DayCode, RoomSet, ScheduleEntry } from "../types";
-import { getSubjectColor } from "../utils/colors";
+import type { DayCode, RoomSet, ScheduleEntry } from "@/types/schedule";
+import { getSubjectColor } from "@/utils/scheduleColors";
 import {
   DAY_CODES,
   DAY_FULL,
@@ -12,7 +12,7 @@ import {
   daysToLabel,
   formatLongDate,
   formatTimeRange,
-} from "../utils/time";
+} from "@/utils/scheduleTime";
 import { StatusBadge } from "./Badge";
 
 type DayAgendaViewProps = {

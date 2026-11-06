@@ -1,4 +1,4 @@
-import type { DayCode } from "../types";
+import type { DayCode } from "@/types/schedule";
 
 export const DAY_CODES: DayCode[] = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
 

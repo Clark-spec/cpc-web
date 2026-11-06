@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { AlertTriangle } from "lucide-react";
-import type { ScheduleEntry } from "../types";
-import { findConflicts } from "../utils/layoutEvents";
-import { DAY_FULL, formatTimeRange } from "../utils/time";
+import type { ScheduleEntry } from "@/types/schedule";
+import { findConflicts } from "@/utils/layoutEvents";
+import { DAY_FULL, formatTimeRange } from "@/utils/scheduleTime";
 
 type ConflictBannerProps = {
   entries: ScheduleEntry[];

@@ -3,8 +3,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useCurrentTime } from "../hooks/useCurrentTime";
 import { useSchedule } from "../hooks/useSchedule";
-import type { DayCode, ScheduleEntry, SectionSchedule } from "../types";
-import { layoutEvents, type PositionedEvent } from "../utils/layoutEvents";
+import type { DayCode, ScheduleEntry, SectionSchedule } from "@/types/schedule";
+import { layoutEvents, type PositionedEvent } from "@/utils/layoutEvents";
 import {
   DAY_CODES,
   DAY_END_MIN,
@@ -19,7 +19,7 @@ import {
   isSameDate,
   minutesSinceMidnight,
   startOfWeek,
-} from "../utils/time";
+} from "@/utils/scheduleTime";
 import { CalendarEventBlock } from "./CalendarEventBlock";
 import { DayAgendaView } from "./DayAgendaView";
 

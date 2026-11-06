@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
-import type { ScheduleEntry } from "../types";
-import type { PositionedEvent } from "../utils/layoutEvents";
-import { getSubjectColor } from "../utils/colors";
-import { DAY_FULL, formatAriaRange, formatTimeRange } from "../utils/time";
+import type { ScheduleEntry } from "@/types/schedule";
+import type { PositionedEvent } from "@/utils/layoutEvents";
+import { getSubjectColor } from "@/utils/scheduleColors";
+import { DAY_FULL, formatAriaRange, formatTimeRange } from "@/utils/scheduleTime";
 
 type CalendarEventBlockProps = {
   positioned: PositionedEvent;

@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
-import type { EntryStatus } from "../types";
+import type { EntryStatus } from "@/types/schedule";
 
 type StatusBadgeProps = {
   status: EntryStatus;

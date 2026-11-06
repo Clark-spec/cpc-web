@@ -2,14 +2,14 @@ import { BookOpen, CalendarDays, Clock, GraduationCap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useCurrentTime } from "../hooks/useCurrentTime";
 import { useSchedule } from "../hooks/useSchedule";
-import type { ScheduleEntry, SectionSchedule } from "../types";
+import type { ScheduleEntry, SectionSchedule } from "@/types/schedule";
 import {
   DAY_LABELS,
   addDays,
   dayFromDate,
   formatTime,
   minutesSinceMidnight,
-} from "../utils/time";
+} from "@/utils/scheduleTime";
 
 type ScheduleSummaryCardsProps = {
   schedule: SectionSchedule;

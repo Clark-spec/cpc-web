@@ -17,8 +17,8 @@ import {
   isSectionId,
   MY_SECTION,
   SECTION_IDS,
-} from "../data/mockSchedules";
-import type { RoomSet, ScheduleEntry, SectionId } from "../types";
+} from "@/data/mockSchedules";
+import type { RoomSet, ScheduleEntry, SectionId } from "@/types/schedule";
 
 const SECTION_KEY = "cpc.class-schedules.section.v1";
 const ROOM_SET_KEY = "cpc.class-schedules.room-set.v1";

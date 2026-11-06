@@ -7,8 +7,8 @@ import {
 } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { MY_SECTION, SECTION_IDS } from "../data/mockSchedules";
-import type { SectionId } from "../types";
+import { MY_SECTION, SECTION_IDS } from "@/data/mockSchedules";
+import type { SectionId } from "@/types/schedule";
 
 type SectionSelectProps = {
   value: SectionId;

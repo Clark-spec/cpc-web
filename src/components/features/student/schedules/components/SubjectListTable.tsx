@@ -15,8 +15,8 @@ import type {
   SortDirection,
   SortKey,
   StatusFilter,
-} from "../types";
-import { daysToLabel, formatTimeRange } from "../utils/time";
+} from "@/types/schedule";
+import { daysToLabel, formatTimeRange } from "@/utils/scheduleTime";
 import { StatusBadge } from "./Badge";
 
 type SubjectListTableProps = {

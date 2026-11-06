@@ -4,7 +4,7 @@ import type {
   SectionId,
   SectionSchedule,
   ScheduleEntry,
-} from "../types";
+} from "@/types/schedule";
 
 export const MY_SECTION: SectionId = "BSIT-3A";
 
