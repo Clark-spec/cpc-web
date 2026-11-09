@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useCountUp } from "@/lib/useCountUp";
+import { useCountUp } from "@/hooks/useCountUp";
 import type { CalendarStats } from "../data/academicCalendar";
 
 type CardConfig = {

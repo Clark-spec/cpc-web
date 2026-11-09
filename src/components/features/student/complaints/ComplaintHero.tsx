@@ -1,5 +1,5 @@
 import cpcBg from "@/assets/cpc-bg2.png";
-import { PageHeroBanner } from "@/components/common/PageHeroBanner";
+import { PageHeroBanner } from "@/components/common/display/PageHeroBanner";
 
 /** Page hero, matching the breadcrumb and banner treatment of the other student pages. */
 export function ComplaintHero() {

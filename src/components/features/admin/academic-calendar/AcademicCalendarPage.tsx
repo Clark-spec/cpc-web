@@ -1,8 +1,8 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { CalendarPlus, CalendarRange } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import { PageBanner } from "@/components/common/PageBanner";
-import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { PageBanner } from "@/components/common/display/PageBanner";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { AcademicPeriodBar } from "./components/AcademicPeriodBar";
 import { CalendarStatCards } from "./components/CalendarStatCards";
 import { CalendarQuickActions } from "./components/CalendarQuickActions";

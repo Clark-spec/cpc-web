@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { PortalFooter } from "@/components/common/PortalFooter";
-import { PortalHeader } from "@/components/common/PortalHeader";
+import { PortalFooter } from "@/components/common/layout/PortalFooter";
+import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { ToastProvider } from "@/components/ui/toast";
 import { ComplaintForm } from "@/components/features/student/complaints/ComplaintForm";
 import { ComplaintHero } from "@/components/features/student/complaints/ComplaintHero";
