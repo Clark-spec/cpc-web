@@ -6,7 +6,7 @@ import {
   MapPinIcon,
   PhoneIcon,
   type IconComponent,
-} from "@/components/common/icons";
+} from "@/components/common/display/icons";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 
 type FooterLink = {

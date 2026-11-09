@@ -1,6 +1,6 @@
 import cpcLogo from "@/assets/cpc-logo.jpg";
-import { EventsTable } from "@/components/common/EventsTable";
-import { SubjectsTable } from "@/components/common/SubjectsTable";
+import { EventsTable } from "@/components/common/display/EventsTable";
+import { SubjectsTable } from "@/components/common/display/SubjectsTable";
 import { useClearance } from "@/components/features/student/clearance/ClearanceContext";
 import { mockEvents, mockSubjects } from "@/services/clearanceStudent/mock";
 import { formatDate } from "@/lib/format";

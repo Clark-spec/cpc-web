@@ -1,5 +1,5 @@
 import { AlertTriangle, Eye, PenTool } from "lucide-react";
-import { PageBanner } from "@/components/common/PageBanner";
+import { PageBanner } from "@/components/common/display/PageBanner";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { LiveSyncIndicator } from "@/components/features/admin/clearance/LiveSyncIndicator";

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
-import { StudentLayout } from "@/components/common/StudentLayout";
+import { StudentLayout } from "@/components/common/layout/StudentLayout";
 import { useNotifications } from "@/components/context/NotificationContext";
 import { useProfile } from "@/components/features/student/profile/ProfileContext";
 import { useDemoModeToggle } from "@/components/features/student/profile/useDemoModeToggle";

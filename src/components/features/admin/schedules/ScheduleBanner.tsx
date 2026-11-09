@@ -1,5 +1,5 @@
 import { AlertTriangle, ShieldAlert } from "lucide-react";
-import { PageBanner } from "@/components/common/PageBanner";
+import { PageBanner } from "@/components/common/display/PageBanner";
 import { ROLE_LABELS } from "@/lib/navigation";
 import { ACADEMIC_YEAR, SEMESTER } from "@/services/scheduleStudent/mockSchedules";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";

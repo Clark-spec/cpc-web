@@ -17,12 +17,12 @@ import { useToast } from "@/components/ui/toast";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { useAdminData } from "@/components/context/AdminDataContext";
 import { useSidebar } from "@/components/context/SidebarContext";
-import { useClickOutside } from "@/lib/useClickOutside";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { ALL_ROLES, ROLE_LABELS } from "@/lib/navigation";
 import type { AdminRole } from "@/types/admin";
-import { AdminNotificationBell } from "@/components/common/AdminNotificationBell";
-import { Breadcrumbs } from "@/components/common/Breadcrumbs";
-import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { AdminNotificationBell } from "@/components/common/feedback/AdminNotificationBell";
+import { Breadcrumbs } from "@/components/common/navigation/Breadcrumbs";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 
 type AdminNavbarProps = {
   onOpenSearch: () => void;

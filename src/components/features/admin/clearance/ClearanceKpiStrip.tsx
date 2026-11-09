@@ -9,8 +9,8 @@ import {
   Timer,
   Undo2,
 } from "lucide-react";
-import { StatCardSkeleton } from "@/components/common/Skeleton";
-import { useCountUp } from "@/lib/useCountUp";
+import { StatCardSkeleton } from "@/components/common/display/Skeleton";
+import { useCountUp } from "@/hooks/useCountUp";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { formatTurnaround } from "@/components/features/admin/clearance/sla";

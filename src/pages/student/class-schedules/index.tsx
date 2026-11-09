@@ -1,5 +1,5 @@
-import { PortalFooter } from "@/components/common/PortalFooter";
-import { PortalHeader } from "@/components/common/PortalHeader";
+import { PortalFooter } from "@/components/common/layout/PortalFooter";
+import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { ToastProvider } from "@/components/ui/toast";
 import { PageHero } from "@/components/features/student/schedules/PageHero";
 import { ScheduleContent } from "@/components/features/student/schedules/ScheduleContent";

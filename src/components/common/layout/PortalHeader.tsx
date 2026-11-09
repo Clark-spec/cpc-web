@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { StudentNavbar } from "@/components/common/StudentNavbar";
-import { useChromeFrame } from "@/lib/useChromeFrame";
-import { TopBar } from "@/components/common/TopBar";
+import { StudentNavbar } from "@/components/common/navigation/StudentNavbar";
+import { useChromeFrame } from "@/hooks/useChromeFrame";
+import { TopBar } from "@/components/common/layout/TopBar";
 
 type PortalHeaderProps = {
   /** Lets a page swap in its own notification control (e.g. the clearance bell). */

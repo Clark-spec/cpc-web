@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { CLEARANCE_PERIOD_KEY, CLEARANCE_STORAGE_KEY } from "@/lib/clearanceStorage";
 import { createInitialState, mockStudent } from "@/services/clearanceStudent/mock";
-import { useLocalStorage } from "@/lib/useLocalStorage";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   cancelRequest as cancelRequestService,
   demoApprove as demoApproveService,

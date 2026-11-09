@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { History, RotateCcw, UploadCloud } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { cn } from "@/lib/cn";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";
 

@@ -5,7 +5,7 @@ import {
   GraduationCapIcon,
   UsersIcon,
   type IconComponent,
-} from "@/components/common/icons";
+} from "@/components/common/display/icons";
 
 type BandStat = {
   value: string;

@@ -1,5 +1,5 @@
-import { Footer } from "@/components/common/Footer";
-import { useChromeFrame } from "@/lib/useChromeFrame";
+import { Footer } from "@/components/common/layout/Footer";
+import { useChromeFrame } from "@/hooks/useChromeFrame";
 
 /**
  * Shared student-portal footer. Matches the Home page footer at desktop sizes

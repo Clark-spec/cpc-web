@@ -6,7 +6,7 @@ import {
   type NavGroup,
 } from "@/lib/navigation";
 import type { AdminBadgeCounts } from "@/types/admin";
-import { SidebarItem } from "@/components/common/SidebarItem";
+import { SidebarItem } from "@/components/common/navigation/SidebarItem";
 
 type SidebarGroupProps = {
   group: NavGroup;

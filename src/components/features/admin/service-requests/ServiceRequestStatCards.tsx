@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock3, RefreshCw, Ticket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useCountUp } from "@/lib/useCountUp";
+import { useCountUp } from "@/hooks/useCountUp";
 import type { getServiceRequestCounts } from "@/services/serviceRequests/admin";
 
 type Counts = ReturnType<typeof getServiceRequestCounts>;

@@ -5,11 +5,11 @@ import { cn } from "@/lib/cn";
 import "@/styles/admin.css";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { useSidebar } from "@/components/context/SidebarContext";
-import { useHotkeys } from "@/lib/useHotkeys";
-import { CommandPalette } from "@/components/common/CommandPalette";
-import { MobileDrawer } from "@/components/common/MobileDrawer";
-import { Sidebar } from "@/components/common/Sidebar";
-import { AdminNavbar } from "@/components/common/AdminNavbar";
+import { useHotkeys } from "@/hooks/useHotkeys";
+import { CommandPalette } from "@/components/common/feedback/CommandPalette";
+import { MobileDrawer } from "@/components/common/navigation/MobileDrawer";
+import { Sidebar } from "@/components/common/navigation/Sidebar";
+import { AdminNavbar } from "@/components/common/navigation/AdminNavbar";
 
 /**
  * Shell for every protected admin page: fixed sidebar, sticky top bar, and the

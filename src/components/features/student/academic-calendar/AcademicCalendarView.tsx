@@ -1,5 +1,5 @@
-import { PortalFooter } from "@/components/common/PortalFooter";
-import { PortalHeader } from "@/components/common/PortalHeader";
+import { PortalFooter } from "@/components/common/layout/PortalFooter";
+import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { useAcademicCalendar } from "@/components/features/student/academic-calendar/useAcademicCalendar";
 import { AcademicCalendarHero } from "@/components/features/student/academic-calendar/AcademicCalendarHero";
 import { AcademicCalendarMain } from "@/components/features/student/academic-calendar/AcademicCalendarMain";

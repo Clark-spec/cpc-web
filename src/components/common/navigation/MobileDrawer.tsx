@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router";
 import { useSidebar } from "@/components/context/SidebarContext";
-import { Sidebar } from "@/components/common/Sidebar";
+import { Sidebar } from "@/components/common/navigation/Sidebar";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';

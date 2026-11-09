@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router";
 import { ToastProvider } from "@/components/ui/toast";
-import { AdminLayout } from "@/components/common/AdminLayout";
+import { AdminLayout } from "@/components/common/layout/AdminLayout";
 import { AdminAuthProvider, useAdminAuth } from "@/components/context/AdminAuthContext";
 import { AdminDataProvider } from "@/components/context/AdminDataContext";
 import { SidebarProvider } from "@/components/context/SidebarContext";

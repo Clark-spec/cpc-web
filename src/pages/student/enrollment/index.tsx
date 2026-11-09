@@ -1,5 +1,5 @@
-import { PortalFooter } from "@/components/common/PortalFooter";
-import { PortalHeader } from "@/components/common/PortalHeader";
+import { PortalFooter } from "@/components/common/layout/PortalFooter";
+import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { FeaturesGrid } from "@/components/features/student/enrollment/FeaturesGrid";
 import { EnrollmentHero } from "@/components/features/student/enrollment/EnrollmentHero";
 import { HeroSection } from "@/components/features/student/enrollment/HeroSection";

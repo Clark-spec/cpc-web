@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useHomeFrame } from "@/lib/useHomeFrame";
+import { useHomeFrame } from "@/hooks/useHomeFrame";
 
 /**
  * The Home page is laid out against a 1440px frame and scales the whole page

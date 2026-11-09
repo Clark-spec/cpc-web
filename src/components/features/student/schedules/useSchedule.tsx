@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSearchParams } from "react-router";
-import { useLocalStorage } from "@/lib/useLocalStorage";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/components/ui/toast";
 import {
   formatPublishedCaption,

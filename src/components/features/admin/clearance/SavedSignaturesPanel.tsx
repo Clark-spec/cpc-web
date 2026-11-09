@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Star, Trash2, Pencil, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
-import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { cn } from "@/lib/cn";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { SignaturePadModal } from "@/components/features/admin/clearance/SignaturePadModal";

@@ -7,8 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useLocalStorage } from "@/lib/useLocalStorage";
-import { useHotkeys } from "@/lib/useHotkeys";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useHotkeys } from "@/hooks/useHotkeys";
 
 const COLLAPSED_KEY = "cpc.admin.sidebar.collapsed.v1";
 

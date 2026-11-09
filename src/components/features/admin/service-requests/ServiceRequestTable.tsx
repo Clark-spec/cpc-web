@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
-import { EmptyState } from "@/components/common/EmptyState";
+import { EmptyState } from "@/components/common/display/EmptyState";
 import {
   ServicePaymentBadge,
   ServiceRequestStatusBadge,

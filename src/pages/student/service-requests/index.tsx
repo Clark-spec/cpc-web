@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { PortalFooter } from "@/components/common/PortalFooter";
-import { PortalHeader } from "@/components/common/PortalHeader";
+import { PortalFooter } from "@/components/common/layout/PortalFooter";
+import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { ServiceRequestDialog } from "@/components/features/student/service-requests/ServiceRequestDialog";
 import { ServiceRequestsHero } from "@/components/features/student/service-requests/ServiceRequestsHero";
 import { ServiceRequestsMain } from "@/components/features/student/service-requests/ServiceRequestsMain";

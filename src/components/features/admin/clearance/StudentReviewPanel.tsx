@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
-import { StudentQuickViewDrawer } from "@/components/common/StudentQuickViewDrawer";
+import { StudentQuickViewDrawer } from "@/components/common/feedback/StudentQuickViewDrawer";
 import type { ActivityStudent } from "@/types/admin";
 import { formatDate } from "@/lib/format";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";

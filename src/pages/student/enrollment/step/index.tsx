@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
-import { PortalFooter } from "@/components/common/PortalFooter";
-import { PortalHeader } from "@/components/common/PortalHeader";
+import { PortalFooter } from "@/components/common/layout/PortalFooter";
+import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { EnrollmentFlow } from "@/components/features/student/enrollment/EnrollmentFlow";
 import { EnrollmentHero } from "@/components/features/student/enrollment/EnrollmentHero";
 

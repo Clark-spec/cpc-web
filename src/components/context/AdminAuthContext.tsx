@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router";
-import { useLocalStorage } from "@/lib/useLocalStorage";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ADMIN_USERS } from "@/lib/navigation";
 import type { AdminRole, AdminUser } from "@/types/admin";
 

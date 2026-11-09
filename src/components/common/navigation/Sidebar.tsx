@@ -14,9 +14,9 @@ import {
   SETTINGS_NAV,
   type NavGroup,
 } from "@/lib/navigation";
-import { SidebarGroup } from "@/components/common/SidebarGroup";
-import { SidebarItem } from "@/components/common/SidebarItem";
-import { SidebarUserCard } from "@/components/common/SidebarUserCard";
+import { SidebarGroup } from "@/components/common/navigation/SidebarGroup";
+import { SidebarItem } from "@/components/common/navigation/SidebarItem";
+import { SidebarUserCard } from "@/components/common/navigation/SidebarUserCard";
 
 type SidebarProps = {
   /** Mobile drawer variant: always expanded and shows a close button. */

@@ -1,5 +1,5 @@
 import { CircleAlert, CircleCheck, Info } from "lucide-react";
-import { NotificationBell as SharedNotificationBell } from "@/components/common/NotificationBell";
+import { NotificationBell as SharedNotificationBell } from "@/components/common/feedback/NotificationBell";
 import { formatRelativeTime } from "@/components/features/student/profile/format";
 
 const TYPE_ICONS = {

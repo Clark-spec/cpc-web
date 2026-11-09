@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { AlertTriangle, Building2, CalendarDays, Layers } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { StatCardSkeleton } from "@/components/common/Skeleton";
-import { useCountUp } from "@/lib/useCountUp";
+import { StatCardSkeleton } from "@/components/common/display/Skeleton";
+import { useCountUp } from "@/hooks/useCountUp";
 import { cn } from "@/lib/cn";
 import { ACADEMIC_YEAR, SEMESTER } from "@/services/scheduleStudent/mockSchedules";
 import type { ScheduleEntry } from "@/types/schedule";

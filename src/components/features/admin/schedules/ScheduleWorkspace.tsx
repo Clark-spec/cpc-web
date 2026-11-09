@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import type { DayCode, ScheduleEntry, SectionId } from "@/types/schedule";
-import { ErrorCard } from "@/components/common/ErrorCard";
+import { ErrorCard } from "@/components/common/feedback/ErrorCard";
 import { DAY_END_MIN } from "@/lib/scheduleTime";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";
 import type { EntryFormValues } from "@/components/features/admin/schedules/types";

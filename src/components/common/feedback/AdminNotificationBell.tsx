@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/lib/format";
 import { useAdminData } from "@/components/context/AdminDataContext";
-import { useClickOutside } from "@/lib/useClickOutside";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import type { AdminNotification } from "@/types/admin";
 
 const ICONS = {

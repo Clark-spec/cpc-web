@@ -14,7 +14,7 @@ import { cn } from "@/lib/cn";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { useAdminData } from "@/components/context/AdminDataContext";
 import { flattenNavigation, ROLE_LABELS, type FlatNavLink } from "@/lib/navigation";
-import { StatusBadge } from "@/components/common/StatusBadge";
+import { StatusBadge } from "@/components/common/display/StatusBadge";
 import type { ClearanceRequest } from "@/types/admin";
 
 type CommandPaletteProps = {

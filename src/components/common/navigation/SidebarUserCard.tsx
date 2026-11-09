@@ -2,9 +2,9 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { ChevronDown, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useClickOutside } from "@/lib/useClickOutside";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
-import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 
 type SidebarUserCardProps = {
   collapsed: boolean;

@@ -6,8 +6,8 @@ import type {
 } from "react";
 import { CalendarOff } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { EmptyState } from "@/components/common/EmptyState";
-import { CardSkeleton } from "@/components/common/Skeleton";
+import { EmptyState } from "@/components/common/display/EmptyState";
+import { CardSkeleton } from "@/components/common/display/Skeleton";
 import type { DayCode, ScheduleEntry, SectionId } from "@/types/schedule";
 import { getEventGeometry, layoutEvents, type PositionedEvent } from "@/lib/layoutEvents";
 import {
