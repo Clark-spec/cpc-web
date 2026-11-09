@@ -12,8 +12,8 @@ type WeekViewProps = {
 export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps) {
   return (
     <div className="ac-fade overflow-x-auto pb-1">
-      <div className="min-w-[640px] overflow-hidden rounded-lg border border-ac-border">
-        <div className="grid grid-cols-7 gap-px border-b border-ac-border bg-ac-section">
+      <div className="min-w-[640px] overflow-hidden rounded-xl border border-cpc-input-border bg-white">
+        <div className="grid grid-cols-7 border-b border-cpc-input-border bg-cpc-section-light">
           {days.map((day) => {
             const today = isToday(day);
             return (
@@ -23,14 +23,14 @@ export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps
                 onClick={() => onOpenDay(day)}
                 aria-label={`View events on ${day.toDateString()}`}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 py-2 transition-colors hover:bg-white/70",
-                  today && "bg-ac-primary text-white hover:bg-ac-primary",
+                  "flex flex-col items-center gap-0.5 py-2.5 transition-colors hover:bg-white/70",
+                  today && "bg-cpc-blue-accent/5 hover:bg-cpc-blue-accent/5",
                 )}
               >
                 <span
                   className={cn(
-                    "font-poppins text-[8.5px] font-semibold tracking-[0.08em] uppercase",
-                    today ? "text-white/85" : "text-ac-muted",
+                    "font-poppins text-[10px] font-semibold tracking-[0.08em] uppercase",
+                    today ? "text-cpc-blue-accent" : "text-cpc-heading-soft",
                   )}
                 >
                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][day.getDay()]}
@@ -38,7 +38,7 @@ export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps
                 <span
                   className={cn(
                     "flex h-6 w-6 items-center justify-center rounded-full font-poppins text-[11px] font-semibold",
-                    today ? "bg-white text-ac-primary" : "text-ac-text",
+                    today ? "bg-cpc-blue-accent text-white" : "text-cpc-navy-text",
                   )}
                 >
                   {day.getDate()}
@@ -48,7 +48,7 @@ export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps
           })}
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-ac-border">
+        <div className="grid grid-cols-7 gap-px bg-cpc-input-border">
           {days.map((day) => {
             const dayEvents = eventsForDate(events, day);
             const today = isToday(day);
@@ -56,12 +56,12 @@ export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps
               <div
                 key={day.toISOString()}
                 className={cn(
-                  "min-h-[260px] space-y-1 bg-white p-1.5",
-                  today && "bg-ac-section/40",
+                  "min-h-[260px] space-y-1 bg-white p-2",
+                  today && "bg-cpc-blue-accent/[0.03]",
                 )}
               >
                 {dayEvents.length === 0 ? (
-                  <p className="pt-1 text-center font-poppins text-[8px] text-ac-muted/70">—</p>
+                  <p className="pt-1 text-center font-poppins text-[10px] text-cpc-muted-blue">—</p>
                 ) : (
                   dayEvents.map((event) => {
                     const meta = CATEGORY_META[event.category];
@@ -71,22 +71,23 @@ export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps
                         type="button"
                         onClick={() => onOpenEvent(event)}
                         title={event.title}
+                        style={{ borderLeftColor: meta.color }}
                         className={cn(
-                          "block w-full rounded-md border p-1.5 text-left transition-transform hover:-translate-y-px hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary",
+                          "block w-full rounded-md border border-l-4 p-2 text-left transition-transform hover:-translate-y-px hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cpc-blue-accent",
                           meta.softClass,
                           meta.borderClass,
                         )}
                       >
                         <span
                           className={cn(
-                            "block truncate font-poppins text-[7.5px] font-bold tracking-[0.06em] uppercase",
+                            "block truncate font-poppins text-[9px] font-bold tracking-[0.06em] uppercase",
                             meta.textClass,
                           )}
                           title={event.allDay ? "All day" : (event.time ?? "TBA")}
                         >
                           {event.allDay ? "All day" : (event.time ?? "TBA")}
                         </span>
-                        <span className="mt-0.5 block font-poppins text-[8.5px] leading-[11px] font-semibold text-ac-text">
+                        <span className="mt-1 block font-poppins text-[10.5px] leading-tight font-semibold text-cpc-navy-text">
                           {event.title}
                         </span>
                       </button>

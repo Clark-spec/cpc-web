@@ -23,24 +23,24 @@ export function AcademicReminders({ reminders, onOpenEvent }: AcademicRemindersP
           <div className="min-w-0">
             <h2
               id="ac-reminders-heading"
-              className="font-poppins text-[13px] leading-tight font-bold text-ac-text"
+              className="font-poppins text-sm leading-tight font-bold text-ac-text"
             >
               Academic Reminders
             </h2>
-            <p className="mt-1 font-poppins text-[9.5px] leading-relaxed text-ac-muted">
+            <p className="mt-1 font-poppins text-[10px] leading-relaxed text-ac-muted">
               Important academic announcements and reminders.
             </p>
           </div>
         </div>
 
         <div className="mt-3 rounded-lg border border-ac-deadline/25 bg-white/85 p-2.5">
-          <p className="flex items-center gap-1.5 font-poppins text-[8.5px] font-bold tracking-[0.09em] text-ac-deadline uppercase">
+          <p className="flex items-center gap-1.5 font-poppins text-[10px] font-bold tracking-[0.09em] text-ac-deadline uppercase">
             <BellRing className="h-3 w-3" aria-hidden />
             Nearest Important Dates
           </p>
 
           {reminders.length === 0 ? (
-            <p className="mt-2 font-poppins text-[9.5px] text-ac-muted">
+            <p className="mt-2 font-poppins text-[11px] text-ac-muted">
               No reminders at the moment. Check back for new announcements.
             </p>
           ) : (
@@ -60,17 +60,17 @@ export function AcademicReminders({ reminders, onOpenEvent }: AcademicRemindersP
                           aria-hidden
                         />
                         <span className="min-w-0 flex-1">
-                          <span className="block font-poppins text-[10px] leading-tight font-semibold text-ac-text transition-colors group-hover:text-ac-primary">
+                          <span className="block font-poppins text-xs leading-tight font-semibold text-ac-text transition-colors group-hover:text-ac-primary">
                             {event.title}
                           </span>
                           <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                            <span className="font-poppins text-[8.5px] font-medium text-ac-muted">
+                            <span className="font-poppins text-[10px] font-medium text-ac-muted">
                               {formatEventDateShort(event)}
                             </span>
                             <CategoryBadge category={event.category} />
                           </span>
                           {event.reminderNote && (
-                            <span className="mt-0.5 line-clamp-2 block font-poppins text-[8.5px] leading-relaxed text-ac-muted">
+                            <span className="mt-0.5 line-clamp-2 block font-poppins text-[10px] leading-relaxed text-ac-muted">
                               {event.reminderNote}
                             </span>
                           )}

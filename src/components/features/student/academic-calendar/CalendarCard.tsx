@@ -54,20 +54,20 @@ export function CalendarCard({
 }: CalendarCardProps) {
   return (
     <section className="ac-card overflow-hidden" aria-labelledby="ac-calendar-heading">
-      <div className="flex flex-col gap-3 border-b border-ac-border px-3.5 py-3 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ac-section text-ac-primary">
+      <div className="flex flex-col gap-3 border-b border-cpc-input-border px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cpc-section-light text-cpc-blue-accent">
               <CalendarDays className="h-4 w-4" aria-hidden />
             </span>
             <div className="min-w-0">
               <h2
                 id="ac-calendar-heading"
-                className="font-poppins text-[14px] leading-tight font-bold text-ac-text"
+                className="font-poppins text-base leading-tight font-bold text-cpc-navy-text"
               >
                 Academic Calendar
               </h2>
-              <p className="mt-0.5 font-poppins text-[9.5px] text-ac-muted">
+              <p className="mt-0.5 font-poppins text-[11px] text-cpc-heading-soft">
                 A.Y. {ACADEMIC_YEAR} · Office of the Registrar
               </p>
             </div>
@@ -76,7 +76,7 @@ export function CalendarCard({
           <div
             role="group"
             aria-label="Calendar view"
-            className="flex items-center gap-0.5 rounded-md border border-ac-border bg-ac-page p-0.5"
+            className="flex items-center gap-1 rounded-lg border border-cpc-input-border bg-white p-1"
           >
             {VIEW_OPTIONS.map((option) => {
               const Icon = option.icon;
@@ -88,13 +88,13 @@ export function CalendarCard({
                   aria-pressed={active}
                   onClick={() => onChangeView(option.value)}
                   className={cn(
-                    "flex cursor-pointer items-center gap-1 rounded px-2 py-1 font-poppins text-[10px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary",
+                    "flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 font-poppins text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
                     active
-                      ? "bg-white text-ac-primary shadow-[0_1px_3px_rgba(23,43,92,0.14)]"
-                      : "text-ac-muted hover:text-ac-text",
+                      ? "bg-cpc-blue-accent text-white"
+                      : "text-cpc-heading-soft hover:bg-cpc-section-light hover:text-cpc-navy-text",
                   )}
                 >
-                  <Icon className="h-3 w-3" aria-hidden />
+                  <Icon className="h-3.5 w-3.5" aria-hidden />
                   {option.label}
                 </button>
               );
@@ -102,33 +102,33 @@ export function CalendarCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-0.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={onPrevious}
               aria-label={view === "week" ? "Previous week" : "Previous month"}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-ac-border bg-white text-ac-text transition-colors hover:bg-ac-section hover:text-ac-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
             >
-              <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+              <ChevronLeft className="h-4 w-4" aria-hidden />
             </button>
-            <h3 className="min-w-[142px] px-1 text-center font-poppins text-[12.5px] font-semibold text-ac-text sm:min-w-[168px] sm:text-[13px]">
+            <h3 className="min-w-[142px] px-1 text-center font-poppins text-sm font-semibold text-cpc-navy-text sm:min-w-[168px]">
               {title}
             </h3>
             <button
               type="button"
               onClick={onNext}
               aria-label={view === "week" ? "Next week" : "Next month"}
-              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-ac-border bg-white text-ac-text transition-colors hover:bg-ac-section hover:text-ac-primary focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
             >
-              <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+              <ChevronRight className="h-4 w-4" aria-hidden />
             </button>
           </div>
 
           <button
             type="button"
             onClick={onToday}
-            className="cursor-pointer rounded-md border border-ac-border bg-white px-2.5 py-1 font-poppins text-[10px] font-semibold text-ac-primary transition-colors hover:border-ac-primary/30 hover:bg-ac-section focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary"
+            className="cursor-pointer rounded-lg border border-cpc-input-border px-3 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
           >
             Today
           </button>
@@ -160,8 +160,8 @@ export function CalendarCard({
           />
         )}
 
-        <p className="mt-2.5 flex items-center justify-center gap-1.5 font-poppins text-[9px] text-ac-muted">
-          <Info className="h-3 w-3 shrink-0" aria-hidden />
+        <p className="mt-3 flex items-center justify-center gap-1.5 font-poppins text-[11px] text-cpc-heading-soft">
+          <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Select a date or event to view its details.
         </p>
       </div>

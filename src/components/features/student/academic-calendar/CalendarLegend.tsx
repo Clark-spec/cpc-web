@@ -16,11 +16,11 @@ export function CalendarLegend() {
         <div className="min-w-0">
           <h2
             id="ac-legend-heading"
-            className="font-poppins text-[13px] leading-tight font-bold text-ac-text"
+            className="font-poppins text-sm leading-tight font-bold text-ac-text"
           >
             Calendar Legend
           </h2>
-          <p className="mt-0.5 font-poppins text-[9px] text-ac-muted">
+          <p className="mt-0.5 font-poppins text-[10px] text-ac-muted">
             Colour guide for every activity type
           </p>
         </div>
@@ -38,10 +38,10 @@ export function CalendarLegend() {
                 className={cn("h-2 w-2 shrink-0 rounded-full", meta.dotClass)}
                 aria-hidden
               />
-              <span className="min-w-0 flex-1 truncate font-poppins text-[9px] font-medium text-ac-text">
+              <span className="min-w-0 flex-1 truncate font-poppins text-[11px] font-medium text-ac-text">
                 {meta.pluralLabel}
               </span>
-              <span className="font-poppins text-[8px] text-ac-muted">
+              <span className="font-poppins text-[10px] text-ac-muted">
                 {CATEGORY_EVENT_COUNT[category] ?? 0}
               </span>
             </li>

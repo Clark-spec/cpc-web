@@ -17,6 +17,9 @@ import ComingSoonPage from "@/pages/admin/coming-soon";
 import DashboardPage from "@/pages/admin/dashboard";
 import EnrollmentApplicationsPage from "@/pages/admin/enrollment/applications";
 import ServiceRequestManagementPage from "@/pages/admin/service-requests";
+import AllStudentsAdminPage from "@/pages/admin/students";
+import ProfileCorrectionsAdminPage from "@/pages/admin/students/profile-corrections";
+import AccountSettingsAdminPage from "@/pages/admin/students/account-settings";
 import StudentHomePage from "@/pages/student/home";
 import ServiceRequestsPage from "@/pages/student/service-requests";
 import RequestStatusPage from "@/pages/student/request-status";
@@ -74,6 +77,15 @@ export function AppRoutes() {
           element={<EnrollmentApplicationsPage view="needs-requirements" />}
         />
         <Route path="service-requests" element={<ServiceRequestManagementPage />} />
+        <Route path="students" element={<AllStudentsAdminPage />} />
+        <Route
+          path="students/profile-corrections"
+          element={<ProfileCorrectionsAdminPage />}
+        />
+        <Route
+          path="students/account-settings"
+          element={<AccountSettingsAdminPage />}
+        />
         {/* Every other sidebar destination renders the shared placeholder. */}
         <Route path="*" element={<ComingSoonPage />} />
       </Route>

@@ -1005,9 +1005,9 @@ body {
 /* Academic calendar page */
 .ac-card {
   background: #ffffff;
-  border: 1px solid var(--color-ac-border);
-  border-radius: 10px;
-  box-shadow: 0 4px 18px rgba(23, 43, 92, 0.05);
+  border: 1px solid var(--color-cpc-input-border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(27, 47, 158, 0.06);
 }
 
 .ac-fade {
