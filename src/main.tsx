@@ -27,6 +27,7 @@ import EnrollmentConfirmationPage from "@/pages/student/enrollment/confirmation"
 import EnrollmentStatusPage from "@/pages/student/enrollment/status";
 import EnrollmentStepPage from "@/pages/student/enrollment/step";
 import StudentProfilePage from "@/pages/student/profile";
+import OnlineComplaintPage from "@/pages/student/online-complaint";
 
 export function AppRoutes() {
   return (
@@ -83,6 +84,9 @@ export function AppRoutes() {
       <Route path="/student/request-status" element={<RequestStatusPage />} />
       {/* Student services. */}
       <Route path="/student-services/online-clearance" element={<ClearancePage />} />
+
+      {/* Student support. */}
+      <Route path="/student-support/online-complaint" element={<OnlineComplaintPage />} />
 
       {/* Academics. */}
       <Route path="/academics/class-schedules" element={<ClassSchedulesPage />} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { Menu, X } from "lucide-react";
 import { CaretDownIcon } from "@/components/common/icons";
 import { cn } from "@/lib/cn";
@@ -50,7 +50,7 @@ const navItems: NavItem[] = [
     label: "Student Support",
     links: [
       { label: "Opportunities", to: "#" },
-      { label: "Online Complaint", to: "#" },
+      { label: "Online Complaint", to: "/student-support/online-complaint" },
       { label: "Scholarship", to: "#" },
     ],
   },
@@ -74,6 +74,14 @@ const navItems: NavItem[] = [
   },
 ];
 
+function isLinkActive(pathname: string, to: string): boolean {
+  return to !== "#" && pathname === to;
+}
+
+function isGroupActive(pathname: string, item: NavItem): boolean {
+  return item.links.some((link) => isLinkActive(pathname, link.to));
+}
+
 type StudentNavbarProps = {
   /**
    * Reflow at small widths and show the hamburger menu. The Home page scales
@@ -84,6 +92,7 @@ type StudentNavbarProps = {
 };
 
 export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
+  const { pathname } = useLocation();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -158,7 +167,10 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                     aria-expanded={open}
                     aria-haspopup="true"
                     onClick={() => setOpenIndex(open ? null : index)}
-                    className="flex cursor-pointer items-center gap-[8px] font-poppins text-[17px] leading-[17px] font-medium text-cpc-navy-text transition-colors hover:text-cpc-blue-accent focus-visible:text-cpc-blue-accent"
+                    className={cn(
+                      "flex cursor-pointer items-center gap-[8px] font-poppins text-[17px] leading-[17px] font-medium text-cpc-navy-text transition-colors hover:text-cpc-blue-accent focus-visible:text-cpc-blue-accent",
+                      isGroupActive(pathname, item) && "text-cpc-blue-accent",
+                    )}
                   >
                     {item.label}
                     <CaretDownIcon
@@ -182,7 +194,12 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                             ) : (
                               <Link
                                 to={link.to}
-                                className="block px-[18px] py-[8px] font-poppins text-[15px] leading-[18px] font-normal whitespace-nowrap text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent"
+                                aria-current={isLinkActive(pathname, link.to) ? "page" : undefined}
+                                className={cn(
+                                  "block px-[18px] py-[8px] font-poppins text-[15px] leading-[18px] font-normal whitespace-nowrap text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent",
+                                  isLinkActive(pathname, link.to) &&
+                                    "bg-cpc-section-light font-semibold text-cpc-blue-accent",
+                                )}
                               >
                                 {link.label}
                               </Link>
@@ -240,7 +257,12 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                         <Link
                           to={link.to}
                           onClick={() => setMobileOpen(false)}
-                          className="block rounded px-2 py-1.5 font-poppins text-sm text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent"
+                          aria-current={isLinkActive(pathname, link.to) ? "page" : undefined}
+                          className={cn(
+                            "block rounded px-2 py-1.5 font-poppins text-sm text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent",
+                            isLinkActive(pathname, link.to) &&
+                              "bg-cpc-section-light font-semibold text-cpc-blue-accent",
+                          )}
                         >
                           {link.label}
                         </Link>
