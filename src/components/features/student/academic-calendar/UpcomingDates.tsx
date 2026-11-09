@@ -37,11 +37,11 @@ export function UpcomingDates({
         <div className="min-w-0">
           <h2
             id="ac-upcoming-heading"
-            className="font-poppins text-[13px] leading-tight font-bold text-ac-text"
+            className="font-poppins text-sm leading-tight font-bold text-ac-text"
           >
             Upcoming Dates
           </h2>
-          <p className="mt-0.5 truncate font-poppins text-[9px] text-ac-muted">
+          <p className="mt-0.5 truncate font-poppins text-[10px] text-ac-muted">
             From {monthLabel} onward · nearest first
           </p>
         </div>
@@ -52,10 +52,10 @@ export function UpcomingDates({
           <CardListSkeleton rows={4} />
         ) : visible.length === 0 ? (
           <div className="px-2 py-6 text-center">
-            <p className="font-poppins text-[10.5px] font-semibold text-ac-text">
+            <p className="font-poppins text-xs font-semibold text-ac-text">
               No upcoming dates
             </p>
-            <p className="mt-1 font-poppins text-[9px] text-ac-muted">
+            <p className="mt-1 font-poppins text-[10px] text-ac-muted">
               Browse an earlier month to see scheduled activities.
             </p>
           </div>
@@ -81,25 +81,25 @@ export function UpcomingDates({
                     >
                       <span
                         className={cn(
-                          "font-poppins text-[7px] font-bold tracking-[0.08em]",
+                          "font-poppins text-[9px] font-bold tracking-[0.08em]",
                           meta.textClass,
                         )}
                       >
                         {box.month}
                       </span>
-                      <span className="font-poppins text-[14px] leading-none font-bold text-ac-text">
+                      <span className="font-poppins text-[15px] leading-none font-bold text-ac-text">
                         {box.day}
                       </span>
                     </span>
 
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                        <span className="font-poppins text-[10.5px] leading-tight font-semibold text-ac-text">
+                        <span className="font-poppins text-xs leading-tight font-semibold text-ac-text">
                           {event.title}
                         </span>
                         <CategoryBadge category={event.category} />
                       </span>
-                      <span className="mt-1 block font-poppins text-[8.5px] text-ac-muted">
+                      <span className="mt-1 block font-poppins text-[10px] text-ac-muted">
                         {formatEventDateShort(event)} · {formatTime(event)}
                       </span>
                     </span>
@@ -120,7 +120,7 @@ export function UpcomingDates({
             type="button"
             onClick={() => setExpanded((current) => !current)}
             aria-expanded={expanded}
-            className="mt-1.5 flex w-full cursor-pointer items-center justify-center gap-1 rounded-md border border-ac-border bg-white px-2 py-1.5 font-poppins text-[9.5px] font-semibold text-ac-primary transition-colors hover:bg-ac-section focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary"
+            className="mt-1.5 flex w-full cursor-pointer items-center justify-center gap-1 rounded-md border border-ac-border bg-white px-2 py-1.5 font-poppins text-[11px] font-semibold text-ac-primary transition-colors hover:bg-ac-section focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ac-primary"
           >
             {expanded ? (
               <>

@@ -27,11 +27,11 @@ export function KeyAcademicDates({
         <div className="min-w-0">
           <h2
             id="ac-key-dates-heading"
-            className="font-poppins text-[13px] leading-tight font-bold text-ac-text"
+            className="font-poppins text-sm leading-tight font-bold text-ac-text"
           >
             Key Academic Dates
           </h2>
-          <p className="mt-0.5 truncate font-poppins text-[9px] text-ac-muted">
+          <p className="mt-0.5 truncate font-poppins text-[10px] text-ac-muted">
             Important dates around {monthLabel}
           </p>
         </div>
@@ -41,7 +41,7 @@ export function KeyAcademicDates({
         {loading ? (
           <CardListSkeleton rows={4} />
         ) : dates.length === 0 ? (
-          <p className="px-1 py-4 text-center font-poppins text-[10px] text-ac-muted">
+          <p className="px-1 py-4 text-center font-poppins text-[11px] text-ac-muted">
             No key dates to show for this period.
           </p>
         ) : (
@@ -65,13 +65,13 @@ export function KeyAcademicDates({
                       <Icon className={cn("h-3.5 w-3.5", meta.textClass)} aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-poppins text-[10.5px] leading-tight font-semibold text-ac-text">
+                      <span className="block font-poppins text-xs leading-tight font-semibold text-ac-text">
                         {event.title}
                       </span>
                       <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
                         <span
                           className={cn(
-                            "font-poppins text-[8.5px] font-semibold",
+                            "font-poppins text-[10px] font-semibold",
                             meta.textClass,
                           )}
                         >
@@ -79,7 +79,7 @@ export function KeyAcademicDates({
                         </span>
                         <CategoryBadge category={event.category} />
                       </span>
-                      <span className="mt-1 line-clamp-2 block font-poppins text-[9px] leading-relaxed text-ac-muted">
+                      <span className="mt-1 line-clamp-2 block font-poppins text-[10px] leading-relaxed text-ac-muted">
                         {event.description}
                       </span>
                     </span>

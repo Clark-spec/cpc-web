@@ -13,7 +13,7 @@ export function CategoryBadge({ category, className, plural = false }: CategoryB
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-poppins text-[9px] leading-none font-semibold whitespace-nowrap",
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-poppins text-[10px] leading-none font-semibold whitespace-nowrap",
         meta.badgeClass,
         className,
       )}

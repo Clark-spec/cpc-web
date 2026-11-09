@@ -16,6 +16,7 @@ import {
 } from "react";
 import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/lib/clearanceStorage";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { PENDING_PROFILE_CORRECTIONS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import {
   generateSampleRequests as generateSampleRequestsService,
   getAdminNotifications,
@@ -52,6 +53,9 @@ type AdminDataContextValue = AdminDataState & {
   error: string | null;
   badges: AdminBadgeCounts;
   unreadNotifications: number;
+  /** Pending profile corrections, kept in sync by the corrections page. */
+  profileCorrectionsCount: number;
+  setProfileCorrectionsCount: (count: number) => void;
   refresh: () => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
@@ -78,6 +82,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileCorrectionsCount, setProfileCorrectionsCount] = useState(
+    PENDING_PROFILE_CORRECTIONS,
+  );
 
   const load = useCallback(
     async (mode: LoadMode) => {
@@ -185,9 +192,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       enrollment: state.stats?.pendingEnrollments ?? 126,
       clearance: state.requests.filter((request) => request.status === "pending").length,
       complaints: state.stats?.activeComplaints ?? 12,
-      profileCorrections: 7,
+      profileCorrections: profileCorrectionsCount,
     }),
-    [state.requests, state.stats],
+    [profileCorrectionsCount, state.requests, state.stats],
   );
 
   const unreadNotifications = useMemo(
@@ -203,6 +210,8 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       error,
       badges,
       unreadNotifications,
+      profileCorrectionsCount,
+      setProfileCorrectionsCount,
       refresh,
       markAllNotificationsRead,
       markNotificationRead,
@@ -216,6 +225,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       loading,
       markAllNotificationsRead,
       markNotificationRead,
+      profileCorrectionsCount,
       refresh,
       refreshing,
       resetDemo,
