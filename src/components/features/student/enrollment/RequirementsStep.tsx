@@ -1,38 +1,46 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
+import { Camera } from "lucide-react";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
+import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
+import { validateRequirementFile } from "@/components/features/student/enrollment/validation";
+import type { RequirementDocument } from "@/components/features/student/enrollment/mockData";
 
 export function RequirementsStep() {
   const { state, updateRequirementFile } = useEnrollment();
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const [dragTarget, setDragTarget] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cameraTarget, setCameraTarget] = useState<RequirementDocument | null>(null);
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const handleFileChange = (id: string, file: File) => {
-    if (file) {
-      updateRequirementFile(id, file);
-    }
+  const handleFileChange = (requirement: RequirementDocument, file: File) => {
+    const error = validateRequirementFile(requirement, file);
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (error) next[requirement.id] = error;
+      else delete next[requirement.id];
+      return next;
+    });
+
+    if (!error) updateRequirementFile(requirement.id, file);
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+  const handleDrag = (event: React.DragEvent, id: string, active: boolean) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragTarget((current) => {
+      if (active) return id;
+      return current === id ? null : current;
+    });
   };
 
-  const handleDrop = (e: React.DragEvent, id: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+  const handleDrop = (event: React.DragEvent, requirement: RequirementDocument) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragTarget(null);
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith("image/") || file.type === "application/pdf") {
-        handleFileChange(id, file);
-      }
-    }
+    const file = event.dataTransfer.files?.[0];
+    if (file) handleFileChange(requirement, file);
   };
 
   const getStatusColor = (status: string) => {
@@ -69,6 +77,8 @@ export function RequirementsStep() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const cameraTargetIsIdPhoto = cameraTarget?.type === "ID Photo";
+
   return (
     <div className="space-y-6">
       <div>
@@ -77,24 +87,37 @@ export function RequirementsStep() {
           Upload the necessary documents required for your enrollment application. Ensure that all uploaded files are clear, complete, and readable.
         </p>
         <p className="text-xs text-enroll-text mt-1">
-          Please review the required document formats and file size limits before uploading.
+          You can upload a file or take a photo of each document. Review the accepted formats and
+          file size limits before uploading.
         </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {state.requirements.map((requirement) => (
           <div key={requirement.id} className="space-y-2">
-            <label className="block text-sm font-semibold text-enroll-heading">
-              {requirement.name} *
-            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="block text-sm font-semibold text-enroll-heading">
+                {requirement.name} *
+              </label>
+              {requirement.status === "pending" && (
+                <button
+                  type="button"
+                  onClick={() => setCameraTarget(requirement)}
+                  className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-enroll-border bg-enroll-card px-3 py-1.5 font-poppins text-xs font-semibold text-enroll-primary transition-colors hover:bg-enroll-hero-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
+                >
+                  <Camera className="h-3.5 w-3.5" aria-hidden />
+                  Take Photo
+                </button>
+              )}
+            </div>
 
             {requirement.status === "pending" ? (
               <div
-                className={`enroll-upload-box ${dragActive ? "drag-active" : ""}`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={(e) => handleDrop(e, requirement.id)}
+                className={`enroll-upload-box ${dragTarget === requirement.id ? "drag-active" : ""}`}
+                onDragEnter={(e) => handleDrag(e, requirement.id, true)}
+                onDragLeave={(e) => handleDrag(e, requirement.id, false)}
+                onDragOver={(e) => handleDrag(e, requirement.id, true)}
+                onDrop={(e) => handleDrop(e, requirement)}
                 onClick={() => fileInputs.current[requirement.id]?.click()}
               >
                 <svg
@@ -114,20 +137,20 @@ export function RequirementsStep() {
                 </svg>
                 <div className="enroll-upload-title">Click to upload or drag and drop</div>
                 <div className="enroll-upload-hint">
-                  {requirement.type === "ID Photo" ?
-                    "JPG, PNG max 2MB" :
-                    "PDF, DOC max 5MB"
-                  }
+                  {requirement.type === "ID Photo" ? "JPG, PNG max 2MB" : "PDF, DOC, JPG max 5MB"}
                 </div>
+
                 <input
-                  ref={(el) => { fileInputs.current[requirement.id] = el; }}
+                  ref={(el) => {
+                    fileInputs.current[requirement.id] = el;
+                  }}
                   type="file"
                   className="hidden"
-                  accept={requirement.type === "ID Photo" ? "image/*" : ".pdf,.doc,.docx"}
+                  accept={requirement.type === "ID Photo" ? "image/jpeg,image/png" : ".pdf,.doc,.docx,image/jpeg,image/png"}
                   onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      handleFileChange(requirement.id, e.target.files[0]);
-                    }
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) handleFileChange(requirement, file);
                   }}
                 />
               </div>
@@ -148,6 +171,12 @@ export function RequirementsStep() {
                 </div>
               </div>
             )}
+
+            {errors[requirement.id] && (
+              <span className="enroll-form-error" role="alert">
+                {errors[requirement.id]}
+              </span>
+            )}
           </div>
         ))}
       </div>
@@ -162,6 +191,26 @@ export function RequirementsStep() {
           </span>
         </div>
       </div>
+
+      <CameraCaptureModal
+        open={cameraTarget !== null}
+        onClose={() => setCameraTarget(null)}
+        onCapture={(file) => {
+          if (cameraTarget) handleFileChange(cameraTarget, file);
+        }}
+        title={
+          cameraTargetIsIdPhoto
+            ? "Take your ID photo"
+            : `Capture ${cameraTarget?.name ?? "document"}`
+        }
+        description={
+          cameraTargetIsIdPhoto
+            ? "Position your face within the frame and take a clear photo. It will be attached as your ID Photo requirement."
+            : "Place the document on a flat surface, fill the frame, and capture. Make sure the text is clear and readable."
+        }
+        fileNamePrefix={cameraTarget?.id ?? "document"}
+        captureLabel={cameraTargetIsIdPhoto ? "Take Photo" : "Capture Document"}
+      />
     </div>
   );
 }

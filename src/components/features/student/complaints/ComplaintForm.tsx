@@ -19,7 +19,7 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { COMPLAINT_CATEGORIES } from "./mockComplaints";
 import type { ComplaintFormValues } from "./types";
-import { CameraCaptureModal } from "./CameraCaptureModal";
+import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
 
 type ComplaintFormProps = {
   onSubmit: (values: ComplaintFormValues) => string;

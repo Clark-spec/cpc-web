@@ -16,7 +16,7 @@ export default function OnlineEnrollmentPage() {
       />
 
       <div className="enroll-layout">
-        <div className="enroll-content max-w-5xl mx-auto px-4 py-8 space-y-12">
+        <div className="enroll-content py-8 space-y-8">
           <HeroSection />
           <FeaturesGrid />
         </div>

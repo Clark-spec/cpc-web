@@ -4,8 +4,8 @@ export function HeroSection() {
   const navigate = useNavigate();
 
   return (
-    <section className="enroll-hero mb-12">
-      <div className="grid lg:grid-cols-2 gap-10 items-center">
+    <section className="enroll-hero">
+      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] xl:gap-16">
         <div>
           <p className="enroll-hero-label">CORDOVA PUBLIC COLLEGE</p>
           <h2 className="enroll-hero-headline">
@@ -33,62 +33,60 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="relative min-h-[400px]">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-full max-w-sm">
-              <div className="enroll-floating-card enroll-card p-5 mb-4 ml-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="enroll-card-title text-sm mb-0">Enrollment Progress</h4>
-                  <span className="text-xs text-enroll-text">50%</span>
-                </div>
-                <div className="flex items-center gap-2 mb-3">
-                  {["Personal Info", "Subjects", "Requirements", "Confirmation"].map((label, i) => (
-                    <div key={label} className="flex-1 flex flex-col items-center">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                        i === 0 ? "bg-enroll-success text-white" :
-                        i === 1 ? "bg-enroll-primary text-white" :
-                        "bg-gray-200 text-enroll-text"
-                      }`}>
-                        {i === 0 ? "✓" : i + 1}
-                      </div>
-                      <span className={`text-[10px] mt-1 text-center ${
-                        i === 1 ? "text-enroll-primary font-semibold" : "text-enroll-text"
-                      }`}>{label}</span>
+        <div className="relative flex min-h-[380px] items-center justify-center py-4 lg:min-h-[420px]">
+          <div className="relative z-10 flex w-full max-w-md flex-col gap-5">
+            <div className="enroll-floating-card enroll-card w-fit self-end rounded-full px-4 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-enroll-text">Slots filling fast:</span>
+                <span className="text-xs font-bold text-cpc-navy">82% enrolled</span>
+              </div>
+              <div className="mt-1 h-1 w-20 rounded-full bg-gray-200">
+                <div className="h-1 rounded-full bg-enroll-warning" style={{ width: "82%" }} />
+              </div>
+            </div>
+
+            <div className="enroll-floating-card enroll-card p-4 sm:ml-6 sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <h4 className="enroll-card-title mb-0 text-sm">Enrollment Progress</h4>
+                <span className="text-xs text-enroll-text">50%</span>
+              </div>
+              <div className="mb-3 flex items-center gap-1 sm:gap-2">
+                {["Personal Info", "Subjects", "Requirements", "Confirmation"].map((label, i) => (
+                  <div key={label} className="flex min-w-0 flex-1 flex-col items-center">
+                    <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+                      i === 0 ? "bg-enroll-success text-white" :
+                      i === 1 ? "bg-enroll-primary text-white" :
+                      "bg-gray-200 text-enroll-text"
+                    }`}>
+                      {i === 0 ? "✓" : i + 1}
                     </div>
-                  ))}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-enroll-primary h-1.5 rounded-full" style={{ width: "50%" }} />
-                </div>
-              </div>
-
-              <div className="enroll-floating-card enroll-card p-4 -ml-10 bg-enroll-hero-bg">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-enroll-success flex items-center justify-center">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20,6 9,17 4,12" />
-                    </svg>
+                    <span className={`mt-1 text-center text-[9px] leading-tight sm:text-[10px] ${
+                      i === 1 ? "font-semibold text-enroll-primary" : "text-enroll-text"
+                    }`}>{label}</span>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold text-cpc-navy">Application Received</p>
-                    <p className="text-[10px] text-enroll-text">Just now</p>
-                  </div>
-                </div>
+                ))}
               </div>
+              <div className="h-1.5 w-full rounded-full bg-gray-200">
+                <div className="h-1.5 rounded-full bg-enroll-primary" style={{ width: "50%" }} />
+              </div>
+            </div>
 
-              <div className="enroll-floating-card absolute top-20 right-0 bg-enroll-card border border-enroll-border rounded-full px-4 py-2 shadow-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-enroll-text">Slots filling fast:</span>
-                  <span className="text-xs font-bold text-cpc-navy">82% enrolled</span>
+            <div className="enroll-floating-card enroll-card -ml-2 w-[88%] bg-enroll-hero-bg p-4 sm:-ml-4">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-enroll-success">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20,6 9,17 4,12" />
+                  </svg>
                 </div>
-                <div className="w-20 bg-gray-200 rounded-full h-1 mt-1">
-                  <div className="bg-enroll-warning h-1 rounded-full" style={{ width: "82%" }} />
+                <div>
+                  <p className="text-xs font-semibold text-cpc-navy">Application Received</p>
+                  <p className="text-[10px] text-enroll-text">Just now</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="enroll-illustration">
+          <div className="enroll-illustration" aria-hidden>
             <svg width="280" height="280" viewBox="0 0 280 280" fill="none">
               <circle cx="140" cy="140" r="120" stroke="currentColor" strokeWidth="1" opacity="0.1" />
               <circle cx="140" cy="140" r="80" stroke="currentColor" strokeWidth="1" opacity="0.05" />

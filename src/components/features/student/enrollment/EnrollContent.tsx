@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function EnrollContent({ children }: { children: ReactNode }) {
   return (
     <div className="enroll-layout">
-      <div className="enroll-content max-w-4xl mx-auto px-4 py-8 space-y-8">{children}</div>
+      <div className="enroll-content py-8 space-y-8">{children}</div>
     </div>
   );
 }

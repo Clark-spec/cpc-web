@@ -3,7 +3,6 @@ import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { EnrollContent } from "@/components/features/student/enrollment/EnrollContent";
 import { EnrollmentFollowUpCards } from "@/components/features/student/enrollment/EnrollmentFollowUpCards";
 import { EnrollmentHero } from "@/components/features/student/enrollment/EnrollmentHero";
-import { SubmissionHeading } from "@/components/features/student/enrollment/SubmissionHeading";
 import { SubmissionReceiptCard } from "@/components/features/student/enrollment/SubmissionReceiptCard";
 import { useLogEnrollmentSubmission } from "@/components/features/student/enrollment/useLogEnrollmentSubmission";
 
@@ -21,7 +20,6 @@ export default function EnrollmentConfirmationPage() {
       />
 
       <EnrollContent>
-        <SubmissionHeading />
         <SubmissionReceiptCard />
         <EnrollmentFollowUpCards />
       </EnrollContent>
