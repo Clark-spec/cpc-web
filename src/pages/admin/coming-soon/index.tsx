@@ -1,7 +1,7 @@
 import { useLocation } from "react-router";
 import { Construction, Sparkles } from "lucide-react";
-import { AdminPageHeader } from "@/components/ui/admin/AdminPageHeader";
-import { getBreadcrumbs, getPageTitle } from "@/config/navigation";
+import { AdminPageHeader } from "@/components/common/AdminPageHeader";
+import { getBreadcrumbs, getPageTitle } from "@/lib/navigation";
 
 /**
  * Placeholder for sidebar destinations that are not built yet. It keeps the

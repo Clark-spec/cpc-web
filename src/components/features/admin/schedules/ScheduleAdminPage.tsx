@@ -1,5 +1,5 @@
-import { ScheduleAdminProvider } from "./context/ScheduleAdminContext";
-import { ScheduleWorkspace } from "./components/ScheduleWorkspace";
+import { ScheduleAdminProvider } from "@/components/features/admin/schedules/ScheduleAdminContext";
+import { ScheduleWorkspace } from "@/components/features/admin/schedules/ScheduleWorkspace";
 
 /**
  * Route: /admin/academics/class-schedules — the staff side of the student

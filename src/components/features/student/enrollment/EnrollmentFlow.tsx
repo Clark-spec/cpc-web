@@ -1,11 +1,11 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useEnrollment } from "@/components/features/student/enrollment/hooks/useEnrollment";
-import { Stepper } from "@/components/features/student/enrollment/components/Stepper";
-import { PersonalInfoStep } from "@/components/features/student/enrollment/steps/PersonalInfoStep";
-import { SubjectsStep } from "@/components/features/student/enrollment/steps/SubjectsStep";
-import { RequirementsStep } from "@/components/features/student/enrollment/steps/RequirementsStep";
-import { ReviewStep } from "@/components/features/student/enrollment/steps/ReviewStep";
+import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
+import { Stepper } from "@/components/features/student/enrollment/Stepper";
+import { PersonalInfoStep } from "@/components/features/student/enrollment/PersonalInfoStep";
+import { SubjectsStep } from "@/components/features/student/enrollment/SubjectsStep";
+import { RequirementsStep } from "@/components/features/student/enrollment/RequirementsStep";
+import { ReviewStep } from "@/components/features/student/enrollment/ReviewStep";
 
 export function EnrollmentFlow() {
   const navigate = useNavigate();

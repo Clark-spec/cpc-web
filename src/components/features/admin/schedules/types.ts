@@ -44,9 +44,9 @@ export type {
   Subject,
 } from "@/types/scheduleAdmin";
 
-export type { SlotRequest } from "./utils/conflicts";
-export type { EntryFormValues } from "./schema";
-export type { ScheduleSnapshot } from "./services/scheduleAdminService";
+export type { SlotRequest } from "@/components/features/admin/schedules/conflicts";
+export type { EntryFormValues } from "@/components/features/admin/schedules/schema";
+export type { ScheduleSnapshot } from "@/services/scheduleAdmin";
 
 import type {
   DayCode,

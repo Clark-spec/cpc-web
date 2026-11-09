@@ -7,7 +7,7 @@
  * which is what `utils/scheduleTime.ts` says the calendar renders.
  */
 import { z } from "zod";
-import { DAY_END_MIN, DAY_START_MIN } from "@/utils/scheduleTime";
+import { DAY_END_MIN, DAY_START_MIN } from "@/lib/scheduleTime";
 
 const DAY_VALUES = ["MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 const STATUS_VALUES = ["active", "not_active"] as const;

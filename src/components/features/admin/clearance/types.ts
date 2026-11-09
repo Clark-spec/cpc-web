@@ -25,7 +25,7 @@ export type {
   TimelineEvent,
 } from "@/types/clearance";
 
-export type { AppNotification } from "@/context/NotificationContext";
+export type { AppNotification } from "@/components/context/NotificationContext";
 
 import type {
   ClearancePeriod,

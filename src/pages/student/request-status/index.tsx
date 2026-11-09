@@ -2,13 +2,13 @@ import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
 import cpcBg from "@/assets/cpc-bg2.png";
-import { PageHeroBanner } from "@/components/ui/student/PageHeroBanner";
-import { PortalFooter } from "@/components/ui/student/PortalFooter";
-import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { RequestDetailsModal } from "@/components/features/student/service-requests/components/RequestDetailsModal";
-import { RequestStatusList } from "@/components/features/student/request-status/components/RequestStatusList";
-import { StatusSummaryCards } from "@/components/features/student/request-status/components/StatusSummaryCards";
-import { useRequestStatus } from "@/components/features/student/request-status/hooks/useRequestStatus";
+import { PageHeroBanner } from "@/components/common/PageHeroBanner";
+import { PortalFooter } from "@/components/common/PortalFooter";
+import { PortalHeader } from "@/components/common/PortalHeader";
+import { RequestDetailsModal } from "@/components/features/student/service-requests/RequestDetailsModal";
+import { RequestStatusList } from "@/components/features/student/request-status/RequestStatusList";
+import { StatusSummaryCards } from "@/components/features/student/request-status/StatusSummaryCards";
+import { useRequestStatus } from "@/components/features/student/request-status/useRequestStatus";
 
 export default function RequestStatusPage() {
   const status = useRequestStatus();

@@ -1,8 +1,8 @@
-import { PortalFooter } from "@/components/ui/student/PortalFooter";
-import { PortalHeader } from "@/components/ui/student/PortalHeader";
-import { FeaturesGrid } from "@/components/features/student/enrollment/components/FeaturesGrid";
-import { EnrollmentHero } from "@/components/features/student/enrollment/components/EnrollmentHero";
-import { HeroSection } from "@/components/features/student/enrollment/components/HeroSection";
+import { PortalFooter } from "@/components/common/PortalFooter";
+import { PortalHeader } from "@/components/common/PortalHeader";
+import { FeaturesGrid } from "@/components/features/student/enrollment/FeaturesGrid";
+import { EnrollmentHero } from "@/components/features/student/enrollment/EnrollmentHero";
+import { HeroSection } from "@/components/features/student/enrollment/HeroSection";
 
 export default function OnlineEnrollmentPage() {
   return (

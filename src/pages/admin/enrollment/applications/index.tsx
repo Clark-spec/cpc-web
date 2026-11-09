@@ -2,23 +2,23 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { ClipboardList } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import { PageBanner } from "@/components/ui/admin/PageBanner";
-import { DashboardPanel } from "@/components/features/admin/enrollment/components/DashboardPanel";
-import { EnrollmentStatCards } from "@/components/features/admin/enrollment/components/EnrollmentStatCards";
-import { EnrollmentTrendChart } from "@/components/features/admin/enrollment/components/EnrollmentTrendChart";
-import { ApplicationStatusDonut } from "@/components/features/admin/enrollment/components/ApplicationStatusDonut";
-import { EnrollmentByProgram } from "@/components/features/admin/enrollment/components/EnrollmentByProgram";
-import { EnrollmentApplicationsTable } from "@/components/features/admin/enrollment/components/EnrollmentApplicationsTable";
-import { EnrollmentDetailsModal } from "@/components/features/admin/enrollment/components/EnrollmentDetailsModal";
-import { RecentEnrollmentActivity } from "@/components/features/admin/enrollment/components/RecentEnrollmentActivity";
-import { EnrollmentQuickActions } from "@/components/features/admin/enrollment/components/EnrollmentQuickActions";
-import { useAdminAuth } from "@/context/AdminAuthContext";
-import { useEnrollmentApplications } from "@/components/features/admin/enrollment/hooks/useEnrollmentApplications";
+import { PageBanner } from "@/components/common/PageBanner";
+import { DashboardPanel } from "@/components/features/admin/enrollment/DashboardPanel";
+import { EnrollmentStatCards } from "@/components/features/admin/enrollment/EnrollmentStatCards";
+import { EnrollmentTrendChart } from "@/components/features/admin/enrollment/EnrollmentTrendChart";
+import { ApplicationStatusDonut } from "@/components/features/admin/enrollment/ApplicationStatusDonut";
+import { EnrollmentByProgram } from "@/components/features/admin/enrollment/EnrollmentByProgram";
+import { EnrollmentApplicationsTable } from "@/components/features/admin/enrollment/EnrollmentApplicationsTable";
+import { EnrollmentDetailsModal } from "@/components/features/admin/enrollment/EnrollmentDetailsModal";
+import { RecentEnrollmentActivity } from "@/components/features/admin/enrollment/RecentEnrollmentActivity";
+import { EnrollmentQuickActions } from "@/components/features/admin/enrollment/EnrollmentQuickActions";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { useEnrollmentApplications } from "@/components/features/admin/enrollment/useEnrollmentApplications";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplication,
   type EnrollmentStatusFilter,
-} from "@/data/enrollmentApplications";
+} from "@/services/enrollmentAdmin";
 
 export type EnrollmentView = "all" | "for-review" | "approved" | "needs-requirements";
 

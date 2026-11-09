@@ -1,5 +1,5 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import type { ProfileFormValues } from "./schema";
+import type { ProfileFormValues } from "@/components/features/student/profile/schema";
 
 export type EnrollmentStatus = "Enrolled" | "Not Enrolled";
 export type Gender = "Male" | "Female" | "Prefer not to say";

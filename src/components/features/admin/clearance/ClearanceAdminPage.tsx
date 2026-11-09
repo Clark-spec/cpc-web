@@ -1,5 +1,5 @@
-import { ClearanceAdminProvider } from "./context/ClearanceAdminContext";
-import { ClearanceWorkspace } from "./components/ClearanceWorkspace";
+import { ClearanceAdminProvider } from "@/components/features/admin/clearance/ClearanceAdminContext";
+import { ClearanceWorkspace } from "@/components/features/admin/clearance/ClearanceWorkspace";
 
 /**
  * Route: /admin/clearance-requests — the staff side of the student Online

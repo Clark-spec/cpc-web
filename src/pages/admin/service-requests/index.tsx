@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
-import { PageBanner } from "@/components/ui/admin/PageBanner";
-import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
-import { ServiceRequestStatCards } from "@/components/features/admin/service-requests/components/ServiceRequestStatCards";
-import { ServiceRequestTable } from "@/components/features/admin/service-requests/components/ServiceRequestTable";
-import { ServiceRequestDetailsModal } from "@/components/features/admin/service-requests/components/ServiceRequestDetailsModal";
-import { useAdminAuth } from "@/context/AdminAuthContext";
+import { PageBanner } from "@/components/common/PageBanner";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { ServiceRequestStatCards } from "@/components/features/admin/service-requests/ServiceRequestStatCards";
+import { ServiceRequestTable } from "@/components/features/admin/service-requests/ServiceRequestTable";
+import { ServiceRequestDetailsModal } from "@/components/features/admin/service-requests/ServiceRequestDetailsModal";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import {
   buildSampleServiceRequests,
   getServiceRequestCounts,
   SERVICE_STATUS_LABELS,
   type AdminServiceRequest,
   type AdminServiceRequestStatus,
-} from "@/data/serviceRequests";
+} from "@/services/serviceRequests/admin";
 
 type PendingChange = {
   request: AdminServiceRequest;

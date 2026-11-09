@@ -1,13 +1,13 @@
-import { Footer } from "@/components/ui/student/Footer";
-import { StudentNavbar } from "@/components/common/navbar/StudentNavbar";
-import { AboutSection } from "@/components/features/student/portal-home/components/AboutSection";
-import { CtaSection } from "@/components/features/student/portal-home/components/CtaSection";
-import { HeroSection } from "@/components/features/student/portal-home/components/HeroSection";
-import { ProgramsSection } from "@/components/features/student/portal-home/components/ProgramsSection";
-import { QuickAccessCard } from "@/components/features/student/portal-home/components/QuickAccessCard";
-import { StatsBand } from "@/components/features/student/portal-home/components/StatsBand";
-import { TopBar } from "@/components/ui/student/TopBar";
-import { useHomeFrame } from "@/hooks/useHomeFrame";
+import { Footer } from "@/components/common/Footer";
+import { StudentNavbar } from "@/components/common/StudentNavbar";
+import { AboutSection } from "@/components/features/student/portal-home/AboutSection";
+import { CtaSection } from "@/components/features/student/portal-home/CtaSection";
+import { HeroSection } from "@/components/features/student/portal-home/HeroSection";
+import { ProgramsSection } from "@/components/features/student/portal-home/ProgramsSection";
+import { QuickAccessCard } from "@/components/features/student/portal-home/QuickAccessCard";
+import { StatsBand } from "@/components/features/student/portal-home/StatsBand";
+import { TopBar } from "@/components/common/TopBar";
+import { useHomeFrame } from "@/lib/useHomeFrame";
 
 export default function StudentHomePage() {
   const scale = useHomeFrame();

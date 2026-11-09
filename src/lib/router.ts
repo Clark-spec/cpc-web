@@ -1,7 +1,7 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 
 /**
- * Creates the app's data router from the route tree that `@/app/routes` composes.
+ * Creates the app's data router from the route tree that `main.tsx` composes.
  * The route tree is passed in, so `lib` never imports from `admin/` or `student/`.
  */
 export function createAppRouter(routes: RouteObject[]) {

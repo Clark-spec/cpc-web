@@ -10,19 +10,19 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/toast";
-import { PageBanner } from "@/components/ui/admin/PageBanner";
-import { EmptyState } from "@/components/ui/admin/EmptyState";
-import { ErrorCard } from "@/components/ui/admin/ErrorCard";
-import { DashboardSkeleton } from "@/components/ui/admin/Skeleton";
-import { StatCard } from "@/components/features/admin/dashboard/components/StatCard";
-import { EnrollmentChart } from "@/components/features/admin/dashboard/components/EnrollmentChart";
-import { EnrollmentOverviewTable } from "@/components/features/admin/dashboard/components/EnrollmentOverviewTable";
-import { QuickActions } from "@/components/features/admin/dashboard/components/QuickActions";
-import { RecentActivityTable } from "@/components/features/admin/dashboard/components/RecentActivityTable";
-import { StudentQuickViewDrawer } from "@/components/ui/admin/StudentQuickViewDrawer";
-import { useAdminAuth } from "@/context/AdminAuthContext";
-import { useAdminData } from "@/context/AdminDataContext";
-import { formatDateTime } from "@/utils/format";
+import { PageBanner } from "@/components/common/PageBanner";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ErrorCard } from "@/components/common/ErrorCard";
+import { DashboardSkeleton } from "@/components/common/Skeleton";
+import { StatCard } from "@/components/features/admin/dashboard/StatCard";
+import { EnrollmentChart } from "@/components/features/admin/dashboard/EnrollmentChart";
+import { EnrollmentOverviewTable } from "@/components/features/admin/dashboard/EnrollmentOverviewTable";
+import { QuickActions } from "@/components/features/admin/dashboard/QuickActions";
+import { RecentActivityTable } from "@/components/features/admin/dashboard/RecentActivityTable";
+import { StudentQuickViewDrawer } from "@/components/common/StudentQuickViewDrawer";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { useAdminData } from "@/components/context/AdminDataContext";
+import { formatDateTime } from "@/lib/format";
 import type { ActivityStudent } from "@/types/admin";
 
 /** Route: /admin/dashboard */
