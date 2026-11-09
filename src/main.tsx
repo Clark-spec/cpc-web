@@ -10,6 +10,7 @@ import StaffLoginPage from "@/pages/auth/staff";
 import { AdminLoginRoute, AdminShell } from "@/components/context/AdminShell";
 import { ProtectedEnrollment } from "@/components/context/ProtectedEnrollment";
 import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
+import ComplaintsAdminPage from "@/pages/admin/complaints";
 import ClassSchedulesAdminPage from "@/pages/admin/class-schedules";
 import AcademicCalendarAdminPage from "@/pages/admin/academic-calendar";
 import ComingSoonPage from "@/pages/admin/coming-soon";
@@ -47,6 +48,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
+        <Route path="support/complaints" element={<ComplaintsAdminPage />} />
         <Route
           path="academics/class-schedules"
           element={<ClassSchedulesAdminPage />}
