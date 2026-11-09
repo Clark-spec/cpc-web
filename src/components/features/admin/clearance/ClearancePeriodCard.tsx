@@ -61,11 +61,11 @@ export function ClearancePeriodCard() {
   };
 
   const shellClassName =
-    "overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]";
+    "overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md";
 
   return (
     <section aria-labelledby="clearance-period-heading" className={shellClassName}>
-      <header className="border-b border-cpc-tile-border/60 px-4 py-3">
+      <header className="border-b border-white/60 bg-white/50 px-5 py-4">
         <h2
           id="clearance-period-heading"
           className="font-poppins text-sm font-semibold text-cpc-navy-text"

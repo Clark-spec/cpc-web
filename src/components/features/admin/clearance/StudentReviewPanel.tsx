@@ -152,7 +152,7 @@ export function StudentReviewPanel({
     return (
       <section
         aria-label="Student review"
-        className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-cpc-tile-border/70 bg-white px-6 py-10 text-center shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+        className="flex min-h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-white/80 bg-white/85 px-6 py-10 text-center shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
       >
         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-cpc-section-light text-cpc-blue-accent">
           <ClipboardList className="h-5 w-5" aria-hidden />
@@ -183,10 +183,10 @@ export function StudentReviewPanel({
         aria-labelledby={sheet ? headingId : undefined}
         aria-label={sheet ? undefined : "Student review"}
         className={cn(
-          "flex flex-col overflow-hidden border bg-white outline-none",
+          "flex flex-col overflow-hidden outline-none",
           sheet
-            ? "fixed inset-y-0 right-0 z-[70] h-full w-full rounded-none shadow-none sm:max-w-md sm:rounded-l-2xl"
-            : "max-h-[min(52rem,calc(100vh-7rem))] rounded-2xl border-cpc-tile-border/70 shadow-[0_18px_50px_rgba(15,36,104,0.22)]",
+            ? "fixed inset-y-0 right-0 z-[70] h-full w-full rounded-none border-l border-white/80 bg-white shadow-none sm:max-w-md sm:rounded-l-2xl"
+            : "max-h-[min(52rem,calc(100vh-7rem))] rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md",
         )}
       >
         {sheet && (

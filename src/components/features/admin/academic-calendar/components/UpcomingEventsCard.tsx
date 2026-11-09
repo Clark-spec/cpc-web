@@ -64,7 +64,7 @@ export function UpcomingEventsCard({
             value={category}
             onChange={(event) => setCategory(event.target.value as EventCategory | "all")}
             aria-label="Filter upcoming events by category"
-            className="rounded-lg border border-cpc-tile-border bg-white px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="rounded-lg border border-cpc-input-border/70 bg-white/90 px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
           >
             <option value="all">All categories</option>
             {CATEGORY_ORDER.map((option) => (
@@ -109,7 +109,7 @@ export function UpcomingEventsCard({
                 <button
                   type="button"
                   onClick={() => onSelect(event)}
-                  className="group flex w-full items-start gap-2.5 rounded-lg border border-transparent p-2 text-left transition-colors hover:border-cpc-tile-border hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+                  className="group flex w-full items-start gap-2.5 rounded-lg border border-transparent p-2 text-left transition-colors hover:border-cpc-input-border/70 hover:bg-white/80 focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
                 >
                   <span
                     className={cn(

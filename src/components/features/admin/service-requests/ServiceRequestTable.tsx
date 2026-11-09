@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Eye,
   FilterX,
+  ListFilter,
   Search,
   X,
 } from "lucide-react";
@@ -75,7 +76,7 @@ function FilterSelect({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-8 w-full cursor-pointer appearance-none rounded-lg border border-admin-border bg-white bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%237183A6%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[position:right_0.6rem_center] bg-no-repeat pr-7 pl-2.5 font-poppins text-[11px] font-medium text-admin-text outline-none transition-colors hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
+        className="h-8 w-full cursor-pointer appearance-none rounded-lg border border-white/80 bg-white/90 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%237183A6%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[position:right_0.6rem_center] bg-no-repeat pr-7 pl-2.5 font-poppins text-[11px] font-medium text-admin-text shadow-xs outline-none transition-all hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
       >
         {children}
       </select>
@@ -156,22 +157,31 @@ export function ServiceRequestTable({
   return (
     <section
       aria-labelledby="service-request-heading"
-      className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-card shadow-[0_2px_12px_rgba(24,52,111,0.04)]"
+      className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
-      <div className="border-b border-admin-border/70 px-4 pt-3.5 pb-3">
-        <div className="flex flex-wrap items-start justify-between gap-2">
+      {/* Header & Search */}
+      <div className="border-b border-admin-border/50 bg-white/60 px-5 pb-4 pt-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2
-              id="service-request-heading"
-              className="font-poppins text-[15px] leading-tight font-semibold text-admin-text"
-            >
-              Service Request Management
-            </h2>
-            <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
-              Review, route and release student document requests across all service windows.
-            </p>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cpc-blue-accent/15 to-cpc-navy-text/10 text-cpc-blue-accent shadow-xs ring-1 ring-cpc-blue-accent/20">
+                <ListFilter className="h-4 w-4" aria-hidden />
+              </div>
+              <div>
+                <h2
+                  id="service-request-heading"
+                  className="font-poppins text-[15px] leading-tight font-bold text-admin-text"
+                >
+                  Service Request Queue
+                </h2>
+                <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
+                  Review, route and release student document requests across all service windows.
+                </p>
+              </div>
+            </div>
           </div>
 
+          {/* Search */}
           <label className="relative w-full sm:w-72">
             <span className="sr-only">Search service requests</span>
             <Search
@@ -185,8 +195,8 @@ export function ServiceRequestTable({
                 setQuery(event.target.value);
                 resetPage();
               }}
-              placeholder="Search by Request ID, Student Name, or Service..."
-              className="h-8 w-full rounded-lg border border-admin-border bg-white pr-8 pl-8 font-poppins text-[11px] text-admin-text outline-none placeholder:text-admin-muted/80 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
+              placeholder="Search by Request ID, Student, or Service..."
+              className="h-9 w-full rounded-xl border border-white/80 bg-white/90 pr-8 pl-8 font-poppins text-[11px] text-admin-text shadow-xs outline-none placeholder:text-admin-muted/70 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
             />
             {query && (
               <button
@@ -196,7 +206,7 @@ export function ServiceRequestTable({
                   resetPage();
                 }}
                 aria-label="Clear search"
-                className="absolute top-1/2 right-1.5 -translate-y-1/2 cursor-pointer rounded p-0.5 text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+                className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer rounded p-0.5 text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
               >
                 <X className="h-3 w-3" aria-hidden />
               </button>
@@ -204,7 +214,8 @@ export function ServiceRequestTable({
           </label>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-end">
+        {/* Filter row */}
+        <div className="mt-3.5 flex flex-wrap items-end gap-2.5">
           <FilterSelect
             id="service-category-filter"
             label="Category"
@@ -213,7 +224,7 @@ export function ServiceRequestTable({
               setCategory(value as CategoryFilter);
               resetPage();
             }}
-            className="sm:w-44"
+            className="w-full sm:w-44"
           >
             <option value="all">All Categories</option>
             {SERVICE_CATEGORY_FILTERS.map((option) => (
@@ -231,7 +242,7 @@ export function ServiceRequestTable({
               setStatus(value as StatusFilter);
               resetPage();
             }}
-            className="sm:w-40"
+            className="w-full sm:w-40"
           >
             <option value="all">All Statuses</option>
             {SERVICE_STATUS_ORDER.map((option) => (
@@ -249,7 +260,7 @@ export function ServiceRequestTable({
               setPayment(value as PaymentFilter);
               resetPage();
             }}
-            className="col-span-2 sm:col-span-1 sm:w-44"
+            className="w-full sm:w-40"
           >
             <option value="all">All Payments</option>
             {(Object.keys(SERVICE_PAYMENT_LABELS) as ServicePaymentStatus[]).map((option) => (
@@ -263,17 +274,25 @@ export function ServiceRequestTable({
             <button
               type="button"
               onClick={clearFilters}
-              className="col-span-2 inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-admin-border bg-white px-3 font-poppins text-[10.5px] font-semibold text-admin-muted transition-colors hover:border-admin-secondary/40 hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info sm:col-span-1"
+              className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-admin-border/60 bg-white px-3 font-poppins text-[10.5px] font-semibold text-admin-muted shadow-xs transition-all hover:border-admin-secondary/40 hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
             >
               <FilterX className="h-3.5 w-3.5" aria-hidden />
               Reset
             </button>
           )}
+
+          {/* Results count chip */}
+          <div className="ml-auto flex items-end">
+            <span className="inline-flex items-center rounded-full border border-admin-border/60 bg-admin-page/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-admin-muted">
+              {filtered.length} {filtered.length === 1 ? "result" : "results"}
+            </span>
+          </div>
         </div>
       </div>
 
+      {/* Bulk-action bar */}
       {selectedIds.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-admin-border/70 bg-admin-header/50 px-4 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-admin-border/50 bg-cpc-blue-accent/5 px-5 py-2.5">
           <p className="font-poppins text-[10.5px] font-semibold text-admin-text">
             <span className="tabular-nums">{selectedIds.length}</span> request
             {selectedIds.length === 1 ? "" : "s"} selected
@@ -285,14 +304,14 @@ export function ServiceRequestTable({
                 onBulkStatus(selectedIds, "processing");
                 setSelectedIds([]);
               }}
-              className="cursor-pointer rounded-md border border-admin-border bg-white px-2.5 py-1 font-poppins text-[10px] font-semibold text-admin-secondary transition-colors hover:bg-admin-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+              className="cursor-pointer rounded-lg border border-admin-secondary/30 bg-white px-3 py-1 font-poppins text-[10px] font-semibold text-admin-secondary shadow-xs transition-all hover:bg-admin-secondary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
             >
               Mark Processing
             </button>
             <button
               type="button"
               onClick={() => setSelectedIds([])}
-              className="cursor-pointer rounded-md px-2.5 py-1 font-poppins text-[10px] font-semibold text-admin-muted transition-colors hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+              className="cursor-pointer rounded-lg px-3 py-1 font-poppins text-[10px] font-semibold text-admin-muted transition-colors hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
             >
               Clear selection
             </button>
@@ -300,6 +319,7 @@ export function ServiceRequestTable({
         </div>
       )}
 
+      {/* Table or empty */}
       {rows.length === 0 ? (
         <EmptyState
           icon={Search}
@@ -314,7 +334,7 @@ export function ServiceRequestTable({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-1 cursor-pointer rounded-md border border-admin-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-admin-secondary transition-colors hover:bg-admin-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+                className="mt-1 cursor-pointer rounded-xl border border-admin-border bg-white px-4 py-2 font-poppins text-[11px] font-semibold text-admin-secondary shadow-xs transition-all hover:bg-admin-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
               >
                 Reset filters
               </button>
@@ -324,13 +344,13 @@ export function ServiceRequestTable({
       ) : (
         <>
           <div className="relative overflow-x-auto">
-            <table className="w-full min-w-[980px] border-collapse">
+            <table className="w-full min-w-[1000px] border-collapse font-poppins">
               <caption className="sr-only">
                 Student service requests. {filtered.length} results.
               </caption>
               <thead>
-                <tr className="border-b border-admin-border/70 bg-admin-header/60">
-                  <th scope="col" className="w-9 px-3 py-2">
+                <tr className="border-b border-admin-border/50 bg-gradient-to-r from-admin-header/80 to-admin-page/60">
+                  <th scope="col" className="w-10 px-4 py-3">
                     <input
                       type="checkbox"
                       checked={allOnPageSelected}
@@ -345,8 +365,8 @@ export function ServiceRequestTable({
                   {[
                     "Request ID",
                     "Student Name & No.",
-                    "Service Item Requested",
-                    "Date & Payment Status",
+                    "Service Item",
+                    "Date & Payment",
                     "Status",
                     "Actions",
                   ].map((label) => (
@@ -354,7 +374,7 @@ export function ServiceRequestTable({
                       key={label}
                       scope="col"
                       className={cn(
-                        "px-3 py-2 font-poppins text-[9.5px] font-bold tracking-[0.09em] text-admin-muted uppercase",
+                        "px-4 py-3 font-poppins text-[9.5px] font-bold tracking-[0.1em] text-admin-muted uppercase",
                         label === "Actions" ? "text-right" : "text-left",
                       )}
                     >
@@ -363,13 +383,16 @@ export function ServiceRequestTable({
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-admin-border/60">
+              <tbody className="divide-y divide-admin-border/40">
                 {rows.map((request) => (
                   <tr
                     key={request.id}
-                    className="transition-colors hover:bg-admin-page/50"
+                    className={cn(
+                      "transition-colors hover:bg-cpc-blue-accent/[0.03]",
+                      selectedIds.includes(request.id) && "bg-cpc-blue-accent/[0.05]",
+                    )}
                   >
-                    <td className="px-3 py-2.5">
+                    <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(request.id)}
@@ -378,34 +401,38 @@ export function ServiceRequestTable({
                         className="h-3.5 w-3.5 cursor-pointer accent-admin-secondary"
                       />
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <span className="font-poppins text-[11px] font-bold text-admin-secondary">
+
+                    {/* Request ID */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="block font-poppins text-[11.5px] font-bold text-admin-secondary">
                         {request.id}
                       </span>
                       <span className="mt-0.5 flex flex-wrap items-center gap-1">
                         {request.overdue && (
-                          <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-1.5 py-0.5 font-poppins text-[9px] font-bold text-rose-600">
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-1.5 py-0.5 font-poppins text-[9px] font-bold text-rose-600 ring-1 ring-rose-200/80">
                             <AlertTriangle className="h-2.5 w-2.5" aria-hidden />
                             Overdue
                           </span>
                         )}
                         {request.kioskTicket && (
-                          <span className="rounded-full bg-admin-page px-1.5 py-0.5 font-poppins text-[9px] font-semibold text-admin-muted">
+                          <span className="rounded-full bg-violet-50 px-1.5 py-0.5 font-poppins text-[9px] font-semibold text-violet-600 ring-1 ring-violet-200/80">
                             Ticket {request.kioskTicket}
                           </span>
                         )}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2">
+
+                    {/* Student */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
                         <span
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-admin-accent/60 font-poppins text-[9.5px] font-bold text-admin-secondary"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cpc-blue-accent/20 to-cpc-navy-text/15 font-poppins text-[9.5px] font-bold text-admin-secondary"
                           aria-hidden
                         >
                           {initials(request.studentName)}
                         </span>
                         <span className="min-w-0">
-                          <span className="block max-w-[170px] truncate font-poppins text-[11.5px] font-semibold text-admin-text">
+                          <span className="block max-w-[160px] truncate font-poppins text-[11.5px] font-semibold text-admin-text">
                             {request.studentName}
                           </span>
                           <span className="block font-poppins text-[10px] text-admin-muted">
@@ -414,33 +441,41 @@ export function ServiceRequestTable({
                         </span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5">
-                      <span className="block max-w-[220px] truncate font-poppins text-[11px] font-medium text-admin-text">
+
+                    {/* Service */}
+                    <td className="px-4 py-3">
+                      <span className="block max-w-[200px] truncate font-poppins text-[11.5px] font-semibold text-admin-text">
                         {request.service}
                       </span>
-                      <span className="block max-w-[220px] truncate font-poppins text-[9.5px] text-admin-muted">
+                      <span className="block max-w-[200px] truncate font-poppins text-[10px] text-admin-muted">
                         {request.pickupMethod}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
+
+                    {/* Date & Payment */}
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className="block font-poppins text-[10.5px] text-admin-muted">
                         {formatDateTime(request.submittedAt)}
                       </span>
-                      <span className="mt-0.5 inline-flex">
+                      <span className="mt-1 inline-flex">
                         <ServicePaymentBadge status={request.paymentStatus} />
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">
+
+                    {/* Status badge */}
+                    <td className="px-4 py-3">
                       <ServiceRequestStatusBadge status={request.status} />
                     </td>
-                    <td className="px-3 py-2.5">
+
+                    {/* Actions */}
+                    <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => onView(request)}
                           aria-label={`View ${request.id} details`}
                           title="View details"
-                          className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-admin-border bg-white text-admin-muted transition-colors hover:border-admin-secondary/40 hover:bg-admin-page hover:text-admin-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+                          className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-admin-border/60 bg-white/80 text-admin-muted shadow-xs transition-all hover:border-admin-secondary/40 hover:bg-admin-secondary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
                         >
                           <Eye className="h-3.5 w-3.5" aria-hidden />
                         </button>
@@ -454,7 +489,7 @@ export function ServiceRequestTable({
                               event.target.value as AdminServiceRequestStatus,
                             )
                           }
-                          className="h-7 cursor-pointer rounded-md border border-admin-border bg-white px-1.5 font-poppins text-[10px] font-semibold text-admin-text outline-none transition-colors hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
+                          className="h-7 cursor-pointer rounded-lg border border-admin-border/60 bg-white/90 px-2 font-poppins text-[10px] font-semibold text-admin-text shadow-xs outline-none transition-all hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
                         >
                           {SERVICE_STATUS_ORDER.map((option) => (
                             <option key={option} value={option}>
@@ -470,7 +505,8 @@ export function ServiceRequestTable({
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-admin-border/70 px-4 py-2.5">
+          {/* Pagination */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-admin-border/50 bg-white/50 px-5 py-3">
             <p className="font-poppins text-[10px] text-admin-muted">
               Showing{" "}
               <span className="font-semibold text-admin-text tabular-nums">
@@ -486,17 +522,17 @@ export function ServiceRequestTable({
               Sample data for interface review — changes stay in this browser session.
             </p>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setPage(Math.max(1, safePage - 1))}
                 disabled={safePage <= 1}
                 aria-label="Previous page"
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-admin-border bg-white text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-admin-border/60 bg-white/80 text-admin-muted shadow-xs transition-all hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
               </button>
-              <span className="px-1 font-poppins text-[10px] font-semibold text-admin-text tabular-nums">
+              <span className="px-1.5 font-poppins text-[10px] font-semibold text-admin-text tabular-nums">
                 {safePage} / {pageCount}
               </span>
               <button
@@ -504,7 +540,7 @@ export function ServiceRequestTable({
                 onClick={() => setPage(Math.min(pageCount, safePage + 1))}
                 disabled={safePage >= pageCount}
                 aria-label="Next page"
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-admin-border bg-white text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-admin-border/60 bg-white/80 text-admin-muted shadow-xs transition-all hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-3.5 w-3.5" aria-hidden />
               </button>

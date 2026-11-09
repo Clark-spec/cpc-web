@@ -57,7 +57,7 @@ export function RecentActivitiesCard({ activities, onClear }: RecentActivitiesCa
             return (
               <li
                 key={activity.id}
-                className="flex items-start gap-2 rounded-lg border border-cpc-tile-border/60 bg-white px-2.5 py-2"
+                className="flex items-start gap-2 rounded-lg border border-cpc-input-border/60 bg-white/90 px-2.5 py-2"
               >
                 <span
                   className={cn(

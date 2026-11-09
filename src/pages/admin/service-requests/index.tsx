@@ -121,34 +121,53 @@ export default function ServiceRequestsPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="relative space-y-6">
+      {/* Ambient soft glow elements for glassmorphism depth */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-16 -left-16 h-80 w-80 rounded-full bg-cpc-blue-accent/5 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/3 -right-16 h-96 w-96 rounded-full bg-cpc-navy/4 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-10 left-1/4 h-72 w-72 rounded-full bg-violet-500/4 blur-3xl"
+      />
+
       <PageBanner
+        className="border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
         eyebrow="STUDENT SERVICES"
-        title="Service Request"
+        title="Service Requests"
         subtitle="Review student document requests, ID replacements, certificate processing, and kiosk ticketing queues."
         right={
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cpc-tile-border bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-xs backdrop-blur-sm">
             <ClipboardList className="h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
             {openCount.toLocaleString()} active request{openCount === 1 ? "" : "s"}
           </span>
         }
       />
 
-      <section aria-labelledby="service-statistics-heading" className="space-y-2.5">
-        <div>
-          <h2
-            id="service-statistics-heading"
-            className="font-poppins text-[15px] leading-tight font-semibold text-admin-text"
-          >
-            Service Request Statistics
-          </h2>
-          <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
-            Live counts from the current request queue, updated as statuses change.
-          </p>
+      {/* Statistics Section */}
+      <section aria-labelledby="service-statistics-heading" className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div>
+            <h2
+              id="service-statistics-heading"
+              className="font-poppins text-[15px] leading-tight font-bold text-admin-text"
+            >
+              Service Request Statistics
+            </h2>
+            <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
+              Live counts from the current request queue, updated as statuses change.
+            </p>
+          </div>
         </div>
         <ServiceRequestStatCards counts={counts} />
       </section>
 
+      {/* Queue Table */}
       <ServiceRequestTable
         requests={requests}
         onView={setViewing}

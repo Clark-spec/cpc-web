@@ -413,9 +413,9 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
     return (
       <section
         aria-label="Schedule entries"
-        className="rounded-2xl border border-cpc-tile-border/70 bg-white"
+        className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
       >
-        <div className="border-b border-cpc-input-border px-4 py-3">
+        <div className="border-b border-cpc-input-border/60 bg-gradient-to-r from-cpc-section-light/70 to-white/60 px-4 py-3">
           <p className="font-poppins text-xs font-semibold text-cpc-heading-soft">
             Loading schedule…
           </p>
@@ -429,7 +429,7 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
     return (
       <section
         aria-label="Schedule entries"
-        className="rounded-2xl border border-cpc-tile-border/70 bg-white"
+        className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
       >
         <EmptyState
           icon={SearchX}
@@ -555,9 +555,9 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
   return (
     <section
       aria-label="Schedule entries"
-      className="overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white"
+      className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-input-border px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-input-border/60 bg-gradient-to-r from-cpc-section-light/70 to-white/60 px-4 py-3">
         <h2 className="font-poppins text-sm font-bold text-cpc-navy-text">
           {section === "all" ? "All sections" : section}
           <span className="ml-2 font-poppins text-xs font-semibold text-cpc-heading-soft">
@@ -797,7 +797,7 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
             <li
               key={entry.id}
               className={cn(
-                "rounded-xl border border-cpc-input-border bg-white p-3.5",
+                "rounded-xl border border-cpc-input-border/70 bg-white/95 p-3.5 shadow-2xs",
                 inactive && "border-dashed",
               )}
             >

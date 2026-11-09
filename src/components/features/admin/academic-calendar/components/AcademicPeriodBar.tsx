@@ -33,7 +33,7 @@ export function AcademicPeriodBar({
   return (
     <section
       aria-labelledby="academic-period-heading"
-      className="rounded-2xl border border-cpc-tile-border/70 bg-white px-4 py-3 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="rounded-2xl border border-white/80 bg-white/85 px-4 py-3.5 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2.5">

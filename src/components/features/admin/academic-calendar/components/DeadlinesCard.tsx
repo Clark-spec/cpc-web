@@ -91,7 +91,7 @@ export function DeadlinesCard({ events, onSelect, onViewAll }: DeadlinesCardProp
                   type="button"
                   onClick={() => onSelect(event)}
                   className={cn(
-                    "flex w-full items-start gap-2 rounded-lg border border-transparent px-2 py-2 text-left transition-colors hover:border-cpc-tile-border hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent",
+                    "flex w-full items-start gap-2 rounded-lg border border-transparent px-2 py-2 text-left transition-colors hover:border-cpc-input-border/70 hover:bg-white/80 focus-visible:outline-2 focus-visible:outline-cpc-blue-accent",
                     state.tone === "overdue" && "bg-rose-50/50",
                     state.tone === "today" && "bg-rose-50/60",
                   )}
@@ -103,7 +103,7 @@ export function DeadlinesCard({ events, onSelect, onViewAll }: DeadlinesCardProp
                         ? "border-rose-200 bg-rose-50 text-rose-600"
                         : state.tone === "soon"
                           ? "border-amber-200 bg-amber-50 text-amber-600"
-                          : "border-cpc-tile-border bg-cpc-section-light text-cpc-blue-accent",
+                          : "border-cpc-input-border/60 bg-white/85 text-cpc-blue-accent",
                     )}
                     aria-hidden
                   >

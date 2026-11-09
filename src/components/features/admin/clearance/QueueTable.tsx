@@ -16,7 +16,7 @@ type QueueTableProps = {
 };
 
 const HEADER_CELL =
-  "sticky top-0 z-10 bg-cpc-section-light px-3 py-2.5 font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase whitespace-nowrap";
+  "sticky top-0 z-10 bg-gradient-to-b from-admin-header/90 to-admin-page/80 px-3 py-2.5 font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase whitespace-nowrap backdrop-blur-sm";
 
 const PAGE_SIZES = [10, 25, 50];
 
@@ -52,12 +52,12 @@ export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
   const rangeEnd = Math.min(totalRows, filters.page * filters.pageSize);
 
   const navButton =
-    "inline-flex cursor-pointer items-center gap-1 rounded-lg border border-cpc-tile-border bg-white px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40";
+    "inline-flex cursor-pointer items-center gap-1 rounded-xl border border-white/80 bg-white/80 px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-xs transition-all hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
     <section
       aria-label="Clearance request queue"
-      className="rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
       {loading ? (
         <TableSkeleton rows={6} />
@@ -65,6 +65,21 @@ export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
         <EmptyState hasActiveFilters={hasActiveFilters} onClearFilters={resetFilters} />
       ) : (
         <>
+          {/* Table Header Strip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-border/50 bg-gradient-to-r from-admin-header/80 to-admin-page/60 px-5 py-3.5">
+            <div className="flex items-center gap-2.5">
+              <span className="font-poppins text-xs font-bold uppercase tracking-wider text-admin-text">
+                Clearance Queue Records
+              </span>
+              <span className="inline-flex items-center rounded-full bg-cpc-blue-accent/10 px-2.5 py-0.5 text-[10.5px] font-semibold text-cpc-blue-accent">
+                {totalRows} Total
+              </span>
+            </div>
+            <p className="font-poppins text-[11px] text-admin-muted">
+              Showing {pageRows.length} on this page · Press <kbd className="rounded border border-admin-border bg-white px-1 py-0.5 text-[10px] font-bold">J</kbd>/<kbd className="rounded border border-admin-border bg-white px-1 py-0.5 text-[10px] font-bold">K</kbd> to step
+            </p>
+          </div>
+
           <div className="admin-scrollbar max-h-[65vh] overflow-auto">
             <table
               className={cn(
@@ -137,7 +152,7 @@ export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-cpc-tile-border/60 px-3 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/60 bg-white/50 px-3 py-2.5">
             <p aria-live="polite" className="font-poppins text-[11px] font-medium text-cpc-heading-soft">
               Showing {rangeStart}–{rangeEnd} of {totalRows}
             </p>
@@ -150,7 +165,7 @@ export function QueueTable({ onSelect, onSign, onReject }: QueueTableProps) {
                 id="queue-page-size"
                 value={filters.pageSize}
                 onChange={(event) => setFilter("pageSize", Number(event.target.value))}
-                className="cursor-pointer rounded-lg border border-cpc-input-border bg-white px-2 py-1.5 font-poppins text-[11px] text-cpc-navy-text transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                className="cursor-pointer rounded-xl border border-white/80 bg-white/90 px-2 py-1.5 font-poppins text-[11px] text-cpc-navy-text shadow-xs transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
               >
                 {PAGE_SIZES.map((size) => (
                   <option key={size} value={size}>

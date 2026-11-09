@@ -4,10 +4,10 @@ import { cn } from "@/lib/cn";
 import { DAY_CODES, DAY_LABELS } from "@/lib/scheduleTime";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";
 import type { GridOverlayMode, ScheduleEditorView, ScheduleFilters, SectionId } from "@/components/features/admin/schedules/types";
-import { BTN_NEUTRAL, BTN_PRIMARY } from "@/components/features/admin/schedules/formStyles";
+import { SectionTabs } from "@/components/features/admin/schedules/SectionTabs";
 
 const FIELD_BASE =
-  "w-full rounded-lg border border-cpc-input-border bg-white px-3 py-2 font-poppins text-xs text-cpc-navy-text placeholder:text-cpc-placeholder transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent";
+  "w-full rounded-xl border border-cpc-input-border/80 bg-white/90 px-3.5 py-2 font-poppins text-xs text-cpc-navy-text placeholder:text-cpc-placeholder shadow-2xs backdrop-blur-xs transition-all focus:border-cpc-blue-accent focus:bg-white focus:ring-2 focus:ring-cpc-blue-accent/20 focus-visible:outline-hidden";
 
 const LABEL_BASE =
   "mb-1 block font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase";
@@ -88,16 +88,22 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
   return (
     <section
       aria-label="Schedule search and filters"
-      className="rounded-2xl border border-cpc-tile-border/70 bg-white p-4 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="rounded-2xl border border-white/80 bg-white/85 p-5 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md space-y-4"
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-start">
-        <div className="sm:col-span-2 lg:col-span-4">
+      {/* Section Scope Tabs */}
+      <SectionTabs />
+
+      <div className="h-px w-full bg-cpc-input-border/60" />
+
+      {/* Main Filter Bar */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 items-end">
+        <div className="sm:col-span-2 md:col-span-3 lg:col-span-4">
           <label htmlFor="schedule-search" className={LABEL_BASE}>
-            Search
+            Search Classes
           </label>
           <div className="relative">
             <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-cpc-muted-blue"
+              className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-cpc-muted-blue"
               aria-hidden
             />
             <input
@@ -106,8 +112,8 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
               type="search"
               value={filters.search}
               onChange={(event) => setFilter("search", event.target.value)}
-              placeholder="Subject code, title, teacher or room"
-              className={cn(FIELD_BASE, "pl-8")}
+              placeholder="Code, title, instructor or room..."
+              className={cn(FIELD_BASE, "pl-9")}
             />
           </div>
         </div>
@@ -122,7 +128,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             onChange={(event) => setFilter("day", event.target.value as ScheduleFilters["day"])}
             className={SELECT_BASE}
           >
-            <option value="all">Every day</option>
+            <option value="all">All Days</option>
             {DAY_CODES.map((day) => (
               <option key={day} value={day}>
                 {DAY_LABELS[day]}
@@ -141,7 +147,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             onChange={(event) => setFilter("instructorId", event.target.value)}
             className={SELECT_BASE}
           >
-            <option value="all">Everyone</option>
+            <option value="all">All Instructors</option>
             {instructors.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.displayName}
@@ -160,7 +166,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             onChange={(event) => setFilter("room", event.target.value)}
             className={SELECT_BASE}
           >
-            <option value="all">Every room</option>
+            <option value="all">All Rooms</option>
             {rooms.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -179,7 +185,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             onChange={(event) => setFilter("status", event.target.value as ScheduleFilters["status"])}
             className={SELECT_BASE}
           >
-            <option value="all">Both</option>
+            <option value="all">All Statuses</option>
             {STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -187,20 +193,27 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             ))}
           </select>
         </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-7">
+      {/* Bottom Bar: Quick Filter Pills, View Controls & Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             aria-pressed={filters.onlyConflicts}
             onClick={() => setFilter("onlyConflicts", !filters.onlyConflicts)}
             className={cn(
-              "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+              "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 font-poppins text-xs font-semibold whitespace-nowrap transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
               filters.onlyConflicts
-                ? "border-cpc-blue-accent bg-cpc-blue-accent text-white"
-                : "border-cpc-tile-border/70 bg-white text-cpc-navy-text hover:bg-cpc-section-light",
+                ? "border-rose-400 bg-rose-500 text-white shadow-xs"
+                : "border-cpc-input-border/70 bg-white/80 text-cpc-navy-text hover:border-cpc-blue-accent/40 hover:bg-white shadow-2xs",
             )}
           >
-            {filters.onlyConflicts && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />}
+            {filters.onlyConflicts ? (
+              <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            ) : (
+              <span className="h-2 w-2 rounded-full bg-rose-500" aria-hidden />
+            )}
             Conflicts only
           </button>
 
@@ -208,7 +221,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-cpc-tile-border/70 bg-white px-3 py-2 font-poppins text-xs font-semibold text-cpc-heading-soft transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-cpc-input-border/70 bg-white/80 px-3 py-1.5 font-poppins text-xs font-semibold text-cpc-heading-soft transition-all duration-200 hover:border-cpc-blue-accent/30 hover:bg-white hover:text-cpc-navy-text shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
             >
               <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Clear {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}
@@ -216,58 +229,12 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-5 lg:justify-end">
-          {/* Role-aware: a control that cannot write stays visible and says why
-              it is off, rather than vanishing and leaving the toolbar to
-              rearrange itself per login. */}
-          <button
-            type="button"
-            id="schedule-new-class"
-            onClick={onNewClass}
-            disabled={newDisabled}
-            title={newDisabled ? roleReason : undefined}
-            className={cn(BTN_PRIMARY, "ml-auto")}
-          >
-            <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            New class
-          </button>
-
-          <button
-            type="button"
-            id="schedule-duplicate"
-            onClick={onDuplicate}
-            disabled={duplicateDisabled}
-            title={duplicateDisabled ? duplicateReason : undefined}
-            className={BTN_NEUTRAL}
-          >
-            <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            Duplicate section
-          </button>
-
-          <button
-            type="button"
-            onClick={() => void reload()}
-            disabled={loading}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <RefreshCw
-              className={cn(
-                "h-3.5 w-3.5 shrink-0",
-                loading && "animate-spin motion-reduce:animate-none",
-              )}
-              aria-hidden
-            />
-            {loading ? "Refreshing…" : "Refresh"}
-          </button>
-        </div>
-
-        {/* Grid-only controls sit on their own row so the filter grid never
-            reflows when the view changes. */}
-        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-12 lg:justify-between">
+        <div className="flex flex-wrap items-center gap-2.5 ml-auto">
+          {/* View switcher */}
           <div
             role="group"
             aria-label="Editor view"
-            className="flex rounded-lg border border-cpc-input-border bg-white p-1"
+            className="flex items-center rounded-xl border border-cpc-input-border/80 bg-cpc-section-light/60 p-1 backdrop-blur-xs shadow-2xs"
           >
             {VIEW_OPTIONS.map((option) => (
               <button
@@ -277,10 +244,10 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
                 aria-pressed={view === option.value}
                 onClick={() => setView(option.value)}
                 className={cn(
-                  "inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 font-poppins text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                  "inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 font-poppins text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
                   view === option.value
-                    ? "bg-cpc-blue-accent text-white"
-                    : "text-cpc-heading-soft hover:bg-cpc-section-light hover:text-cpc-navy-text",
+                    ? "bg-cpc-blue-accent text-white shadow-xs"
+                    : "text-cpc-heading-soft hover:bg-white hover:text-cpc-navy-text",
                 )}
               >
                 <option.icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -289,12 +256,13 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
             ))}
           </div>
 
+          {/* Grid view options */}
           {view === "grid" && (
             <div className="flex flex-wrap items-center gap-2">
               <div
                 role="group"
                 aria-label="Choose room set"
-                className="flex rounded-lg border border-cpc-input-border bg-white p-1"
+                className="flex items-center rounded-xl border border-cpc-input-border/80 bg-cpc-section-light/60 p-1 backdrop-blur-xs shadow-2xs"
               >
                 {(["A", "B"] as const).map((set) => (
                   <button
@@ -303,10 +271,10 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
                     aria-pressed={roomSet === set}
                     onClick={() => setRoomSet(set)}
                     className={cn(
-                      "cursor-pointer rounded-md px-3 py-1.5 font-poppins text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                      "cursor-pointer rounded-lg px-2.5 py-1.5 font-poppins text-xs font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
                       roomSet === set
-                        ? "bg-cpc-blue-accent text-white"
-                        : "text-cpc-heading-soft hover:bg-cpc-section-light hover:text-cpc-navy-text",
+                        ? "bg-cpc-blue-accent text-white shadow-xs"
+                        : "text-cpc-heading-soft hover:bg-white hover:text-cpc-navy-text",
                     )}
                   >
                     Set {set}
@@ -314,16 +282,14 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
                 ))}
               </div>
 
-              <label htmlFor="schedule-overlay" className="sr-only">
-                Ghost overlay
-              </label>
               <select
                 id="schedule-overlay"
+                aria-label="Ghost overlay"
                 value={overlay.mode}
                 onChange={(event) =>
                   setOverlay({ mode: event.target.value as GridOverlayMode, id: "" })
                 }
-                className={cn(SELECT_BASE, "w-auto")}
+                className={cn(SELECT_BASE, "w-auto py-1.5 text-xs")}
               >
                 {OVERLAY_MODES.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -333,32 +299,79 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
               </select>
 
               {overlay.mode !== "none" && (
-                <>
-                  <label htmlFor="schedule-overlay-id" className="sr-only">
-                    {overlay.mode === "instructor" ? "Ghost teacher" : "Ghost room"}
-                  </label>
-                  <select
-                    id="schedule-overlay-id"
-                    value={overlay.id}
-                    onChange={(event) => setOverlay({ mode: overlay.mode, id: event.target.value })}
-                    className={cn(SELECT_BASE, "w-auto max-w-[12rem]")}
-                  >
-                    <option value="">
-                      {overlay.mode === "instructor" ? "Choose a teacher" : "Choose a room"}
+                <select
+                  id="schedule-overlay-id"
+                  aria-label={overlay.mode === "instructor" ? "Ghost teacher" : "Ghost room"}
+                  value={overlay.id}
+                  onChange={(event) => setOverlay({ mode: overlay.mode, id: event.target.value })}
+                  className={cn(SELECT_BASE, "w-auto max-w-[12rem] py-1.5 text-xs")}
+                >
+                  <option value="">
+                    {overlay.mode === "instructor" ? "Choose a teacher" : "Choose a room"}
+                  </option>
+                  {(overlay.mode === "instructor"
+                    ? instructors.map((item) => ({ value: item.id, label: item.displayName }))
+                    : physicalRooms.map((item) => ({ value: item.name, label: item.name }))
+                  ).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
                     </option>
-                    {(overlay.mode === "instructor"
-                      ? instructors.map((item) => ({ value: item.id, label: item.displayName }))
-                      : physicalRooms.map((item) => ({ value: item.name, label: item.name }))
-                    ).map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </>
+                  ))}
+                </select>
               )}
             </div>
           )}
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="schedule-new-class"
+              onClick={onNewClass}
+              disabled={newDisabled}
+              title={newDisabled ? roleReason : undefined}
+              className={cn(
+                "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-cpc-blue-accent px-3.5 py-2 font-poppins text-xs font-semibold text-white shadow-xs transition-all duration-200 hover:bg-cpc-navy hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+            >
+              <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              New class
+            </button>
+
+            <button
+              type="button"
+              id="schedule-duplicate"
+              onClick={onDuplicate}
+              disabled={duplicateDisabled}
+              title={duplicateDisabled ? duplicateReason : undefined}
+              className={cn(
+                "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-cpc-input-border/80 bg-white/90 px-3 py-2 font-poppins text-xs font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs transition-all duration-200 hover:border-cpc-blue-accent/30 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+            >
+              <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <span className="hidden sm:inline">Duplicate section</span>
+              <span className="sm:hidden">Duplicate</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void reload()}
+              disabled={loading}
+              title="Refresh schedule"
+              className={cn(
+                "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-cpc-input-border/80 bg-white/90 px-3 py-2 font-poppins text-xs font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs transition-all duration-200 hover:border-cpc-blue-accent/30 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+            >
+              <RefreshCw
+                className={cn(
+                  "h-3.5 w-3.5 shrink-0",
+                  loading && "animate-spin motion-reduce:animate-none",
+                )}
+                aria-hidden
+              />
+              <span className="hidden md:inline">{loading ? "Refreshing…" : "Refresh"}</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>

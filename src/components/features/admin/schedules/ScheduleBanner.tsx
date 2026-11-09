@@ -4,13 +4,10 @@ import { ROLE_LABELS } from "@/lib/navigation";
 import { ACADEMIC_YEAR, SEMESTER } from "@/services/scheduleStudent/mockSchedules";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";
 import { LiveSyncIndicator } from "@/components/features/admin/schedules/LiveSyncIndicator";
+import { cn } from "@/lib/cn";
 
 /**
- * Page h1 + wave banner.
- *
- * The conflict strip rides under the same card because a clash is a property of
- * the whole timetable, not of the section on screen: an instructor double-booked
- * across BSIT-3A and BSIT-3C is invisible while either tab is open on its own.
+ * Page h1 + wave banner for Class Schedules.
  */
 export function ScheduleBanner() {
   const { conflictCount, conflictsBySection, role, loading } = useScheduleAdmin();
@@ -21,13 +18,17 @@ export function ScheduleBanner() {
   return (
     <>
       <PageBanner
+        eyebrow={`ACADEMICS · ${SEMESTER} AY ${ACADEMIC_YEAR}`}
         title="Class Schedules"
-        subtitle="Build, check and publish the section timetables students see."
-        eyebrow={`${SEMESTER} · AY ${ACADEMIC_YEAR}`}
+        subtitle="Build, verify room and faculty assignments, and publish live section timetables."
+        className={cn(
+          "border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md",
+          showConflicts && "rounded-b-none border-b-0",
+        )}
         right={
           <div className="flex flex-col items-start gap-2.5 sm:items-end">
             <LiveSyncIndicator />
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-cpc-tile-border/70 bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text">
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3.5 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-xs backdrop-blur-sm">
               <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-cpc-blue-accent" aria-hidden />
               {ROLE_LABELS[role]}
             </p>

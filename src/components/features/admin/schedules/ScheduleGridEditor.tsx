@@ -389,7 +389,7 @@ export function ScheduleGridEditor({ onOpenEntry, onCreateAt }: ScheduleGridEdit
     return (
       <section
         aria-label="Weekly grid editor"
-        className="rounded-2xl border border-cpc-tile-border/70 bg-white p-4 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+        className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-4 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
       >
         <CardSkeleton />
       </section>
@@ -400,7 +400,7 @@ export function ScheduleGridEditor({ onOpenEntry, onCreateAt }: ScheduleGridEdit
     return (
       <section
         aria-label="Weekly grid editor"
-        className="rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+        className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
       >
         <EmptyState
           icon={CalendarOff}
@@ -414,9 +414,9 @@ export function ScheduleGridEditor({ onOpenEntry, onCreateAt }: ScheduleGridEdit
   return (
     <section
       aria-label="Weekly grid editor"
-      className="overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-tile-border/70 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-input-border/60 bg-gradient-to-r from-cpc-section-light/70 to-white/60 px-4 py-3">
         <p className="font-poppins text-xs font-semibold text-cpc-navy-text">
           {activeSection === "all" ? "All sections" : activeSection} · Mon–Sat · 7:00 AM – 8:00 PM
         </p>

@@ -46,7 +46,7 @@ export function ConflictPanel() {
     return (
       <section
         aria-label="Schedule conflicts"
-        className="rounded-2xl border border-cpc-tile-border/70 bg-white p-4 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+        className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
       >
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
@@ -64,31 +64,43 @@ export function ConflictPanel() {
   return (
     <section
       aria-label="Schedule conflicts"
-      className="rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="overflow-hidden rounded-2xl border border-rose-200/70 bg-white/90 shadow-[0_8px_30px_rgba(239,68,68,0.06)] backdrop-blur-md"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-tile-border/70 px-4 py-3">
-        <p className="font-poppins text-sm font-semibold text-cpc-navy-text" aria-live="polite">
-          {conflicts.length} conflict{conflicts.length === 1 ? "" : "s"} to resolve
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rose-100/80 bg-rose-50/50 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+              <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+          </span>
+          <p className="font-poppins text-sm font-semibold text-cpc-navy-text" aria-live="polite">
+            {conflicts.length} conflict{conflicts.length === 1 ? "" : "s"} to resolve
+          </p>
+        </div>
         <button
           type="button"
           aria-pressed={filters.onlyConflicts}
           onClick={() => setFilters({ ...filters, onlyConflicts: !filters.onlyConflicts })}
-          className="cursor-pointer rounded-lg border border-cpc-tile-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          className={cn(
+            "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 font-poppins text-[11px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+            filters.onlyConflicts
+              ? "border-rose-400 bg-rose-500 text-white"
+              : "border-cpc-input-border/70 bg-white text-cpc-navy-text hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700",
+          )}
         >
           {filters.onlyConflicts ? "Show every class" : "Show only clashing classes"}
         </button>
       </div>
 
-      <ul className="divide-y divide-cpc-tile-border/70">
+      <ul className="divide-y divide-rose-100/60 p-1">
         {groups.map((group) => (
-          <li key={group.kind} className="p-4">
-            <p className="font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">
+          <li key={group.kind} className="p-3.5">
+            <p className="font-poppins text-[10px] font-bold tracking-[0.12em] text-rose-700 uppercase">
               {group.label}
             </p>
             <p className="mt-0.5 font-poppins text-[11px] text-cpc-muted-blue">{group.hint}</p>
 
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2.5 space-y-2">
               {group.items.map((conflict) => (
                 <ConflictRow
                   key={conflict.id}
@@ -115,7 +127,7 @@ function ConflictRow({ conflict, labelFor, onGo }: ConflictRowProps) {
   return (
     <li
       className={cn(
-        "flex flex-wrap items-start justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/60 px-3 py-2",
+        "flex flex-wrap items-start justify-between gap-2 rounded-xl border border-rose-200/80 bg-rose-50/50 px-3 py-2.5",
       )}
     >
       <div className="min-w-0">
@@ -132,7 +144,7 @@ function ConflictRow({ conflict, labelFor, onGo }: ConflictRowProps) {
             type="button"
             onClick={() => onGo(entryId)}
             aria-label={`Go to ${labelFor(entryId)}`}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-cpc-tile-border bg-white px-2 py-1 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-rose-200/70 bg-white/90 px-2 py-1 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
           >
             <span className="max-w-[9rem] truncate">{labelFor(entryId)}</span>
             <ArrowRight className="h-3 w-3 shrink-0" aria-hidden />

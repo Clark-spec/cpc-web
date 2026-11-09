@@ -18,7 +18,6 @@ import type { ClearanceRequestRow, KpiCard, KpiId } from "@/components/features/
 
 const DAY_MS = 86_400_000;
 
-/** Local calendar-day key so "today" matches the staff member's clock. */
 function dayKeyOf(date: Date): string {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
@@ -27,7 +26,6 @@ function dayKey(iso: string): string {
   return dayKeyOf(new Date(iso));
 }
 
-/** Days elapsed between `iso` and now; negative future stamps read as 0. */
 function daysAgo(iso: string, now: number): number {
   return Math.max(0, (now - Date.parse(iso)) / DAY_MS);
 }
@@ -40,11 +38,6 @@ function trendOf(current: number, previous: number): Trend {
   return { direction: "flat", label: "No change" };
 }
 
-/**
- * Whether "up" is good news for this metric — signed-more-today is good,
- * more-overdue / slower-turnaround is not. Keeps the chip honest: colour only
- * ever rides along with the icon + text.
- */
 const POSITIVE_WHEN_UP: Record<KpiId, boolean> = {
   awaitingMine: false,
   signedToday: true,
@@ -53,7 +46,47 @@ const POSITIVE_WHEN_UP: Record<KpiId, boolean> = {
   avgTurnaround: false,
 };
 
-/** Signed-today vs signed-yesterday, from real respondedAt buckets. */
+const KPI_CONFIG: Record<
+  KpiId,
+  {
+    accent: string;
+    iconBg: string;
+    iconText: string;
+    glow: string;
+  }
+> = {
+  awaitingMine: {
+    accent: "#4785F5",
+    iconBg: "bg-blue-50",
+    iconText: "text-blue-600",
+    glow: "rgba(71, 133, 245, 0.15)",
+  },
+  signedToday: {
+    accent: "#20B77A",
+    iconBg: "bg-emerald-50",
+    iconText: "text-emerald-600",
+    glow: "rgba(32, 183, 122, 0.15)",
+  },
+  rejected: {
+    accent: "#EF5365",
+    iconBg: "bg-rose-50",
+    iconText: "text-rose-600",
+    glow: "rgba(239, 83, 101, 0.15)",
+  },
+  overdue: {
+    accent: "#F3A43B",
+    iconBg: "bg-amber-50",
+    iconText: "text-amber-600",
+    glow: "rgba(243, 164, 59, 0.15)",
+  },
+  avgTurnaround: {
+    accent: "#7C6FE0",
+    iconBg: "bg-violet-50",
+    iconText: "text-violet-600",
+    glow: "rgba(124, 111, 224, 0.15)",
+  },
+};
+
 function buildTrends(rows: ClearanceRequestRow[], overdueDays: number): Record<KpiId, Trend> {
   const now = Date.now();
   const todayKey = dayKeyOf(new Date(now));
@@ -81,10 +114,10 @@ function buildTrends(rows: ClearanceRequestRow[], overdueDays: number): Record<K
   const awaitingTrend = trendOf(arrivedToday, arrivedYesterday);
   awaitingTrend.label =
     awaitingTrend.direction === "flat"
-      ? "Arrivals steady vs yesterday"
+      ? "Arrivals steady vs yest."
       : `${arrivedToday - arrivedYesterday >= 0 ? "+" : "−"}${Math.abs(
           arrivedToday - arrivedYesterday,
-        )} new vs yesterday`;
+        )} new today`;
 
   const rejectedIn = (from: number, to: number) =>
     rows.filter(
@@ -117,8 +150,8 @@ function buildTrends(rows: ClearanceRequestRow[], overdueDays: number): Record<K
   const overdueTrend = trendOf(overdueNew, overduePrev);
   overdueTrend.label =
     overdueTrend.direction === "flat"
-      ? `${overdueNew} became overdue in 24h`
-      : `${overdueTrend.label} overdue in 24h`;
+      ? `${overdueNew} overdue in 24h`
+      : `${overdueTrend.label} in 24h`;
 
   const avgTurnaround = (from: number, to: number) => {
     const signed = rows.filter(
@@ -148,8 +181,8 @@ function buildTrends(rows: ClearanceRequestRow[], overdueDays: number): Record<K
   );
   turnaroundTrend.label =
     prevWeekAvg === 0 || weekAvg === 0
-      ? "Last week: no data"
-      : `vs ${prevWeekAvg.toFixed(1)} d last week`;
+      ? "No prev. data"
+      : `vs ${prevWeekAvg.toFixed(1)}d last week`;
 
   return {
     awaitingMine: awaitingTrend,
@@ -166,13 +199,13 @@ const TREND_ICONS = {
   flat: Minus,
 } as const;
 
-/** One clickable KPI card; the strip maps the array of these over them. */
 function KpiCardButton({ card, index }: { card: KpiCard; index: number }) {
-  const { applyKpiFilter } = useClearanceAdmin();
-  const count = useCountUp(card.countTo, 700 + index * 120);
+  const { applyKpiFilter, filters } = useClearanceAdmin();
+  const count = useCountUp(card.countTo, 700 + index * 110);
   const Icon = card.icon;
   const TrendIcon = TREND_ICONS[card.trend.direction];
   const shown = card.display ?? count.toLocaleString();
+  const config = KPI_CONFIG[card.id];
 
   const flat = card.trend.direction === "flat";
   const good = flat ? null : (card.trend.direction === "up") === POSITIVE_WHEN_UP[card.id];
@@ -182,58 +215,81 @@ function KpiCardButton({ card, index }: { card: KpiCard; index: number }) {
       ? "bg-emerald-50 text-emerald-700"
       : "bg-rose-50 text-rose-700";
 
+  const isActive =
+    (card.id === "awaitingMine" && filters.status === "requested" && !filters.overdueOnly) ||
+    (card.id === "signedToday" && filters.status === "signed") ||
+    (card.id === "rejected" && filters.status === "rejected") ||
+    (card.id === "overdue" && filters.overdueOnly);
+
   return (
     <button
       type="button"
       onClick={() => applyKpiFilter(card.id)}
-      aria-label={`${card.label}: ${shown}. ${card.trend.label}. Apply this filter.`}
+      aria-label={`${card.label}: ${shown}. ${card.trend.label}. Click to filter.`}
       className={cn(
-        "group flex cursor-pointer flex-col justify-between rounded-2xl border border-white/80 bg-white/70 p-5 text-left shadow-[0_4px_20px_rgba(15,36,104,0.04)] backdrop-blur-md transition-all duration-300 ease-out hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white/95 hover:shadow-[0_16px_36px_rgba(43,75,209,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
-        card.alert && "border-rose-300 ring-1 ring-rose-200 bg-rose-50/40",
+        "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-5 text-left shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_36px_rgb(15,36,104,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+        isActive && "border-cpc-blue-accent/60 bg-cpc-blue-accent/[0.04] ring-2 ring-cpc-blue-accent/25",
+        card.alert && !isActive && "border-amber-300/80 bg-amber-50/25",
       )}
     >
-      <div className="flex items-center gap-3">
+      {/* Top accent line */}
+      <span
+        className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl"
+        style={{ backgroundColor: config.accent }}
+        aria-hidden
+      />
+
+      {/* Decorative radial glow on hover */}
+      <div
+        className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-35 blur-2xl transition-opacity group-hover:opacity-60"
+        style={{ backgroundColor: config.glow }}
+        aria-hidden
+      />
+
+      {/* Header: Label + Icon */}
+      <div className="relative flex items-start justify-between gap-2.5">
+        <p className="min-w-0 font-poppins text-[11px] leading-snug font-semibold tracking-wide text-admin-muted uppercase">
+          {card.label}
+        </p>
         <span
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105",
-            card.tone,
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-xs ring-1 ring-black/5 transition-transform duration-200 group-hover:scale-105",
+            config.iconBg,
+            config.iconText,
           )}
           aria-hidden
         >
-          {card.alert ? <AlertTriangle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+          {card.alert ? <AlertTriangle className="h-4.5 w-4.5" /> : <Icon className="h-4.5 w-4.5" />}
         </span>
-        <p className="min-w-0 font-poppins text-xs leading-snug font-semibold text-cpc-heading-soft">
-          {card.label}
-        </p>
       </div>
 
-      <div className="mt-4 flex items-end justify-between gap-3">
+      {/* Middle: Prominent Count */}
+      <div className="relative mt-2">
         <p
           aria-live="polite"
           aria-atomic="true"
-          className="min-w-0 truncate font-poppins text-[26px] leading-none font-bold text-cpc-navy-text tabular-nums transition-colors duration-200 group-hover:text-cpc-blue-accent"
+          className="font-poppins text-[28px] xl:text-[32px] leading-none font-bold text-admin-primary tabular-nums"
         >
           {shown}
         </p>
+      </div>
+
+      {/* Bottom: Trend Badge */}
+      <div className="relative mt-3 flex items-center">
         <span
           className={cn(
-            "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-poppins text-[11px] leading-none font-semibold",
+            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-poppins text-[10.5px] font-semibold leading-tight",
             chipTone,
           )}
         >
-          <TrendIcon className="h-3 w-3" aria-hidden />
-          <span className="max-w-[120px] truncate">{card.trend.label}</span>
+          <TrendIcon className="h-3 w-3 shrink-0" aria-hidden />
+          <span className="truncate">{card.trend.label}</span>
         </span>
       </div>
     </button>
   );
 }
 
-/**
- * KPI strip (spec §1): five click-to-filter cards. Numbers come from `kpis`,
- * trend chips from real `rows` date buckets — nothing is hardcoded, and the
- * count-up reuses the dashboard hook so prefers-reduced-motion is respected.
- */
 export function ClearanceKpiStrip() {
   const { kpis, rows, period, loading } = useClearanceAdmin();
 
@@ -242,11 +298,11 @@ export function ClearanceKpiStrip() {
     return [
       {
         id: "awaitingMine",
-        label: "Awaiting My Signature",
+        label: "Awaiting Signature",
         value: kpis.awaitingMine,
         countTo: kpis.awaitingMine,
         icon: FileSignature,
-        tone: "bg-cpc-section-light text-cpc-blue-accent",
+        tone: "bg-blue-50 text-blue-600",
         trend: trends.awaitingMine,
         filter: { status: "requested", overdueOnly: false },
       },
@@ -262,7 +318,7 @@ export function ClearanceKpiStrip() {
       },
       {
         id: "rejected",
-        label: "Rejected",
+        label: "Rejected / Returned",
         value: kpis.rejected,
         countTo: kpis.rejected,
         icon: Undo2,
@@ -272,11 +328,11 @@ export function ClearanceKpiStrip() {
       },
       {
         id: "overdue",
-        label: `Overdue (> ${period.overdueDays} days)`,
+        label: `Overdue (> ${period.overdueDays}d)`,
         value: kpis.overdue,
         countTo: kpis.overdue,
         icon: AlertTriangle,
-        tone: "bg-rose-50 text-rose-600",
+        tone: "bg-amber-50 text-amber-600",
         trend: trends.overdue,
         alert: kpis.overdue > 0,
         filter: { status: "requested", overdueOnly: true },
@@ -288,7 +344,7 @@ export function ClearanceKpiStrip() {
         countTo: 0,
         display: formatTurnaround(kpis.avgTurnaroundDays),
         icon: Timer,
-        tone: "bg-amber-50 text-amber-600",
+        tone: "bg-violet-50 text-violet-600",
         trend: trends.avgTurnaround,
         filter: { status: "signed", overdueOnly: false },
       },

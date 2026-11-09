@@ -9,7 +9,6 @@ import { ClearanceBanner } from "@/components/features/admin/clearance/Clearance
 import { ClearanceDemoPanel } from "@/components/features/admin/clearance/ClearanceDemoPanel";
 import { ClearanceKpiStrip } from "@/components/features/admin/clearance/ClearanceKpiStrip";
 import { ClearancePeriodCard } from "@/components/features/admin/clearance/ClearancePeriodCard";
-import { OfficeFilterTabs } from "@/components/features/admin/clearance/OfficeFilterTabs";
 import { OfficeLoadChart } from "@/components/features/admin/clearance/OfficeLoadChart";
 import { QueueBoard } from "@/components/features/admin/clearance/QueueBoard";
 import { QueueTable } from "@/components/features/admin/clearance/QueueTable";
@@ -108,7 +107,20 @@ export function ClearanceWorkspace() {
   }
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="relative space-y-6 pb-20">
+      {/* Ambient soft glow elements for glassmorphism depth */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-16 -left-16 h-80 w-80 rounded-full bg-cpc-blue-accent/5 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/3 -right-16 h-96 w-96 rounded-full bg-cpc-navy/4 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-10 left-1/4 h-72 w-72 rounded-full bg-emerald-500/4 blur-3xl"
+      />
       <ClearanceBanner
         onPreviewStudent={() => setPreviewOpen(true)}
         onOpenSignatures={() => setSignaturesOpen(true)}
@@ -117,8 +129,6 @@ export function ClearanceWorkspace() {
       <ClearanceDemoPanel />
 
       <ClearanceKpiStrip />
-
-      <OfficeFilterTabs />
 
       <QueueToolbar searchInputRef={searchRef} />
 

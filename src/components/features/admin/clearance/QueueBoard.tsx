@@ -59,7 +59,7 @@ export function QueueBoard({ onSelect, onSign, onReject }: QueueBoardProps) {
     return (
       <section
         aria-label="Clearance board"
-        className="rounded-2xl border border-cpc-tile-border/70 bg-white p-4 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+        className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
         aria-busy="true"
       >
         <div className="grid gap-4 sm:grid-cols-3">
@@ -74,7 +74,7 @@ export function QueueBoard({ onSelect, onSign, onReject }: QueueBoardProps) {
   return (
     <section
       aria-label="Clearance board"
-      className="rounded-2xl border border-cpc-tile-border/70 bg-white p-4 shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
       <p className="sr-only">
         Drag a card from the Awaiting Signature column onto Signed or Rejected to open the approval
@@ -85,7 +85,22 @@ export function QueueBoard({ onSelect, onSign, onReject }: QueueBoardProps) {
       {visibleRows.length === 0 ? (
         <EmptyState hasActiveFilters={hasActiveFilters} onClearFilters={resetFilters} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-admin-border/50 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="font-poppins text-xs font-bold uppercase tracking-wider text-admin-text">
+                Clearance Board View
+              </span>
+              <span className="inline-flex items-center rounded-full bg-cpc-blue-accent/10 px-2.5 py-0.5 text-[10.5px] font-semibold text-cpc-blue-accent">
+                {visibleRows.length} Total
+              </span>
+            </div>
+            <p className="font-poppins text-[11px] text-admin-muted">
+              Drag cards to Signed or Rejected to begin endorsement
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {columns.map((column) => {
             const Icon = column.icon;
             const highlighted = dragOverKey === column.key;
@@ -140,6 +155,7 @@ export function QueueBoard({ onSelect, onSign, onReject }: QueueBoardProps) {
               </div>
             );
           })}
+          </div>
         </div>
       )}
     </section>

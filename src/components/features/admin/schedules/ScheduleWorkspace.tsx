@@ -13,7 +13,6 @@ import { ScheduleGridEditor } from "@/components/features/admin/schedules/Schedu
 import { ScheduleKpiStrip } from "@/components/features/admin/schedules/ScheduleKpiStrip";
 import { ScheduleTable } from "@/components/features/admin/schedules/ScheduleTable";
 import { ScheduleToolbar } from "@/components/features/admin/schedules/ScheduleToolbar";
-import { SectionTabs } from "@/components/features/admin/schedules/SectionTabs";
 
 /** How much of the day a click on empty canvas reserves before the form opens. */
 const NEW_CLASS_MIN = 60;
@@ -94,15 +93,28 @@ export function ScheduleWorkspace() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* Ambient background glows — purely decorative, aria-hidden */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-16 -left-16 h-72 w-72 rounded-full bg-cpc-blue-accent/5 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-1/3 -right-16 h-64 w-64 rounded-full bg-cpc-navy/4 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-10 left-1/4 h-56 w-56 rounded-full bg-emerald-500/4 blur-3xl"
+      />
+
       <ScheduleBanner />
 
       <PublishStatusBar />
 
       <ScheduleKpiStrip />
 
-      <SectionTabs />
-
+      {/* ScheduleToolbar now contains SectionTabs as its first row */}
       <ScheduleToolbar
         searchInputRef={searchRef}
         onNewClass={() => openNewClass()}

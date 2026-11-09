@@ -426,7 +426,12 @@ export default function AcademicCalendarPage() {
   })();
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* Ambient background glows — decorative only */}
+      <div aria-hidden className="pointer-events-none absolute -top-16 -left-16 h-72 w-72 rounded-full bg-cpc-blue-accent/5 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute top-1/4 -right-16 h-64 w-64 rounded-full bg-purple-500/4 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute bottom-20 left-1/3 h-56 w-56 rounded-full bg-emerald-500/4 blur-3xl" />
+
       <PageBanner
         title="Academic Calendar"
         subtitle="Create, edit, publish, and manage school events and important dates."
@@ -488,42 +493,42 @@ export default function AcademicCalendarPage() {
         onPrint={handlePrintCalendar}
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
-        <CalendarOverview
-          events={visibleEvents}
-          filteredCount={visibleEvents.length}
-          view={view}
-          anchor={anchor}
-          onViewChange={setView}
-          onNavigate={navigate}
-          onToday={() => setAnchor(startOfDay(new Date()))}
-          onDayClick={handleDayClick}
-          onEventClick={(event) => setViewingId(event.id)}
-          onShowMore={(date) => setDayOpen(date)}
-          onAddEvent={() => openCreate()}
-          onExport={handleExportCalendar}
-          onPrint={handlePrintCalendar}
-        />
+      {/* Calendar Overview — full width */}
+      <CalendarOverview
+        events={visibleEvents}
+        filteredCount={visibleEvents.length}
+        view={view}
+        anchor={anchor}
+        onViewChange={setView}
+        onNavigate={navigate}
+        onToday={() => setAnchor(startOfDay(new Date()))}
+        onDayClick={handleDayClick}
+        onEventClick={(event) => setViewingId(event.id)}
+        onShowMore={(date) => setDayOpen(date)}
+        onAddEvent={() => openCreate()}
+        onExport={handleExportCalendar}
+        onPrint={handlePrintCalendar}
+      />
 
-        <div className="space-y-4">
-          <UpcomingEventsCard
-            events={periodEvents}
-            onSelect={(event) => setViewingId(event.id)}
-            onViewAll={() => {
-              scrollToSection("academic-event-management");
-              window.setTimeout(() => document.getElementById("event-search")?.focus(), 350);
-            }}
-            onAddEvent={() => openCreate()}
-          />
-          <DeadlinesCard
-            events={periodEvents}
-            onSelect={(event) => setViewingId(event.id)}
-            onViewAll={() => {
-              scrollToSection("academic-event-management");
-              window.setTimeout(() => document.getElementById("event-search")?.focus(), 350);
-            }}
-          />
-        </div>
+      {/* Upcoming Events + Deadlines — below the calendar in a 2-column layout */}
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
+        <UpcomingEventsCard
+          events={periodEvents}
+          onSelect={(event) => setViewingId(event.id)}
+          onViewAll={() => {
+            scrollToSection("academic-event-management");
+            window.setTimeout(() => document.getElementById("event-search")?.focus(), 350);
+          }}
+          onAddEvent={() => openCreate()}
+        />
+        <DeadlinesCard
+          events={periodEvents}
+          onSelect={(event) => setViewingId(event.id)}
+          onViewAll={() => {
+            scrollToSection("academic-event-management");
+            window.setTimeout(() => document.getElementById("event-search")?.focus(), 350);
+          }}
+        />
       </div>
 
       <EventManagementTable

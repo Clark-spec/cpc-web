@@ -155,7 +155,7 @@ export function EventManagementTable({
       }
       bodyClassName="p-0"
     >
-      <div className="border-b border-cpc-tile-border/60 bg-cpc-section-light/35 px-4 py-3">
+      <div className="border-b border-cpc-input-border/50 bg-cpc-section-light/50 px-4 py-3">
         <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-8">
           <label className="relative md:col-span-2">
             <span className="sr-only">Search events</span>
@@ -414,7 +414,7 @@ export function EventManagementTable({
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-cpc-tile-border/60 px-3 py-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-cpc-input-border/50 px-3 py-2.5">
             <p className="font-poppins text-[11px] text-cpc-heading-soft">
               Showing {safePage * PAGE_SIZE + 1}–
               {Math.min(filtered.length, (safePage + 1) * PAGE_SIZE)} of {filtered.length}
@@ -424,7 +424,7 @@ export function EventManagementTable({
                 type="button"
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
                 disabled={safePage === 0}
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border/70 bg-white/90 text-cpc-navy-text backdrop-blur-xs transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
@@ -436,7 +436,7 @@ export function EventManagementTable({
                 type="button"
                 onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
                 disabled={safePage >= pageCount - 1}
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border/70 bg-white/90 text-cpc-navy-text backdrop-blur-xs transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Next page"
               >
                 <ChevronRight className="h-3.5 w-3.5" aria-hidden />

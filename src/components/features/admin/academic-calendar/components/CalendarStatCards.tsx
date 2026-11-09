@@ -74,11 +74,14 @@ function StatTile({ config, stats, index }: { config: CardConfig; stats: Calenda
         });
       }}
       aria-label={`${config.label}: ${stats[config.key]}. ${config.supporting(stats)}`}
-      className="flex w-full cursor-pointer flex-col rounded-2xl border border-cpc-tile-border/70 bg-white p-5 text-left transition-all hover:-translate-y-0.5 hover:border-cpc-tile-border hover:shadow-[0_14px_36px_rgba(15,36,104,0.10)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0"
+      className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-5 text-left shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white hover:shadow-[0_16px_36px_rgba(15,36,104,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0"
     >
-      <div className="flex items-center gap-3">
+      {/* Subtle ambient glow on hover */}
+      <div className="pointer-events-none absolute -right-6 -bottom-6 h-20 w-20 rounded-full bg-cpc-blue-accent/5 blur-xl transition-all duration-500 group-hover:scale-150 group-hover:bg-cpc-blue-accent/8" />
+
+      <div className="relative z-10 flex items-center gap-3">
         <span
-          className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-full", config.iconTone)}
+          className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105", config.iconTone)}
           aria-hidden
         >
           <Icon className="h-5 w-5" />
@@ -88,18 +91,18 @@ function StatTile({ config, stats, index }: { config: CardConfig; stats: Calenda
         </p>
       </div>
 
-      <div className="mt-4 flex items-end justify-between gap-3">
+      <div className="relative z-10 mt-4 flex items-end justify-between gap-3">
         <p
           aria-live="polite"
           aria-atomic="true"
-          className="min-w-0 truncate font-poppins text-[26px] leading-none font-bold text-cpc-navy-text tabular-nums"
+          className="font-poppins text-[28px] xl:text-[30px] leading-none font-bold text-cpc-navy-text tabular-nums tracking-tight"
         >
           {value.toLocaleString()}
         </p>
         <span
           className={cn(
-            "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-poppins text-[11px] leading-none font-semibold",
-            needsAttention ? "bg-amber-50 text-amber-700" : "bg-cpc-section-light text-cpc-heading-soft",
+            "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-poppins text-[11px] leading-none font-semibold",
+            needsAttention ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200/80" : "bg-cpc-section-light text-cpc-heading-soft",
           )}
         >
           {needsAttention && <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />}
@@ -162,7 +165,7 @@ export function CalendarStatCards({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-cpc-tile-border/70 bg-white px-4 py-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/80 bg-white/85 px-4 py-3 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md sm:grid-cols-4">
         {mini.map((item) => (
           <button
             key={item.label}

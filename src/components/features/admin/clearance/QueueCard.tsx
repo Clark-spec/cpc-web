@@ -73,10 +73,10 @@ export function QueueCard({
       onClick={() => onSelect(row.id)}
       onKeyDown={handleKeyDown}
       className={cn(
-        "cursor-pointer rounded-xl border bg-white p-3 transition-colors hover:border-cpc-tile-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+        "cursor-pointer rounded-xl border p-3.5 transition-all shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
         selected
-          ? "border-cpc-blue-accent bg-cpc-section-light/50 ring-1 ring-cpc-blue-accent"
-          : "border-cpc-tile-border/70",
+          ? "border-cpc-blue-accent bg-cpc-blue-accent/5 ring-1 ring-cpc-blue-accent/30 shadow-sm"
+          : "border-white/80 bg-white/90 hover:border-cpc-blue-accent/40 hover:bg-white hover:shadow-xs",
         dragging && "opacity-50",
         actionable && "cursor-grab active:cursor-grabbing",
       )}

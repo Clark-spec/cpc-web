@@ -550,13 +550,14 @@ export function CalendarOverview({
     <section
       id="calendar-overview"
       aria-labelledby="calendar-overview-heading"
-      className="scroll-mt-24 overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-[0_8px_30px_rgb(15,36,104,0.06)] backdrop-blur-md"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/60 px-4 py-3">
+      {/* Header row: title + view switcher */}
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-cpc-input-border/60 bg-gradient-to-r from-cpc-section-light/70 to-white/60 px-4 py-3.5">
         <div className="min-w-0">
           <h2
             id="calendar-overview-heading"
-            className="font-poppins text-sm leading-tight font-semibold text-cpc-navy-text"
+            className="font-poppins text-sm leading-tight font-bold text-cpc-navy-text"
           >
             Calendar Overview
           </h2>
@@ -569,7 +570,7 @@ export function CalendarOverview({
         <div
           role="tablist"
           aria-label="Calendar view"
-          className="inline-flex rounded-lg border border-cpc-tile-border bg-cpc-section-light p-0.5"
+          className="inline-flex rounded-xl border border-cpc-input-border/70 bg-white/80 p-1 shadow-2xs backdrop-blur-xs"
         >
           {VIEW_OPTIONS.map((option) => {
             const Icon = option.icon;
@@ -582,10 +583,10 @@ export function CalendarOverview({
                 aria-selected={active}
                 onClick={() => onViewChange(option.id)}
                 className={cn(
-                  "inline-flex cursor-pointer items-center gap-1 rounded-md px-2.5 py-1.5 font-poppins text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cpc-blue-accent",
+                  "inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 font-poppins text-[11px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cpc-blue-accent",
                   active
-                    ? "bg-white text-cpc-blue-accent shadow-sm"
-                    : "text-cpc-heading-soft hover:text-cpc-navy-text",
+                    ? "bg-cpc-blue-accent text-white shadow-xs"
+                    : "text-cpc-heading-soft hover:bg-cpc-section-light hover:text-cpc-navy-text",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" aria-hidden />
@@ -596,13 +597,14 @@ export function CalendarOverview({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-tile-border/60 px-3 py-2.5">
-        <div className="flex items-center gap-1">
+      {/* Nav bar: prev/next/today + date title + action buttons */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-input-border/50 bg-white/50 px-4 py-2.5">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => onNavigate(-1)}
             aria-label={`Previous ${view}`}
-            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border/70 bg-white/90 text-cpc-navy-text shadow-2xs transition-all hover:border-cpc-blue-accent/40 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
           >
             <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           </button>
@@ -610,27 +612,27 @@ export function CalendarOverview({
             type="button"
             onClick={() => onNavigate(1)}
             aria-label={`Next ${view}`}
-            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border/70 bg-white/90 text-cpc-navy-text shadow-2xs transition-all hover:border-cpc-blue-accent/40 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
           >
             <ChevronRight className="h-3.5 w-3.5" aria-hidden />
           </button>
           <button
             type="button"
             onClick={onToday}
-            className="ml-1 inline-flex h-7 cursor-pointer items-center rounded-lg border border-cpc-tile-border bg-white px-2.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+            className="ml-0.5 inline-flex h-7 cursor-pointer items-center rounded-lg border border-cpc-input-border/70 bg-white/90 px-2.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-2xs transition-all hover:border-cpc-blue-accent/40 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
           >
             Today
           </button>
-          <p className="ml-2 font-poppins text-sm font-semibold text-cpc-navy-text">
+          <p className="ml-2 font-poppins text-sm font-bold text-cpc-navy-text">
             {viewTitle(view, anchor)}
           </p>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={onAddEvent}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-cpc-blue-accent px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-cpc-blue-accent px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-white shadow-xs transition-all hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
           >
             <CalendarPlus className="h-3.5 w-3.5" aria-hidden />
             Add Event
@@ -640,7 +642,7 @@ export function CalendarOverview({
             onClick={onExport}
             aria-label="Export calendar as CSV"
             title="Export calendar as CSV"
-            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border/70 bg-white/90 text-cpc-navy-text shadow-2xs transition-all hover:border-cpc-blue-accent/40 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
           >
             <Download className="h-3.5 w-3.5" aria-hidden />
           </button>
@@ -649,7 +651,7 @@ export function CalendarOverview({
             onClick={onPrint}
             aria-label="Print calendar"
             title="Print calendar"
-            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-cpc-input-border/70 bg-white/90 text-cpc-navy-text shadow-2xs transition-all hover:border-cpc-blue-accent/40 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
           >
             <Printer className="h-3.5 w-3.5" aria-hidden />
           </button>
@@ -690,7 +692,7 @@ export function CalendarOverview({
       )}
 
       {events.filter((event) => event.status !== "archived").length === 0 && (
-        <div className="border-t border-cpc-tile-border/60 px-4 py-2.5 font-poppins text-[11px] text-cpc-heading-soft">
+        <div className="border-t border-cpc-input-border/50 px-4 py-2.5 font-poppins text-[11px] text-cpc-heading-soft">
           Tip: relax the category, academic year, or semester filters to bring events back into the
           calendar.
         </div>

@@ -49,13 +49,13 @@ export function CalendarQuickActions({
   return (
     <section
       aria-labelledby="calendar-quick-actions-heading"
-      className="overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+      className="overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-tile-border/60 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cpc-input-border/60 bg-gradient-to-r from-cpc-section-light/70 to-white/60 px-4 py-3.5">
         <div>
           <h2
             id="calendar-quick-actions-heading"
-            className="font-poppins text-sm leading-tight font-semibold text-cpc-navy-text"
+            className="font-poppins text-sm leading-tight font-bold text-cpc-navy-text"
           >
             Calendar Quick Actions
           </h2>
@@ -70,7 +70,7 @@ export function CalendarQuickActions({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 px-4 py-4 sm:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4 xl:grid-cols-7">
         {actions.map((action) => {
           const Icon = action.icon;
           return (
@@ -81,7 +81,7 @@ export function CalendarQuickActions({
               className={cn(
                 action.primary
                   ? primaryButtonClass("px-2 py-2 text-xs")
-                  : "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-2 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:border-cpc-blue-accent/40 hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                  : "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-cpc-input-border/70 bg-white/90 px-2 py-2 font-poppins text-xs font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs transition-all hover:border-cpc-blue-accent/40 hover:bg-white hover:text-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
               )}
             >
               <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />

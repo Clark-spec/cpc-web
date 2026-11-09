@@ -79,7 +79,7 @@ export function ScheduleKpiStrip() {
         value: scoped.sections,
         detail: `${SEMESTER} · AY ${ACADEMIC_YEAR}`,
         icon: Layers,
-        tone: "bg-cpc-section-light text-cpc-blue-accent",
+        tone: "bg-blue-50 text-cpc-blue-accent border border-blue-100/70",
       },
       {
         id: "entries",
@@ -90,7 +90,7 @@ export function ScheduleKpiStrip() {
             ? `${active} active · ${notActive} not active`
             : `${active} active`,
         icon: CalendarDays,
-        tone: "bg-emerald-50 text-emerald-600",
+        tone: "bg-emerald-50 text-emerald-600 border border-emerald-100/70",
       },
       {
         id: "conflicts",
@@ -101,7 +101,7 @@ export function ScheduleKpiStrip() {
             ? "every class fits"
             : `in ${clashSectionCount} ${clashSectionCount === 1 ? "section" : "sections"}`,
         icon: AlertTriangle,
-        tone: "bg-rose-50 text-rose-600",
+        tone: "bg-rose-50 text-rose-600 border border-rose-100/70",
         alert: conflictCount > 0,
       },
       {
@@ -110,7 +110,7 @@ export function ScheduleKpiStrip() {
         value: usedRooms.size,
         detail: `of ${physicalRooms.length} available`,
         icon: Building2,
-        tone: "bg-amber-50 text-amber-600",
+        tone: "bg-amber-50 text-amber-600 border border-amber-100/70",
       },
     ];
   }, [clashSectionCount, conflictCount, master.rooms, scoped]);
@@ -156,28 +156,59 @@ function KpiCardButton({
       onClick={() => onApply(card.id)}
       aria-label={`${card.label}: ${count.toLocaleString()}. ${card.detail}. Apply this filter.`}
       className={cn(
-        "flex cursor-pointer flex-col rounded-2xl border border-cpc-tile-border/70 bg-white p-5 text-left transition-all hover:-translate-y-0.5 hover:border-cpc-tile-border hover:shadow-[0_14px_36px_rgba(15,36,104,0.10)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
-        card.alert && "border-rose-200 ring-1 ring-rose-200",
+        "group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-5 text-left shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white hover:shadow-[0_16px_36px_rgba(15,36,104,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
+        card.alert && "border-rose-200/90 bg-rose-50/20 ring-1 ring-rose-200/70",
       )}
     >
-      <div className="flex items-center gap-3">
-        <span className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-full", card.tone)} aria-hidden>
+      {/* Top accent gradient bar */}
+      <div
+        className={cn(
+          "absolute top-0 inset-x-0 h-1 bg-gradient-to-r opacity-80 transition-opacity group-hover:opacity-100",
+          card.id === "sections" && "from-cpc-blue-accent to-blue-400",
+          card.id === "entries" && "from-emerald-500 to-teal-400",
+          card.id === "conflicts" && "from-rose-500 to-red-400",
+          card.id === "rooms" && "from-amber-500 to-orange-400",
+        )}
+      />
+
+      {/* Ambient hover glow */}
+      <div className="pointer-events-none absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-cpc-blue-accent/5 blur-xl transition-all duration-500 group-hover:scale-150 group-hover:bg-cpc-blue-accent/10" />
+
+      <div className="relative z-10 flex items-center justify-between gap-3">
+        <span
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105",
+            card.tone,
+          )}
+          aria-hidden
+        >
           {card.alert ? <AlertTriangle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
         </span>
-        <p className="min-w-0 font-poppins text-xs leading-snug font-semibold text-cpc-heading-soft">
-          {card.label}
-        </p>
+        {card.alert ? (
+          <span className="rounded-full bg-rose-100/90 px-2.5 py-0.5 font-poppins text-[10px] font-bold text-rose-700 uppercase tracking-wider">
+            Needs Action
+          </span>
+        ) : (
+          <span className="rounded-full bg-cpc-section-light/80 px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-cpc-heading-soft uppercase tracking-wider">
+            {card.id}
+          </span>
+        )}
       </div>
 
-      <div className="mt-4 flex items-end justify-between gap-3">
-        <p
-          aria-live="polite"
-          aria-atomic="true"
-          className="min-w-0 truncate font-poppins text-[26px] leading-none font-bold text-cpc-navy-text tabular-nums"
-        >
-          {count.toLocaleString()}
+      <div className="relative z-10 mt-4">
+        <p className="font-poppins text-xs font-semibold text-cpc-heading-soft">
+          {card.label}
         </p>
-        <p className="shrink-0 font-poppins text-[11px] leading-none font-semibold text-cpc-heading-soft">
+        <div className="mt-1.5 flex items-baseline gap-2">
+          <p
+            aria-live="polite"
+            aria-atomic="true"
+            className="font-poppins text-[30px] xl:text-[32px] font-bold leading-none text-cpc-navy-text tabular-nums tracking-tight"
+          >
+            {count.toLocaleString()}
+          </p>
+        </div>
+        <p className="mt-2.5 font-poppins text-[11px] font-medium text-cpc-heading-soft/90">
           {card.detail}
         </p>
       </div>

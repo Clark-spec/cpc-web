@@ -111,7 +111,7 @@ export function BulkActionBar() {
       >
         <section
           aria-label="Bulk actions for selected requests"
-          className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-cpc-tile-border/70 bg-white p-3 shadow-[0_24px_80px_rgba(15,36,104,0.35)]"
+          className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-white/80 bg-white/90 p-3 shadow-[0_24px_80px_rgba(15,36,104,0.30)] backdrop-blur-md"
         >
           <p aria-live="polite" className="font-poppins text-[11px] font-semibold text-cpc-navy-text">
             {checkedIds.length} request{checkedIds.length === 1 ? "" : "s"} selected

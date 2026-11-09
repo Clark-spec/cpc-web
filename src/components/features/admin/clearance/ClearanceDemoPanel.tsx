@@ -32,7 +32,7 @@ export function ClearanceDemoPanel() {
   return (
     <section
       aria-label="Clearance demo controls"
-      className="rounded-2xl border border-cpc-tile-border/70 bg-cpc-section-light/70 p-4"
+      className="rounded-2xl border border-white/80 bg-white/85 p-4 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">

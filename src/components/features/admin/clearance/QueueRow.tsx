@@ -243,7 +243,7 @@ export function QueueRow({
             role="menu"
             aria-label={`Quick actions for ${row.studentName}`}
             className={cn(
-              "absolute right-3 z-20 w-40 rounded-xl border border-cpc-tile-border/70 bg-white p-1 shadow-[0_18px_50px_rgba(15,36,104,0.22)]",
+              "absolute right-3 z-20 w-40 rounded-xl border border-white/80 bg-white/95 p-1 shadow-[0_12px_36px_rgba(15,36,104,0.12)] backdrop-blur-md",
               menuOpensUp ? "bottom-full" : "top-full",
             )}
           >

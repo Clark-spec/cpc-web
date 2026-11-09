@@ -87,7 +87,7 @@ export function PublicationMonitor({
           Awaiting publication
         </p>
         {pending.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-cpc-tile-border px-3 py-3 text-center font-poppins text-[11px] text-cpc-heading-soft">
+          <p className="rounded-lg border border-dashed border-cpc-input-border/60 px-3 py-3 text-center font-poppins text-[11px] text-cpc-heading-soft">
             No events are pending review.
           </p>
         ) : (
@@ -95,7 +95,7 @@ export function PublicationMonitor({
             {pending.map((event) => (
               <li
                 key={event.id}
-                className="flex items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-2.5 py-2"
+                className="flex items-center gap-1.5 rounded-lg border border-cpc-input-border/60 bg-white/90 px-2.5 py-2"
               >
                 <button
                   type="button"

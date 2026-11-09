@@ -64,8 +64,8 @@ export function CategoryLegendCard({
               className={cn(
                 "flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-all focus-visible:outline-2 focus-visible:outline-cpc-blue-accent",
                 isHidden
-                  ? "border-cpc-tile-border/60 bg-white opacity-55 hover:opacity-80"
-                  : "border-cpc-tile-border bg-white hover:border-cpc-blue-accent/40 hover:bg-cpc-section-light/60",
+                  ? "border-cpc-input-border/50 bg-white/80 opacity-55 hover:opacity-80"
+                  : "border-cpc-input-border/60 bg-white/90 hover:border-cpc-blue-accent/40 hover:bg-white/80",
               )}
             >
               <span

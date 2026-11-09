@@ -127,13 +127,13 @@ export function SectionCard({
     <section
       id={id}
       className={cn(
-        "scroll-mt-24 overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]",
+        "scroll-mt-24 overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-[0_8px_30px_rgb(15,36,104,0.05)] backdrop-blur-md",
         className,
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/60 px-4 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-input-border/60 bg-gradient-to-r from-cpc-section-light/70 to-white/60 px-4 py-3.5">
         <div className="min-w-0">
-          <h2 className="font-poppins text-sm leading-tight font-semibold text-cpc-navy-text">
+          <h2 className="font-poppins text-sm leading-tight font-bold text-cpc-navy-text">
             {title}
           </h2>
           {description && (

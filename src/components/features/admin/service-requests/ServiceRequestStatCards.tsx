@@ -1,4 +1,11 @@
-import { CheckCircle2, Clock3, RefreshCw, Ticket } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  PackageCheck,
+  RefreshCw,
+  Ticket,
+  TrendingUp,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 import type { getServiceRequestCounts } from "@/services/serviceRequests/admin";
@@ -10,34 +17,43 @@ type CardConfig = {
   label: string;
   supporting: (counts: Counts) => string;
   icon: LucideIcon;
+  /** Tailwind top accent bar color (inline style fallback) */
   accent: string;
-  iconTone: string;
+  iconBg: string;
+  iconText: string;
+  trendIcon: LucideIcon;
 };
 
 const CARDS: CardConfig[] = [
   {
     key: "pending",
-    label: "Pending Service Requests",
+    label: "Pending Requests",
     supporting: (counts) => `${counts.pendingToday} submitted today`,
     icon: Clock3,
     accent: "#F3A43B",
-    iconTone: "bg-[#FEF4E7] text-[#F3A43B]",
+    iconBg: "bg-amber-50",
+    iconText: "text-amber-500",
+    trendIcon: TrendingUp,
   },
   {
     key: "processing",
     label: "Processing / In-Queue",
-    supporting: () => "Across the service windows",
+    supporting: () => "Across all service windows",
     icon: RefreshCw,
     accent: "#4785F5",
-    iconTone: "bg-[#EAF1FF] text-[#4785F5]",
+    iconBg: "bg-blue-50",
+    iconText: "text-blue-500",
+    trendIcon: TrendingUp,
   },
   {
     key: "activeKiosk",
     label: "Active Kiosk Tickets",
-    supporting: (counts) => `${counts.kioskToday} issued at the kiosk today`,
+    supporting: (counts) => `${counts.kioskToday} issued at kiosk today`,
     icon: Ticket,
     accent: "#7C6FE0",
-    iconTone: "bg-[#F1EEFE] text-[#7C6FE0]",
+    iconBg: "bg-violet-50",
+    iconText: "text-violet-500",
+    trendIcon: TrendingUp,
   },
   {
     key: "completedToday",
@@ -45,7 +61,9 @@ const CARDS: CardConfig[] = [
     supporting: () => "Finalized across all windows",
     icon: CheckCircle2,
     accent: "#20B77A",
-    iconTone: "bg-[#E9F7F1] text-[#20B77A]",
+    iconBg: "bg-emerald-50",
+    iconText: "text-emerald-500",
+    trendIcon: PackageCheck,
   },
 ];
 
@@ -63,31 +81,39 @@ function StatTile({
   const Icon = config.icon;
 
   return (
-    <article className="relative overflow-hidden rounded-[10px] border border-admin-border bg-admin-card p-4 shadow-[0_2px_12px_rgba(24,52,111,0.04)] transition-shadow hover:shadow-[0_8px_22px_rgba(24,52,111,0.08)] motion-reduce:transition-none">
+    <article className="group relative overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-5 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all hover:shadow-[0_12px_36px_rgb(15,36,104,0.09)] motion-reduce:transition-none">
+      {/* Top accent bar */}
       <span
-        className="absolute inset-x-0 top-0 h-[3px]"
+        className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl"
         style={{ backgroundColor: config.accent }}
         aria-hidden
       />
 
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-poppins text-[10.5px] leading-snug font-semibold text-admin-muted">
+      {/* Subtle decorative glow */}
+      <div
+        className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-40 blur-2xl transition-opacity group-hover:opacity-60"
+        style={{ backgroundColor: config.accent + "22" }}
+        aria-hidden
+      />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-poppins text-[11px] leading-snug font-semibold tracking-wide text-admin-muted uppercase">
             {config.label}
           </p>
-          <p className="mt-1 font-poppins text-[28px] leading-none font-bold text-admin-primary tabular-nums">
+          <p className="mt-1.5 font-poppins text-[32px] leading-none font-bold text-admin-primary tabular-nums">
             {value.toLocaleString()}
           </p>
-          <p className="mt-2 font-poppins text-[10px] leading-snug text-admin-muted">
+          <p className="mt-2 font-poppins text-[11px] leading-snug text-admin-muted">
             {config.supporting(counts)}
           </p>
         </div>
 
         <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${config.iconTone}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${config.iconBg} ${config.iconText} shadow-xs ring-1 ring-black/5`}
           aria-hidden
         >
-          <Icon className="h-[18px] w-[18px]" />
+          <Icon className="h-5 w-5" />
         </span>
       </div>
     </article>
@@ -98,7 +124,7 @@ function StatTile({
 export function ServiceRequestStatCards({ counts }: { counts: Counts }) {
   return (
     <section aria-label="Service request statistics">
-      <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {CARDS.map((config, index) => (
           <StatTile key={config.key} config={config} counts={counts} index={index} />
         ))}
