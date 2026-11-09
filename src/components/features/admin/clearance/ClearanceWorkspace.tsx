@@ -108,7 +108,7 @@ export function ClearanceWorkspace() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <ClearanceBanner
         onPreviewStudent={() => setPreviewOpen(true)}
         onOpenSignatures={() => setSignaturesOpen(true)}

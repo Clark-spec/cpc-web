@@ -28,32 +28,32 @@ const CARDS: CardConfig[] = [
     label: "Pending Enrollments",
     description: "Awaiting first review",
     icon: ClipboardList,
-    accent: "#4785F5",
-    iconTone: "bg-[#EAF1FF] text-[#4785F5]",
+    accent: "#2b4bd1",
+    iconTone: "bg-cpc-section-light text-cpc-blue-accent",
   },
   {
     status: "for-review",
     label: "For Review",
     description: "Credentials being verified",
     icon: Eye,
-    accent: "#F3A43B",
-    iconTone: "bg-[#FEF4E7] text-[#F3A43B]",
+    accent: "#d97706",
+    iconTone: "bg-amber-50 text-amber-600",
   },
   {
     status: "approved",
     label: "Approved",
     description: "Cleared for enrollment",
     icon: CheckCircle2,
-    accent: "#20B77A",
-    iconTone: "bg-[#E9F7F1] text-[#20B77A]",
+    accent: "#059669",
+    iconTone: "bg-emerald-50 text-emerald-600",
   },
   {
     status: "needs-requirements",
     label: "Needs Requirements",
     description: "Missing required documents",
     icon: AlertCircle,
-    accent: "#EF5365",
-    iconTone: "bg-[#FDEDEF] text-[#EF5365]",
+    accent: "#e11d48",
+    iconTone: "bg-rose-50 text-rose-600",
   },
 ];
 
@@ -92,53 +92,73 @@ function StatTile({
       aria-pressed={active}
       aria-label={`${config.label}: ${count}. ${share}% of all applications. ${weekly} new this week. Open this status list.`}
       className={cn(
-        "group relative overflow-hidden rounded-[10px] border bg-admin-card p-4 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info motion-reduce:hover:translate-y-0",
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4.5 text-left transition-all duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
         active
-          ? "border-admin-secondary shadow-[0_8px_22px_rgba(36,73,168,0.14)] ring-1 ring-admin-secondary/25"
-          : "border-admin-border shadow-[0_2px_12px_rgba(24,52,111,0.04)] hover:-translate-y-0.5 hover:border-admin-secondary/40 hover:shadow-[0_10px_26px_rgba(24,52,111,0.09)]",
+          ? "border-cpc-blue-accent/60 bg-white/95 shadow-[0_16px_36px_rgba(43,75,209,0.14)] ring-2 ring-cpc-blue-accent/25"
+          : "border-white/80 bg-white/70 shadow-[0_4px_20px_rgba(15,36,104,0.04)] backdrop-blur-md hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white/95 hover:shadow-[0_16px_36px_rgba(43,75,209,0.12)]",
       )}
     >
       <span
-        className="absolute inset-x-0 top-0 h-[3px]"
+        className="absolute inset-x-0 top-0 h-[3px] rounded-t-2xl transition-all"
         style={{ backgroundColor: config.accent }}
         aria-hidden
       />
 
-      <span className="flex items-start justify-between gap-3">
-        <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg", config.iconTone)}>
-          <Icon className="h-[18px] w-[18px]" aria-hidden />
-        </span>
-        <ArrowUpRight
+      {/* Top Row: Icon on left, Share / arrow badge on right - ZERO OVERLAP */}
+      <div className="flex items-center justify-between gap-2">
+        <span
           className={cn(
-            "h-3.5 w-3.5 text-admin-muted transition-all",
-            active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-xs transition-all duration-300 group-hover:scale-110 group-hover:shadow-md",
+            config.iconTone,
           )}
           aria-hidden
-        />
-      </span>
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-poppins text-[11px] leading-none font-semibold transition-all duration-200 group-hover:scale-105",
+            active
+              ? "border-cpc-blue-accent/30 bg-cpc-section-light text-cpc-blue-accent"
+              : "border-white/80 bg-white/80 text-cpc-navy-text shadow-xs backdrop-blur-xs",
+          )}
+        >
+          <span>{share}%</span>
+          <ArrowUpRight
+            className={cn(
+              "h-3 w-3 transition-transform duration-200",
+              active
+                ? "text-cpc-blue-accent"
+                : "text-cpc-heading-soft group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-cpc-blue-accent",
+            )}
+            aria-hidden
+          />
+        </span>
+      </div>
 
-      <span className="mt-3 block font-poppins text-[12px] font-semibold tracking-[0.01em] text-admin-muted">
-        {config.label}
-      </span>
-      <span className="mt-0.5 flex items-end justify-between gap-2">
-        <span className="font-poppins text-[30px] leading-none font-bold text-admin-primary tabular-nums">
+      <div className="mt-3">
+        <p className="font-poppins text-xs font-medium text-cpc-heading-soft">
+          {config.label}
+        </p>
+        <p className="mt-0.5 font-poppins text-2xl font-bold tracking-tight text-cpc-navy-text tabular-nums">
           {value.toLocaleString()}
-        </span>
-        <span className="rounded-full bg-admin-page px-1.5 py-0.5 font-poppins text-[10px] font-semibold text-admin-muted tabular-nums">
-          {share}%
-        </span>
-      </span>
+        </p>
+      </div>
 
-      <span className="mt-2 flex flex-wrap items-center justify-between gap-1.5">
-        <span className="font-poppins text-[10.5px] leading-snug text-admin-muted">
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-1.5 border-t border-cpc-tile-border/30 pt-2">
+        <span className="font-poppins text-[11px] leading-snug text-cpc-heading-soft">
           {config.description}
         </span>
-        {weekly > 0 && (
-          <span className="inline-flex items-center gap-0.5 font-poppins text-[10px] font-semibold text-admin-success">
+        {weekly > 0 ? (
+          <span className="inline-flex items-center gap-0.5 rounded-md border border-emerald-200/60 bg-emerald-50/80 px-1.5 py-0.5 font-poppins text-[10px] font-semibold text-emerald-700 tabular-nums">
             +{weekly} this week
           </span>
+        ) : (
+          <span className="font-poppins text-[10px] text-cpc-heading-soft/60">
+            Current queue
+          </span>
         )}
-      </span>
+      </div>
     </button>
   );
 }

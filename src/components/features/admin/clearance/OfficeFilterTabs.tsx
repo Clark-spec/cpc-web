@@ -71,10 +71,13 @@ export function OfficeFilterTabs() {
   }
 
   const tabBase =
-    "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3.5 py-2 font-poppins text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent";
+    "inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3.5 py-2 font-poppins text-xs font-semibold whitespace-nowrap transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent";
 
   return (
-    <nav aria-label="Filter clearance queue by office and status" className="flex flex-col gap-3">
+    <nav
+      aria-label="Filter clearance queue by office and status"
+      className="flex flex-col gap-3 rounded-2xl border border-white/80 bg-white/70 p-4 shadow-[0_4px_20px_rgba(15,36,104,0.04)] backdrop-blur-md"
+    >
       {isSuperAdmin ? (
         <div
           role="tablist"
@@ -98,8 +101,8 @@ export function OfficeFilterTabs() {
                 className={cn(
                   tabBase,
                   active
-                    ? "border-cpc-blue-accent bg-cpc-blue-accent text-white"
-                    : "border-cpc-tile-border/70 bg-white text-cpc-navy-text hover:bg-cpc-section-light",
+                    ? "border-cpc-blue-accent bg-cpc-blue-accent text-white shadow-xs"
+                    : "border-white/80 bg-white/80 text-cpc-navy-text shadow-xs backdrop-blur-xs hover:border-cpc-tile-border hover:bg-white",
                 )}
               >
                 {tab.label}

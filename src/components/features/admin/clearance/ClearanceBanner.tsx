@@ -30,7 +30,7 @@ export function ClearanceBanner({ onPreviewStudent, onOpenSignatures }: Clearanc
               <button
                 type="button"
                 onClick={onOpenSignatures}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/80 bg-white/85 px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-cpc-navy-text shadow-xs backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-cpc-tile-border hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
               >
                 <PenTool className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 My signatures
@@ -38,7 +38,7 @@ export function ClearanceBanner({ onPreviewStudent, onOpenSignatures }: Clearanc
               <button
                 type="button"
                 onClick={onPreviewStudent}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-blue-accent bg-cpc-blue-accent px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-white transition-colors hover:bg-cpc-blue-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-blue-accent bg-cpc-blue-accent px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:bg-cpc-blue-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
               >
                 <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 Preview as student
@@ -46,7 +46,10 @@ export function ClearanceBanner({ onPreviewStudent, onOpenSignatures }: Clearanc
             </div>
           </div>
         }
-        className={cn(closed && "rounded-b-none border-b-0")}
+        className={cn(
+          "border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md",
+          closed && "rounded-b-none border-b-0",
+        )}
       />
 
       {closed && (

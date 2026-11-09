@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { ClipboardList } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { PageBanner } from "@/components/common/display/PageBanner";
@@ -132,13 +132,28 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
   };
 
   return (
-    <div className="space-y-5">
+    <div className="relative space-y-6">
+      {/* Ambient soft glow background elements for glassmorphism depth */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-16 -left-16 h-80 w-80 rounded-full bg-cpc-blue-accent/5 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/3 -right-16 h-96 w-96 rounded-full bg-cpc-navy/4 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-10 left-1/4 h-80 w-80 rounded-full bg-emerald-500/4 blur-3xl"
+      />
+
       <PageBanner
         eyebrow="ENROLLMENT"
         title={meta.title}
         subtitle={meta.subtitle}
+        className="border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
         right={
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cpc-tile-border bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-xs backdrop-blur-sm">
             <ClipboardList className="h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
             {scopeCount.toLocaleString()} application{scopeCount === 1 ? "" : "s"}
           </span>
@@ -149,11 +164,11 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
         <div>
           <h2
             id="enrollment-statistics-heading"
-            className="font-poppins text-[15px] leading-tight font-semibold text-admin-text"
+            className="font-poppins text-[15px] leading-tight font-semibold text-cpc-navy-text"
           >
             Enrollment Statistics
           </h2>
-          <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
+          <p className="mt-0.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
             Live counts from the current enrollment queue. Select a card to open that status.
           </p>
         </div>
@@ -172,26 +187,25 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
             <div>
               <h2
                 id="enrollment-analytics-heading"
-                className="font-poppins text-[15px] leading-tight font-semibold text-admin-text"
+                className="font-poppins text-[15px] leading-tight font-semibold text-cpc-navy-text"
               >
                 Overview &amp; Analytics
               </h2>
-              <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
+              <p className="mt-0.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
                 Application volume, pipeline mix and program distribution for this intake.
               </p>
             </div>
-            <span className="rounded-full border border-admin-border bg-white px-2.5 py-1 font-poppins text-[10px] font-semibold text-admin-muted">
+            <span className="rounded-full border border-cpc-tile-border/60 bg-white/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-cpc-heading-soft backdrop-blur-xs">
               8-week window
             </span>
           </div>
 
-          <div className="grid items-start gap-3.5 xl:grid-cols-3">
+          <div className="grid items-stretch gap-6 xl:grid-cols-3">
             <DashboardPanel
-              className="xl:col-span-2"
               title="Enrollment Trends"
-              subtitle="Applications received and approved per week."
+              subtitle="Weekly applications received vs. approved."
               action={
-                <span className="rounded-full bg-admin-page px-2 py-0.5 font-poppins text-[9px] font-bold tracking-[0.08em] text-admin-muted uppercase">
+                <span className="rounded-full border border-white/80 bg-white/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs">
                   Last 8 weeks
                 </span>
               }
@@ -199,20 +213,29 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
               <EnrollmentTrendChart data={trend} />
             </DashboardPanel>
 
-            <div className="space-y-3.5">
-              <DashboardPanel
-                title="Application Status"
-                subtitle="Pipeline mix for the current intake."
-              >
-                <ApplicationStatusDonut counts={counts} />
-              </DashboardPanel>
-              <DashboardPanel
-                title="Enrollment by Program"
-                subtitle="Applicants grouped by degree program."
-              >
-                <EnrollmentByProgram programs={programs} />
-              </DashboardPanel>
-            </div>
+            <DashboardPanel
+              title="Application Status"
+              subtitle="Pipeline mix for the current intake."
+              action={
+                <span className="rounded-full border border-white/80 bg-white/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs">
+                  Queue mix
+                </span>
+              }
+            >
+              <ApplicationStatusDonut counts={counts} />
+            </DashboardPanel>
+
+            <DashboardPanel
+              title="Enrollment by Program"
+              subtitle="Applicants grouped by degree program."
+              action={
+                <span className="rounded-full border border-white/80 bg-white/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs">
+                  {programs.length} Programs
+                </span>
+              }
+            >
+              <EnrollmentByProgram programs={programs} />
+            </DashboardPanel>
           </div>
         </section>
       )}
@@ -231,25 +254,26 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
       />
 
       {view === "all" && (
-        <div className="grid items-start gap-3.5 xl:grid-cols-3">
+        <div className="grid items-stretch gap-6 xl:grid-cols-12">
           <DashboardPanel
-            className="xl:col-span-2"
+            className="xl:col-span-8"
             title="Recent Enrollment Activity"
             subtitle="Latest applicant submissions and registrar decisions."
             action={
-              <Link
-                to="/admin/enrollment/applications"
-                className="rounded font-poppins text-[10.5px] font-semibold text-admin-secondary transition-colors hover:text-admin-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
-              >
-                View all
-              </Link>
+              <span className="rounded-full border border-white/80 bg-white/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-cpc-navy-text shadow-2xs backdrop-blur-xs">
+                {activity.length} updates
+              </span>
             }
           >
             <RecentEnrollmentActivity items={activity} />
           </DashboardPanel>
 
-          <DashboardPanel title="Quick Actions" subtitle="Common enrollment tasks.">
-            <EnrollmentQuickActions />
+          <DashboardPanel
+            className="xl:col-span-4"
+            title="Quick Actions"
+            subtitle="Common enrollment tasks and queue shortcuts."
+          >
+            <EnrollmentQuickActions counts={counts} total={total} />
           </DashboardPanel>
         </div>
       )}

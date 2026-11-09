@@ -2,7 +2,7 @@ import { Skeleton as SkeletonBlock } from "@/components/ui/skeleton";
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-cpc-tile-border/70 bg-white p-5">
+    <div className="rounded-2xl border border-white/80 bg-white/75 p-5 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md">
       <div className="flex items-center gap-3">
         <SkeletonBlock className="h-11 w-11 rounded-full" />
         <div className="flex-1 space-y-2">
@@ -35,7 +35,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-cpc-tile-border/70 bg-white p-5">
+    <div className="rounded-2xl border border-white/80 bg-white/75 p-5 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md">
       <SkeletonBlock className="h-4 w-40" />
       <SkeletonBlock className="mt-2 h-3 w-64 max-w-full" />
       <div className="mt-5 space-y-3">

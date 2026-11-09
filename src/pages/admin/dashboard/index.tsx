@@ -47,14 +47,29 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="relative space-y-6">
+      {/* Ambient soft glow background elements for glassmorphism depth */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-16 -left-16 h-80 w-80 rounded-full bg-cpc-blue-accent/5 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/3 -right-16 h-96 w-96 rounded-full bg-cpc-navy/4 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-10 left-1/4 h-80 w-80 rounded-full bg-emerald-500/4 blur-3xl"
+      />
+
       <PageBanner
+        className="border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
         eyebrow="STAFF PORTAL"
         title="Dashboard"
         subtitle={`Welcome back, ${user.name.split(" ")[0]}. Here's what needs your attention today.`}
         right={
           <div className="flex flex-col items-start gap-2 sm:items-end">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-cpc-tile-border bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-xs backdrop-blur-sm">
               <CalendarDays className="h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
               {today}
             </span>
@@ -62,7 +77,7 @@ export default function DashboardPage() {
               type="button"
               onClick={() => void handleRefresh()}
               disabled={refreshing || loading}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-heading-soft transition-colors hover:bg-cpc-section-light hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/80 bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-heading-soft shadow-xs backdrop-blur-sm transition-all hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
             >
               <RefreshCw
                 className={cn("h-3.5 w-3.5", refreshing && "animate-spin")}
@@ -88,7 +103,7 @@ export default function DashboardPage() {
           <section aria-label="Key metrics">
             {stats.stats.length === 0 ? (
               <EmptyState
-                className="rounded-2xl border border-cpc-tile-border/70 bg-white"
+                className="rounded-2xl border border-white/80 bg-white/75 p-8 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md"
                 title="No metrics yet"
                 description="Counts appear here as soon as requests start coming in."
               />
@@ -101,12 +116,12 @@ export default function DashboardPage() {
             )}
           </section>
 
-          <div className="grid gap-5 xl:grid-cols-12">
+          <div className="grid items-stretch gap-6 xl:grid-cols-12">
             <section
               aria-labelledby="enrollment-overview-heading"
-              className="rounded-2xl border border-cpc-tile-border/70 bg-white xl:col-span-8"
+              className="flex flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:shadow-[0_16px_40px_rgba(15,36,104,0.08)] xl:col-span-8"
             >
-              <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/60 px-4 py-3">
+              <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/50 bg-white/40 px-5 py-4 backdrop-blur-xs">
                 <div>
                   <h2
                     id="enrollment-overview-heading"
@@ -127,7 +142,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              <div className="grid gap-4 p-4 lg:grid-cols-2">
+              <div className="flex flex-1 flex-col justify-between gap-5 p-5">
                 <EnrollmentChart rows={enrollment} />
                 <EnrollmentOverviewTable rows={enrollment} />
               </div>
@@ -135,9 +150,9 @@ export default function DashboardPage() {
 
             <section
               aria-labelledby="quick-actions-heading"
-              className="rounded-2xl border border-cpc-tile-border/70 bg-white xl:col-span-4"
+              className="flex flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:shadow-[0_16px_40px_rgba(15,36,104,0.08)] xl:col-span-4"
             >
-              <div className="border-b border-cpc-tile-border/60 px-4 py-3">
+              <div className="border-b border-cpc-tile-border/50 bg-white/40 px-5 py-4 backdrop-blur-xs">
                 <h2
                   id="quick-actions-heading"
                   className="font-poppins text-sm font-semibold text-cpc-navy-text"
@@ -149,7 +164,7 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="p-3">
+              <div className="flex-1 p-4">
                 <QuickActions
                   role={user.role}
                   counts={{
@@ -160,8 +175,8 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-2 border-t border-cpc-tile-border/60 px-3 py-3 sm:grid-cols-3">
-                <div className="rounded-lg bg-emerald-50 px-2 py-2 text-center">
+              <div className="grid grid-cols-1 gap-2.5 border-t border-cpc-tile-border/50 bg-white/40 px-4 py-3.5 backdrop-blur-xs sm:grid-cols-3">
+                <div className="rounded-xl border border-emerald-200/60 bg-emerald-50/80 px-2 py-2 text-center backdrop-blur-xs">
                   <CheckCircle2 className="mx-auto h-3.5 w-3.5 text-emerald-600" aria-hidden />
                   <p className="mt-1 font-poppins text-base font-bold text-emerald-700 tabular-nums">
                     {stats.signedToday}
@@ -170,14 +185,14 @@ export default function DashboardPage() {
                     Signed today
                   </p>
                 </div>
-                <div className="rounded-lg bg-rose-50 px-2 py-2 text-center">
+                <div className="rounded-xl border border-rose-200/60 bg-rose-50/80 px-2 py-2 text-center backdrop-blur-xs">
                   <XCircle className="mx-auto h-3.5 w-3.5 text-rose-600" aria-hidden />
                   <p className="mt-1 font-poppins text-base font-bold text-rose-700 tabular-nums">
                     {stats.rejectedClearance}
                   </p>
                   <p className="font-poppins text-[9px] font-medium text-rose-700">Rejected</p>
                 </div>
-                <div className="rounded-lg bg-cpc-section-light px-2 py-2 text-center">
+                <div className="rounded-xl border border-cpc-tile-border/60 bg-cpc-section-light/80 px-2 py-2 text-center backdrop-blur-xs">
                   <ShieldCheck className="mx-auto h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
                   <p className="mt-1 font-poppins text-base font-bold text-cpc-blue-accent tabular-nums">
                     {stats.pendingClearance}
@@ -192,9 +207,9 @@ export default function DashboardPage() {
 
           <section
             aria-labelledby="recent-activity-heading"
-            className="overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white"
+            className="overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:shadow-[0_16px_40px_rgba(15,36,104,0.08)]"
           >
-            <div className="flex flex-wrap items-start justify-between gap-2 px-4 pt-3">
+            <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/50 bg-white/40 px-5 py-4 backdrop-blur-xs">
               <div>
                 <h2
                   id="recent-activity-heading"

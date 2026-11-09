@@ -13,8 +13,8 @@ export function ClearanceBody() {
   if (initializing) return <ClearanceSkeleton />;
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 lg:grid-cols-[1.55fr_1fr]">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="grid items-stretch gap-6 lg:grid-cols-[1.4fr_1fr]">
         <ClearanceStatusCard />
         <ClearanceConfirmationCard />
       </div>

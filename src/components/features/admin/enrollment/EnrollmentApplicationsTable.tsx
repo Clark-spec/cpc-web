@@ -120,18 +120,18 @@ export function EnrollmentApplicationsTable({
   return (
     <section
       aria-labelledby="enrollment-applications-heading"
-      className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-card shadow-[0_2px_12px_rgba(24,52,111,0.04)]"
+      className="overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:shadow-[0_16px_40px_rgba(15,36,104,0.08)]"
     >
-      <div className="flex flex-col gap-2 border-b border-admin-border/70 px-4 pt-3.5 pb-3">
-        <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="flex flex-col gap-3 border-b border-cpc-tile-border/50 bg-white/40 px-5 py-4 backdrop-blur-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <h2
               id="enrollment-applications-heading"
-              className="font-poppins text-[15px] leading-tight font-semibold text-admin-text"
+              className="font-poppins text-[15px] leading-tight font-semibold text-cpc-navy-text"
             >
               {title}
             </h2>
-            <p className="mt-0.5 font-poppins text-[11px] leading-snug text-admin-muted">
+            <p className="mt-0.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
               {subtitle}
             </p>
           </div>
@@ -139,7 +139,7 @@ export function EnrollmentApplicationsTable({
           <label className="relative w-full sm:w-64">
             <span className="sr-only">Search enrollment applications</span>
             <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-admin-muted"
+              className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-cpc-heading-soft"
               aria-hidden
             />
             <input
@@ -147,14 +147,14 @@ export function EnrollmentApplicationsTable({
               value={query}
               onChange={(event) => changeQuery(event.target.value)}
               placeholder="Search ID, name, program..."
-              className="h-8 w-full rounded-lg border border-admin-border bg-white pr-8 pl-8 font-poppins text-[11px] text-admin-text outline-none placeholder:text-admin-muted/80 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
+              className="h-8.5 w-full rounded-xl border border-white/80 bg-white/70 pr-8 pl-8 font-poppins text-xs text-cpc-navy-text shadow-2xs outline-none backdrop-blur-xs placeholder:text-cpc-heading-soft/60 focus:border-cpc-blue-accent/60 focus:bg-white focus:ring-2 focus:ring-cpc-blue-accent/15"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => changeQuery("")}
                 aria-label="Clear search"
-                className="absolute top-1/2 right-1.5 -translate-y-1/2 cursor-pointer rounded p-0.5 text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+                className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer rounded p-0.5 text-cpc-heading-soft transition-colors hover:bg-white hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
               >
                 <X className="h-3 w-3" aria-hidden />
               </button>
@@ -163,34 +163,34 @@ export function EnrollmentApplicationsTable({
         </div>
 
         {!lockedStatus && (
-          <div className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 pb-0.5 admin-scrollbar">
-          {FILTERS.map((entry) => {
-            const active = activeFilter === entry.id;
-            return (
-              <button
-                key={entry.id}
-                type="button"
-                onClick={() => changeFilter(entry.id)}
-                aria-pressed={active}
-                className={cn(
-                  "inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-poppins text-[10.5px] font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info",
-                  active
-                    ? "border-admin-secondary bg-admin-secondary text-white"
-                    : "border-admin-border bg-white text-admin-muted hover:border-admin-secondary/40 hover:text-admin-text",
-                )}
-              >
-                {entry.label}
-                <span
+          <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-0.5 admin-scrollbar">
+            {FILTERS.map((entry) => {
+              const active = activeFilter === entry.id;
+              return (
+                <button
+                  key={entry.id}
+                  type="button"
+                  onClick={() => changeFilter(entry.id)}
+                  aria-pressed={active}
                   className={cn(
-                    "rounded-full px-1 py-0.5 text-[9px] leading-none font-bold tabular-nums",
-                    active ? "bg-white/20 text-white" : "bg-admin-page text-admin-secondary",
+                    "inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 font-poppins text-[11px] font-semibold whitespace-nowrap transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                    active
+                      ? "border-cpc-blue-accent bg-cpc-blue-accent text-white shadow-xs shadow-cpc-blue-accent/30"
+                      : "border-white/80 bg-white/70 text-cpc-heading-soft backdrop-blur-xs hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text",
                   )}
                 >
-                  {filterCount(entry.id)}
-                </span>
-              </button>
-            );
-          })}
+                  {entry.label}
+                  <span
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[9px] leading-tight font-bold tabular-nums",
+                      active ? "bg-white/20 text-white" : "bg-cpc-section-light text-cpc-blue-accent",
+                    )}
+                  >
+                    {filterCount(entry.id)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -208,7 +208,7 @@ export function EnrollmentApplicationsTable({
             <button
               type="button"
               onClick={clearAll}
-              className="mt-1 cursor-pointer rounded-md border border-admin-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-admin-secondary transition-colors hover:bg-admin-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+              className="mt-1 cursor-pointer rounded-lg border border-white/80 bg-white/80 px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text shadow-xs backdrop-blur-xs transition-colors hover:border-cpc-tile-border hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
             >
               Reset filters
             </button>
@@ -223,7 +223,7 @@ export function EnrollmentApplicationsTable({
                 Enrollment applications awaiting processing. {filtered.length} results.
               </caption>
               <thead>
-                <tr className="border-b border-admin-border/70 bg-admin-page/70">
+                <tr className="border-b border-cpc-tile-border/50 bg-cpc-section-light/60 backdrop-blur-xs">
                   {[
                     "Application ID",
                     "Student Name",
@@ -236,7 +236,7 @@ export function EnrollmentApplicationsTable({
                       key={label}
                       scope="col"
                       className={cn(
-                        "px-3 py-2 font-poppins text-[10px] font-bold tracking-[0.09em] text-admin-muted uppercase",
+                        "px-4 py-2.5 font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase whitespace-nowrap",
                         label === "Actions" ? "text-right" : "text-left",
                       )}
                     >
@@ -245,58 +245,58 @@ export function EnrollmentApplicationsTable({
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-admin-border/60">
+              <tbody className="divide-y divide-cpc-tile-border/40">
                 {rows.map((application) => {
                   const decided = DECIDED.includes(application.status);
 
                   return (
                     <tr
                       key={application.id}
-                      className="transition-colors hover:bg-admin-page/50"
+                      className="transition-colors hover:bg-cpc-section-light/40"
                     >
-                      <td className="px-3 py-2.5 font-poppins text-[11px] font-semibold whitespace-nowrap text-admin-secondary">
+                      <td className="px-4 py-3 font-poppins text-xs font-semibold whitespace-nowrap text-cpc-blue-accent">
                         {application.id}
                       </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-2">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
                           <span
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-admin-accent/60 font-poppins text-[9.5px] font-bold text-admin-secondary"
+                            className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-xl border border-white/80 bg-cpc-section-light font-poppins text-[10px] font-bold text-cpc-navy-text shadow-2xs"
                             aria-hidden
                           >
                             {initials(application.studentName)}
                           </span>
                           <span className="min-w-0">
-                            <span className="block max-w-[170px] truncate font-poppins text-[11.5px] font-semibold text-admin-text">
+                            <span className="block truncate font-poppins text-xs font-semibold text-cpc-navy-text">
                               {application.studentName}
                             </span>
-                            <span className="block font-poppins text-[10px] text-admin-muted">
+                            <span className="block font-poppins text-[10px] text-cpc-heading-soft">
                               {application.studentId}
                             </span>
                           </span>
                         </div>
                       </td>
-                      <td className="px-3 py-2.5">
-                        <span className="block max-w-[170px] truncate font-poppins text-[11px] text-admin-text">
+                      <td className="px-4 py-3">
+                        <span className="block truncate font-poppins text-xs font-medium text-cpc-navy-text">
                           {application.program}
                         </span>
-                        <span className="font-poppins text-[9.5px] font-semibold text-admin-muted">
+                        <span className="font-poppins text-[10px] font-semibold text-cpc-heading-soft">
                           {application.programCode} · {application.yearLevel}
                         </span>
                       </td>
-                      <td className="px-3 py-2.5 font-poppins text-[11px] whitespace-nowrap text-admin-muted">
+                      <td className="px-4 py-3 font-poppins text-xs whitespace-nowrap text-cpc-heading-soft">
                         {formatDate(application.submittedAt)}
                       </td>
-                      <td className="px-3 py-2.5">
+                      <td className="px-4 py-3">
                         <ApplicationStatusBadge status={application.status} />
                       </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-end gap-1">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
                             onClick={() => onView(application)}
                             aria-label={`View ${application.studentName}'s application`}
                             title="View details"
-                            className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-admin-border bg-white text-admin-muted transition-colors hover:border-admin-secondary/40 hover:bg-admin-page hover:text-admin-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+                            className="inline-flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-lg border border-white/80 bg-white/80 text-cpc-heading-soft shadow-xs backdrop-blur-xs transition-all hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
                           >
                             <Eye className="h-3.5 w-3.5" aria-hidden />
                           </button>
@@ -307,7 +307,7 @@ export function EnrollmentApplicationsTable({
                                 onClick={() => onApprove(application)}
                                 aria-label={`Approve ${application.studentName}'s application`}
                                 title="Approve application"
-                                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 text-emerald-600 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                className="inline-flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-lg border border-emerald-200/80 bg-emerald-50/80 text-emerald-700 shadow-xs backdrop-blur-xs transition-all hover:bg-emerald-100 hover:text-emerald-800 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                               >
                                 <Check className="h-3.5 w-3.5" aria-hidden />
                               </button>
@@ -316,7 +316,7 @@ export function EnrollmentApplicationsTable({
                                 onClick={() => onReject(application)}
                                 aria-label={`Reject ${application.studentName}'s application`}
                                 title="Reject application"
-                                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-rose-200 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+                                className="inline-flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-lg border border-rose-200/80 bg-rose-50/80 text-rose-700 shadow-xs backdrop-blur-xs transition-all hover:bg-rose-100 hover:text-rose-800 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
                               >
                                 <X className="h-3.5 w-3.5" aria-hidden />
                               </button>
@@ -332,45 +332,45 @@ export function EnrollmentApplicationsTable({
           </div>
 
           {/* Cards below the desktop breakpoint. */}
-          <ul className="divide-y divide-admin-border/60 xl:hidden">
+          <ul className="divide-y divide-cpc-tile-border/40 xl:hidden">
             {rows.map((application) => {
               const decided = DECIDED.includes(application.status);
 
               return (
-                <li key={application.id} className="px-3.5 py-3">
+                <li key={application.id} className="px-4 py-3.5 transition-colors hover:bg-cpc-section-light/30">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-poppins text-[10.5px] font-semibold text-admin-secondary">
+                    <span className="font-poppins text-xs font-semibold text-cpc-blue-accent">
                       {application.id}
                     </span>
                     <ApplicationStatusBadge status={application.status} />
                   </div>
 
-                  <div className="mt-1.5 flex items-center gap-2">
+                  <div className="mt-2 flex items-center gap-2.5">
                     <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-admin-accent/60 font-poppins text-[9.5px] font-bold text-admin-secondary"
+                      className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-xl border border-white/80 bg-cpc-section-light font-poppins text-[10px] font-bold text-cpc-navy-text shadow-2xs"
                       aria-hidden
                     >
                       {initials(application.studentName)}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-poppins text-[11.5px] font-semibold text-admin-text">
+                      <p className="truncate font-poppins text-xs font-semibold text-cpc-navy-text">
                         {application.studentName}
                       </p>
-                      <p className="truncate font-poppins text-[10px] text-admin-muted">
+                      <p className="truncate font-poppins text-[10.5px] text-cpc-heading-soft">
                         {application.program} · {application.yearLevel}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-poppins text-[10px] text-admin-muted">
+                  <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-cpc-tile-border/30 pt-2">
+                    <span className="font-poppins text-[10.5px] text-cpc-heading-soft">
                       Submitted {formatDate(application.submittedAt)}
                     </span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => onView(application)}
-                        className="cursor-pointer rounded-md border border-admin-border bg-white px-2 py-1 font-poppins text-[10px] font-semibold text-admin-secondary transition-colors hover:bg-admin-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
+                        className="cursor-pointer rounded-lg border border-white/80 bg-white/80 px-2.5 py-1 font-poppins text-[10.5px] font-semibold text-cpc-navy-text shadow-xs backdrop-blur-xs transition-colors hover:border-cpc-tile-border hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
                       >
                         View
                       </button>
@@ -379,14 +379,14 @@ export function EnrollmentApplicationsTable({
                           <button
                             type="button"
                             onClick={() => onApprove(application)}
-                            className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 font-poppins text-[10px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                            className="cursor-pointer rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 font-poppins text-[10.5px] font-semibold text-emerald-700 shadow-xs backdrop-blur-xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                           >
                             Approve
                           </button>
                           <button
                             type="button"
                             onClick={() => onReject(application)}
-                            className="cursor-pointer rounded-md border border-rose-200 bg-rose-50 px-2 py-1 font-poppins text-[10px] font-semibold text-rose-700 transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+                            className="cursor-pointer rounded-lg border border-rose-200/80 bg-rose-50/80 px-2.5 py-1 font-poppins text-[10.5px] font-semibold text-rose-700 shadow-xs backdrop-blur-xs transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
                           >
                             Reject
                           </button>
@@ -399,29 +399,29 @@ export function EnrollmentApplicationsTable({
             })}
           </ul>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-admin-border/70 px-4 py-2.5">
-            <p className="font-poppins text-[10px] text-admin-muted">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-cpc-tile-border/50 bg-white/40 px-5 py-3.5 backdrop-blur-xs">
+            <p className="font-poppins text-[11px] text-cpc-heading-soft">
               Showing{" "}
-              <span className="font-semibold text-admin-text tabular-nums">
+              <span className="font-semibold text-cpc-navy-text tabular-nums">
                 {(safePage - 1) * PAGE_SIZE + 1}–
                 {Math.min(safePage * PAGE_SIZE, filtered.length)}
               </span>{" "}
-              of <span className="font-semibold text-admin-text tabular-nums">{filtered.length}</span>
-              <span className="mx-1.5 text-admin-border">|</span>
-              Sample data for interface review — actions stay in this browser session.
+              of <span className="font-semibold text-cpc-navy-text tabular-nums">{filtered.length}</span>
+              <span className="mx-2 opacity-50">·</span>
+              Applications are updated live in this session.
             </p>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setPage(Math.max(1, safePage - 1))}
                 disabled={safePage <= 1}
                 aria-label="Previous page"
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-admin-border bg-white text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-lg border border-white/80 bg-white/80 text-cpc-heading-soft shadow-xs backdrop-blur-xs transition-all hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
               </button>
-              <span className="px-1 font-poppins text-[10px] font-semibold text-admin-text tabular-nums">
+              <span className="px-1.5 font-poppins text-xs font-semibold text-cpc-navy-text tabular-nums">
                 {safePage} / {pageCount}
               </span>
               <button
@@ -429,7 +429,7 @@ export function EnrollmentApplicationsTable({
                 onClick={() => setPage(Math.min(pageCount, safePage + 1))}
                 disabled={safePage >= pageCount}
                 aria-label="Next page"
-                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-admin-border bg-white text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7.5 w-7.5 cursor-pointer items-center justify-center rounded-lg border border-white/80 bg-white/80 text-cpc-heading-soft shadow-xs backdrop-blur-xs transition-all hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-3.5 w-3.5" aria-hidden />
               </button>

@@ -59,7 +59,7 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
 
   return (
     <div className="pb-2">
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-cpc-tile-border/60 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-cpc-tile-border/40 bg-white/30 px-4 py-3 backdrop-blur-xs">
         <span className="mr-1 font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">
           Filter
         </span>
@@ -77,10 +77,10 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
               onClick={() => setFilter(entry.id)}
               aria-pressed={active}
               className={cn(
-                "inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-poppins text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                "inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-poppins text-[11px] font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
                 active
-                  ? "border-cpc-blue-accent bg-cpc-blue-accent text-white"
-                  : "border-cpc-tile-border bg-white text-cpc-heading-soft hover:bg-cpc-section-light",
+                  ? "border-cpc-blue-accent bg-cpc-blue-accent text-white shadow-xs shadow-cpc-blue-accent/30"
+                  : "border-white/80 bg-white/70 text-cpc-heading-soft backdrop-blur-xs hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text",
               )}
             >
               {entry.label}
@@ -122,7 +122,7 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
                 Recent admin activity, newest first. Selecting a user opens their quick view.
               </caption>
               <thead className="sticky top-0 z-10">
-                <tr className="border-b border-cpc-tile-border/60 bg-cpc-section-light/60">
+                <tr className="border-b border-cpc-tile-border/50 bg-cpc-section-light/70 backdrop-blur-xs">
                   <th
                     scope="col"
                     className="px-4 py-2 text-left font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase whitespace-nowrap"

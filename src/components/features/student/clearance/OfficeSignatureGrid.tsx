@@ -26,16 +26,16 @@ export function OfficeSignatureGrid() {
 
   return (
     <section aria-labelledby="signatures-heading" className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2
             id="signatures-heading"
             className="font-poppins text-lg font-bold text-cpc-navy-text"
           >
-            Signatures
+            Office Signatures
           </h2>
-          <p className="mt-1 font-poppins text-xs text-cpc-heading-soft">
-            Request each office to sign. {signed} of {offices.length} offices have signed.
+          <p className="mt-0.5 font-poppins text-xs text-cpc-heading-soft">
+            Request endorsement from each required department. {signed} of {offices.length} offices have signed.
           </p>
         </div>
 
@@ -43,23 +43,23 @@ export function OfficeSignatureGrid() {
           type="button"
           onClick={() => setConfirmOpen(true)}
           disabled={notRequested.length === 0 || !periodOpen}
-          className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-cpc-navy-text px-3.5 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:border-cpc-tile-border disabled:text-cpc-heading-soft disabled:hover:bg-transparent"
+          className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/80 bg-white/80 px-4 py-2 font-poppins text-xs font-semibold text-cpc-navy-text shadow-xs backdrop-blur-xs transition-all hover:border-cpc-tile-border hover:bg-white hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:border-cpc-tile-border/40 disabled:bg-white/40 disabled:text-cpc-heading-soft/60 disabled:shadow-none"
         >
           {periodOpen ? (
-            <Send className="h-3.5 w-3.5" aria-hidden />
+            <Send className="h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
           ) : (
-            <CalendarOff className="h-3.5 w-3.5" aria-hidden />
+            <CalendarOff className="h-3.5 w-3.5 text-amber-600" aria-hidden />
           )}
-          {periodOpen ? "Request All" : CLEARANCE_CLOSED_MESSAGE}
+          <span>{periodOpen ? "Request All Signatures" : CLEARANCE_CLOSED_MESSAGE}</span>
           {periodOpen && notRequested.length > 0 && (
-            <span className="rounded-full bg-cpc-section-light px-1.5 py-0.5 text-[10px] font-bold text-cpc-blue-accent">
+            <span className="rounded-full bg-cpc-section-light px-2 py-0.5 text-[10px] font-bold text-cpc-blue-accent shadow-2xs">
               {notRequested.length}
             </span>
           )}
         </button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {offices.map((office) => (
           <OfficeSignatureCard key={office.office} office={office} />
         ))}

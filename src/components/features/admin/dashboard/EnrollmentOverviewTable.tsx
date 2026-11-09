@@ -1,6 +1,6 @@
-import { ArrowRight, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Link } from "react-router";
-import { StatusBadge } from "@/components/common/display/StatusBadge";
+import { cn } from "@/lib/cn";
 import { EmptyState } from "@/components/common/display/EmptyState";
 import type { EnrollmentOverviewRow } from "@/types/admin";
 
@@ -8,10 +8,31 @@ type EnrollmentOverviewTableProps = {
   rows: EnrollmentOverviewRow[];
 };
 
+const STATUS_COLORS: Record<EnrollmentOverviewRow["status"], string> = {
+  submitted: "#2b4bd1",
+  "for-review": "#d97706",
+  approved: "#059669",
+  "needs-requirements": "#e11d48",
+};
+
+/** Shorter display labels so tiles never overflow in a 4-col grid. */
+const STATUS_SHORT_LABELS: Record<EnrollmentOverviewRow["status"], string> = {
+  submitted: "Submitted",
+  "for-review": "For Review",
+  approved: "Approved",
+  "needs-requirements": "Needs Req.",
+};
+
+const STATUS_BG: Record<EnrollmentOverviewRow["status"], string> = {
+  submitted: "bg-cpc-section-light text-cpc-blue-accent border-cpc-tile-border",
+  "for-review": "bg-amber-50 text-amber-700 border-amber-200",
+  approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  "needs-requirements": "bg-rose-50 text-rose-700 border-rose-200",
+};
+
 /**
- * Pipeline breakdown with exact counts; also the accessible summary for the
- * chart. The whole row is clickable through a stretched link on the status
- * cell, so there is one focusable target per row instead of two.
+ * Pipeline breakdown with exact counts and visual progress indicators.
+ * Rendered directly under the chart across the full card width.
  */
 export function EnrollmentOverviewTable({ rows }: EnrollmentOverviewTableProps) {
   const total = rows.reduce((sum, row) => sum + row.count, 0);
@@ -26,104 +47,73 @@ export function EnrollmentOverviewTable({ rows }: EnrollmentOverviewTableProps) 
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-cpc-tile-border/70">
-      <table className="w-full border-collapse">
-        <caption className="sr-only">
-          Enrollment overview. {total} applications across {rows.length} statuses.
-          {rows.map((row) => `${row.label}: ${row.count} applications.`).join(" ")}
-        </caption>
-        <thead>
-          <tr className="bg-cpc-section-light/60">
-            <th
-              scope="col"
-              className="px-3 py-2 text-left font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase"
-            >
-              Status
-            </th>
-            <th
-              scope="col"
-              className="px-3 py-2 text-right font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase"
-            >
-              Count
-            </th>
-            <th
-              scope="col"
-              className="hidden px-3 py-2 text-right font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase sm:table-cell"
-            >
-              Last 7 days
-            </th>
-            <th
-              scope="col"
-              className="px-3 py-2 text-right font-poppins text-[10px] font-bold tracking-[0.1em] text-cpc-heading-soft uppercase"
-            >
-              Share
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-cpc-tile-border/60">
-          {rows.map((row) => {
-            const positive = row.last7Days >= 0;
-            const share = total > 0 ? Math.round((row.count / total) * 100) : 0;
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {rows.map((row) => {
+        const positive = row.last7Days >= 0;
+        const share = total > 0 ? Math.round((row.count / total) * 100) : 0;
+        const color = STATUS_COLORS[row.status];
 
-            return (
-              <tr
-                key={row.status}
-                className="relative transition-colors hover:bg-cpc-section-light/40 focus-within:bg-cpc-section-light/40"
+        return (
+          <Link
+            key={row.status}
+            to={`${row.href}?status=${row.status}`}
+            className="group relative flex flex-col justify-between rounded-xl border border-white/80 bg-white/70 p-3.5 shadow-xs backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          >
+            {/* Status label row — uses short label so "Needs Req." never overflows */}
+            <div className="flex items-center justify-between gap-1 overflow-hidden">
+              <span
+                className={cn(
+                  "inline-flex min-w-0 shrink items-center gap-1 overflow-hidden rounded-full border px-2 py-0.5 font-poppins text-[10px] font-semibold leading-none",
+                  STATUS_BG[row.status],
+                )}
               >
-                <td className="px-3 py-2.5">
-                  <StatusBadge status={row.status} />
-                  <Link
-                    to={`${row.href}?status=${row.status}`}
-                    className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-                  >
-                    <span className="sr-only">
-                      Open {row.label} applications ({row.count})
-                    </span>
-                  </Link>
-                </td>
-                <td className="px-3 py-2.5 text-right font-poppins text-sm font-semibold text-cpc-navy-text tabular-nums">
-                  {row.count}
-                </td>
-                <td className="hidden px-3 py-2.5 text-right sm:table-cell">
-                  <span
-                    className={
-                      positive
-                        ? "inline-flex items-center gap-0.5 font-poppins text-xs font-semibold text-emerald-700"
-                        : "inline-flex items-center gap-0.5 font-poppins text-xs font-semibold text-rose-700"
-                    }
-                  >
-                    {positive ? (
-                      <ArrowUpRight className="h-3 w-3" aria-hidden />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3" aria-hidden />
-                    )}
-                    {positive ? "+" : ""}
-                    {row.last7Days}
-                  </span>
-                </td>
-                <td className="px-3 py-2.5">
-                  <div className="flex items-center justify-end gap-1.5">
-                    <span
-                      role="img"
-                      aria-label={`${share}% of all applications`}
-                      className="h-1.5 w-12 overflow-hidden rounded-full bg-cpc-section-light"
-                    >
-                      <span
-                        className="block h-full rounded-full bg-cpc-blue-accent"
-                        style={{ width: `${share}%` }}
-                      />
-                    </span>
-                    <span className="font-poppins text-[10px] font-semibold text-cpc-heading-soft tabular-nums">
-                      {share}%
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-cpc-muted-blue" aria-hidden />
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: color }}
+                  aria-hidden
+                />
+                <span className="truncate">{STATUS_SHORT_LABELS[row.status]}</span>
+              </span>
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-cpc-muted-blue/60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-cpc-blue-accent" aria-hidden />
+            </div>
+
+            <div className="mt-3 flex items-baseline justify-between gap-2">
+              <span className="font-poppins text-2xl font-bold text-cpc-navy-text tabular-nums transition-colors duration-200 group-hover:text-cpc-blue-accent">
+                {row.count}
+              </span>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                  positive
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                    : "bg-rose-50 text-rose-700 border border-rose-200/50",
+                )}
+              >
+                {positive ? (
+                  <ArrowUpRight className="h-2.5 w-2.5 shrink-0" aria-hidden />
+                ) : (
+                  <ArrowDownRight className="h-2.5 w-2.5 shrink-0" aria-hidden />
+                )}
+                {positive ? "+" : ""}
+                {row.last7Days}
+              </span>
+            </div>
+
+            <div className="mt-2.5">
+              <div className="flex items-center justify-between font-poppins text-[10px] text-cpc-heading-soft">
+                <span>Share of pipeline</span>
+                <span className="font-semibold text-cpc-navy-text">{share}%</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-cpc-section-light">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${share}%`, backgroundColor: color }}
+                />
+              </div>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

@@ -52,7 +52,7 @@ const ACTIONS: QuickAction[] = [
   {
     label: "View Service Requests",
     description: "Certificates, transcripts and forms",
-    to: "/admin/student-services/service-requests",
+    to: "/admin/service-requests",
     icon: Inbox,
     roles: ["admin", "registrar", "sao"],
     countKey: "serviceRequests",
@@ -98,15 +98,15 @@ export function QuickActions({ role, counts }: QuickActionsProps) {
             <Link
               to={action.to}
               className={cn(
-                "group flex h-full items-start gap-2.5 rounded-xl border p-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
+                "group flex h-full items-start gap-2.5 rounded-xl border p-3 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
                 primary
-                  ? "border-cpc-navy bg-cpc-navy text-white hover:bg-cpc-navy-deep"
-                  : "border-cpc-tile-border/70 bg-white hover:border-cpc-tile-border hover:bg-cpc-section-light/50",
+                  ? "border-cpc-navy/90 bg-cpc-navy text-white shadow-sm shadow-cpc-navy/20 hover:-translate-y-0.5 hover:bg-cpc-navy-deep hover:shadow-md"
+                  : "border-white/80 bg-white/70 backdrop-blur-xs hover:-translate-y-0.5 hover:border-cpc-blue-accent/30 hover:bg-white hover:shadow-sm",
               )}
             >
               <span
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105",
                   primary ? "bg-white/15 text-white" : "bg-cpc-section-light text-cpc-blue-accent",
                 )}
               >
@@ -122,8 +122,8 @@ export function QuickActions({ role, counts }: QuickActionsProps) {
                   {action.label}
                   <ArrowUpRight
                     className={cn(
-                      "h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100",
-                      primary ? "text-white" : "text-cpc-muted-blue",
+                      "h-3 w-3 shrink-0 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100",
+                      primary ? "text-white" : "text-cpc-blue-accent",
                     )}
                     aria-hidden
                   />

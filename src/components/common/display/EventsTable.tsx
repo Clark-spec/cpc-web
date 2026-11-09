@@ -127,6 +127,16 @@ export function EventsTable({ events }: EventsTableProps) {
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="border-t border-cpc-input-border bg-white font-semibold text-cpc-navy-text">
+              <td className="px-4 py-2.5 sm:px-4 sm:py-3">
+                Total Activities
+              </td>
+              <td className="px-4 py-2.5 text-right tabular-nums sm:px-4 sm:py-3">
+                {events.filter((e) => e.attended).length} / {events.length} Attended
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </section>

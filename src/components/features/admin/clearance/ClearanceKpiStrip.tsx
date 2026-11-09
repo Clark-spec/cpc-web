@@ -188,14 +188,14 @@ function KpiCardButton({ card, index }: { card: KpiCard; index: number }) {
       onClick={() => applyKpiFilter(card.id)}
       aria-label={`${card.label}: ${shown}. ${card.trend.label}. Apply this filter.`}
       className={cn(
-        "flex cursor-pointer flex-col rounded-2xl border border-cpc-tile-border/70 bg-white p-5 text-left transition-all hover:-translate-y-0.5 hover:border-cpc-tile-border hover:shadow-[0_14px_36px_rgba(15,36,104,0.10)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
-        card.alert && "border-rose-200 ring-1 ring-rose-200",
+        "group flex cursor-pointer flex-col justify-between rounded-2xl border border-white/80 bg-white/70 p-5 text-left shadow-[0_4px_20px_rgba(15,36,104,0.04)] backdrop-blur-md transition-all duration-300 ease-out hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white/95 hover:shadow-[0_16px_36px_rgba(43,75,209,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
+        card.alert && "border-rose-300 ring-1 ring-rose-200 bg-rose-50/40",
       )}
     >
       <div className="flex items-center gap-3">
         <span
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105",
             card.tone,
           )}
           aria-hidden
@@ -211,7 +211,7 @@ function KpiCardButton({ card, index }: { card: KpiCard; index: number }) {
         <p
           aria-live="polite"
           aria-atomic="true"
-          className="min-w-0 truncate font-poppins text-[26px] leading-none font-bold text-cpc-navy-text tabular-nums"
+          className="min-w-0 truncate font-poppins text-[26px] leading-none font-bold text-cpc-navy-text tabular-nums transition-colors duration-200 group-hover:text-cpc-blue-accent"
         >
           {shown}
         </p>

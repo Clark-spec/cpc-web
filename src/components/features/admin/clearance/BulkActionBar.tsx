@@ -3,6 +3,7 @@ import { Download, Loader2, ShieldCheck, X, XCircle } from "lucide-react";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/cn";
+import { useSidebar } from "@/components/context/SidebarContext";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { buildOfficeChecks, countIssues } from "@/components/features/admin/clearance/officeChecks";
 import { downloadCsv, rowsToCsv } from "@/components/features/admin/clearance/csv";
@@ -20,6 +21,7 @@ const MAX_REMARKS = 200;
  * (handled by the context).
  */
 export function BulkActionBar() {
+  const { collapsed } = useSidebar();
   const {
     busy,
     bulkApprove,
@@ -101,7 +103,11 @@ export function BulkActionBar() {
     <>
       <div
         ref={barRef}
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:justify-start sm:p-4 xl:pr-[29rem] print:hidden"
+        className={cn(
+          "pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 transition-[left,padding] duration-200 sm:p-4 print:hidden",
+          collapsed ? "lg:left-20" : "lg:left-[280px]",
+          "lg:justify-start xl:pr-[29rem]",
+        )}
       >
         <section
           aria-label="Bulk actions for selected requests"
