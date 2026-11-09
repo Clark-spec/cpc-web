@@ -1,9 +1,28 @@
+import { useState } from "react";
+import { cn } from "@/lib/cn";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
+import {
+  validateCourse,
+  validateSubjectSelection,
+  validateYearLevel,
+} from "@/components/features/student/enrollment/validation";
 import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 export function SubjectsStep() {
   const { state, enrollmentData, updateCourse, toggleSubject } = useEnrollment();
+  const [touched, setTouched] = useState({ course: false, yearLevel: false, subjects: false });
+
+  const courseError = touched.course ? validateCourse(state.course) : undefined;
+  const yearLevelError = touched.yearLevel ? validateYearLevel(state.yearLevel) : undefined;
+  const subjectsError = touched.subjects
+    ? validateSubjectSelection(enrollmentData.subjects.length)
+    : undefined;
+
+  const handleToggleSubject = (subjectCode: string) => {
+    toggleSubject(subjectCode);
+    setTouched((prev) => (prev.subjects ? prev : { ...prev, subjects: true }));
+  };
 
   return (
     <div className="space-y-6">
@@ -25,8 +44,14 @@ export function SubjectsStep() {
           <Select
             id="course"
             value={state.course}
-            onChange={(e) => updateCourse(e.target.value, state.yearLevel)}
-            className="enroll-form-select"
+            onChange={(e) => {
+              updateCourse(e.target.value, state.yearLevel);
+              setTouched((prev) => (prev.course ? prev : { ...prev, course: true }));
+            }}
+            onBlur={() => setTouched((prev) => (prev.course ? prev : { ...prev, course: true }))}
+            className={cn("enroll-form-select", courseError && "error")}
+            aria-invalid={courseError ? true : undefined}
+            aria-describedby={courseError ? "course-error" : undefined}
             required
           >
             <option value="">Select a course</option>
@@ -37,6 +62,11 @@ export function SubjectsStep() {
             <option value="BA Political Science">BA Political Science</option>
             <option value="BS Psychology">BS Psychology</option>
           </Select>
+          {courseError && (
+            <span id="course-error" className="enroll-form-error" role="alert">
+              {courseError}
+            </span>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -46,8 +76,14 @@ export function SubjectsStep() {
           <Select
             id="yearLevel"
             value={state.yearLevel}
-            onChange={(e) => updateCourse(state.course, e.target.value)}
-            className="enroll-form-select"
+            onChange={(e) => {
+              updateCourse(state.course, e.target.value);
+              setTouched((prev) => (prev.yearLevel ? prev : { ...prev, yearLevel: true }));
+            }}
+            onBlur={() => setTouched((prev) => (prev.yearLevel ? prev : { ...prev, yearLevel: true }))}
+            className={cn("enroll-form-select", yearLevelError && "error")}
+            aria-invalid={yearLevelError ? true : undefined}
+            aria-describedby={yearLevelError ? "yearLevel-error" : undefined}
             required
           >
             <option value="">Select year level</option>
@@ -56,6 +92,11 @@ export function SubjectsStep() {
             <option value="3rd Year">3rd Year</option>
             <option value="4th Year">4th Year</option>
           </Select>
+          {yearLevelError && (
+            <span id="yearLevel-error" className="enroll-form-error" role="alert">
+              {yearLevelError}
+            </span>
+          )}
         </div>
       </div>
 
@@ -74,7 +115,7 @@ export function SubjectsStep() {
                   ? "border-enroll-primary bg-enroll-hero-bg"
                   : "border-enroll-border hover:border-enroll-primary"
               }`}
-              onClick={() => toggleSubject(subject.code)}
+              onClick={() => handleToggleSubject(subject.code)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -82,7 +123,8 @@ export function SubjectsStep() {
                     <input
                       type="checkbox"
                       checked={subject.isSelected}
-                      onChange={() => toggleSubject(subject.code)}
+                      onChange={() => handleToggleSubject(subject.code)}
+                      onClick={(e) => e.stopPropagation()}
                       className="w-5 h-5 text-enroll-primary rounded border-enroll-border focus:ring-enroll-primary"
                     />
                     <div>
@@ -107,6 +149,12 @@ export function SubjectsStep() {
             </div>
           ))}
         </div>
+
+        {subjectsError && (
+          <span className="enroll-form-error" role="alert">
+            {subjectsError}
+          </span>
+        )}
 
         <div className="pt-4 border-t border-enroll-border">
           <div className="flex items-center justify-between">

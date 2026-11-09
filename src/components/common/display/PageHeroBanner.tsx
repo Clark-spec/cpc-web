@@ -33,7 +33,7 @@ export function PageHeroBanner({
     >
       <div className="absolute inset-0 bg-gradient-to-r from-cpc-navy-deep/95 via-cpc-navy/85 to-cpc-navy/55" />
 
-      <div className="relative z-10 mx-auto flex min-h-[260px] w-full max-w-[1440px] flex-col justify-center px-4 py-10 sm:min-h-[310px] sm:px-6 lg:px-[50px]">
+      <div className="relative z-10 mx-auto flex min-h-[260px] w-full max-w-[var(--cpc-shell-max-width)] flex-col justify-center px-[var(--cpc-shell-gutter)] py-10 sm:min-h-[310px]">
         <nav aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-white/80 sm:text-sm">
             {breadcrumbItems.map((item, index) => {

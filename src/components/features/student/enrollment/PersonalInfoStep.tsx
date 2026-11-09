@@ -1,14 +1,71 @@
+import { useState, type ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
+import { validatePersonalInfo } from "@/components/features/student/enrollment/validation";
+import type { PersonalInfo } from "@/components/features/student/enrollment/mockData";
 
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const CIVIL_STATUS_OPTIONS = ["Single", "Married", "Widowed", "Divorced", "Separated"];
 
+type FieldName = keyof PersonalInfo;
+
+function Field({
+  id,
+  label,
+  required,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="enroll-form-label">
+        {label}
+        {required && (
+          <span className="text-sr-danger" aria-hidden>
+            {" "}
+            *
+          </span>
+        )}
+      </label>
+      {children}
+      {error && (
+        <span id={`${id}-error`} className="enroll-form-error" role="alert">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function PersonalInfoStep() {
   const { state, updatePersonalInfo } = useEnrollment();
+  const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>({});
 
-  const handleInputChange = (field: keyof typeof state.personalInfo, value: string) => {
-    updatePersonalInfo({ [field]: value });
+  const errors = validatePersonalInfo(state.personalInfo);
+  const errorFor = (field: FieldName) => (touched[field] ? errors[field] : undefined);
+
+  const inputClass = (field: FieldName) => {
+    const error = errorFor(field);
+    const hasValue = Boolean(state.personalInfo[field]?.trim());
+    return cn("enroll-form-input", error && "error", !error && touched[field] && hasValue && "valid");
   };
+
+  const handleInputChange = (field: FieldName, value: string) => {
+    updatePersonalInfo({ [field]: value });
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
+  };
+
+  const handleBlur = (field: FieldName) => () => {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
+  };
+
+  const describedBy = (field: FieldName) => (errorFor(field) ? `${field}-error` : undefined);
 
   return (
     <div className="space-y-6">
@@ -27,75 +84,73 @@ export function PersonalInfoStep() {
         <h4 className="text-lg font-semibold text-enroll-heading">Basic Information</h4>
         
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Row 1 */}
-          <div className="space-y-2">
-            <label htmlFor="firstName" className="enroll-form-label">
-              First Name *
-            </label>
+          <Field id="firstName" label="First Name" required error={errorFor("firstName")}>
             <input
               id="firstName"
               type="text"
               value={state.personalInfo.firstName || ""}
               onChange={(e) => handleInputChange("firstName", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("firstName")}
+              className={inputClass("firstName")}
               placeholder="Enter first name"
+              aria-invalid={errorFor("firstName") ? true : undefined}
+              aria-describedby={describedBy("firstName")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="middleName" className="enroll-form-label">
-              Middle Name
-            </label>
+          <Field id="middleName" label="Middle Name" error={errorFor("middleName")}>
             <input
               id="middleName"
               type="text"
               value={state.personalInfo.middleName || ""}
               onChange={(e) => handleInputChange("middleName", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("middleName")}
+              className={inputClass("middleName")}
               placeholder="Enter middle name"
+              aria-invalid={errorFor("middleName") ? true : undefined}
+              aria-describedby={describedBy("middleName")}
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="lastName" className="enroll-form-label">
-              Last Name *
-            </label>
+          <Field id="lastName" label="Last Name" required error={errorFor("lastName")}>
             <input
               id="lastName"
               type="text"
               value={state.personalInfo.lastName || ""}
               onChange={(e) => handleInputChange("lastName", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("lastName")}
+              className={inputClass("lastName")}
               placeholder="Enter last name"
+              aria-invalid={errorFor("lastName") ? true : undefined}
+              aria-describedby={describedBy("lastName")}
               required
             />
-          </div>
+          </Field>
 
-          {/* Row 2 */}
-          <div className="space-y-2">
-            <label htmlFor="birthDate" className="enroll-form-label">
-              Date of Birth *
-            </label>
+          <Field id="birthDate" label="Date of Birth" required error={errorFor("birthDate")}>
             <input
               id="birthDate"
               type="date"
               value={state.personalInfo.birthDate || ""}
               onChange={(e) => handleInputChange("birthDate", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("birthDate")}
+              className={inputClass("birthDate")}
+              aria-invalid={errorFor("birthDate") ? true : undefined}
+              aria-describedby={describedBy("birthDate")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="gender" className="enroll-form-label">
-              Gender *
-            </label>
+          <Field id="gender" label="Gender" required error={errorFor("gender")}>
             <select
               id="gender"
               value={state.personalInfo.gender || ""}
               onChange={(e) => handleInputChange("gender", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("gender")}
+              className={inputClass("gender")}
+              aria-invalid={errorFor("gender") ? true : undefined}
+              aria-describedby={describedBy("gender")}
               required
             >
               <option value="">Select gender</option>
@@ -103,17 +158,17 @@ export function PersonalInfoStep() {
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="civilStatus" className="enroll-form-label">
-              Civil Status *
-            </label>
+          <Field id="civilStatus" label="Civil Status" required error={errorFor("civilStatus")}>
             <select
               id="civilStatus"
               value={state.personalInfo.civilStatus || ""}
               onChange={(e) => handleInputChange("civilStatus", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("civilStatus")}
+              className={inputClass("civilStatus")}
+              aria-invalid={errorFor("civilStatus") ? true : undefined}
+              aria-describedby={describedBy("civilStatus")}
               required
             >
               <option value="">Select status</option>
@@ -121,48 +176,48 @@ export function PersonalInfoStep() {
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
-          </div>
+          </Field>
 
-          {/* Row 3 */}
-          <div className="space-y-2">
-            <label htmlFor="placeOfBirth" className="enroll-form-label">
-              Place of Birth *
-            </label>
+          <Field id="placeOfBirth" label="Place of Birth" required error={errorFor("placeOfBirth")}>
             <input
               id="placeOfBirth"
               type="text"
               value={state.personalInfo.placeOfBirth || ""}
               onChange={(e) => handleInputChange("placeOfBirth", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("placeOfBirth")}
+              className={inputClass("placeOfBirth")}
               placeholder="Enter place of birth"
+              aria-invalid={errorFor("placeOfBirth") ? true : undefined}
+              aria-describedby={describedBy("placeOfBirth")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="nationality" className="enroll-form-label">
-              Nationality *
-            </label>
+          <Field id="nationality" label="Nationality" required error={errorFor("nationality")}>
             <input
               id="nationality"
               type="text"
               value={state.personalInfo.nationality || ""}
               onChange={(e) => handleInputChange("nationality", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("nationality")}
+              className={inputClass("nationality")}
               placeholder="Enter nationality"
+              aria-invalid={errorFor("nationality") ? true : undefined}
+              aria-describedby={describedBy("nationality")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="religion" className="enroll-form-label">
-              Religion
-            </label>
+          <Field id="religion" label="Religion">
             <select
               id="religion"
               value={state.personalInfo.religion || ""}
               onChange={(e) => handleInputChange("religion", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("religion")}
+              className={cn(
+                "enroll-form-input",
+                touched.religion && state.personalInfo.religion && "valid",
+              )}
             >
               <option value="">Select religion</option>
               <option value="Roman Catholic">Roman Catholic</option>
@@ -171,7 +226,7 @@ export function PersonalInfoStep() {
               <option value="Other Christian">Other Christian</option>
               <option value="Other">Other</option>
             </select>
-          </div>
+          </Field>
         </div>
       </div>
 
@@ -180,50 +235,50 @@ export function PersonalInfoStep() {
         <h4 className="text-lg font-semibold text-enroll-heading">Contact Information</h4>
         
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="email" className="enroll-form-label">
-              Email Address *
-            </label>
+          <Field id="email" label="Email Address" required error={errorFor("email")}>
             <input
               id="email"
               type="email"
               value={state.personalInfo.email || ""}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("email")}
+              className={inputClass("email")}
               placeholder="your.email@example.com"
+              aria-invalid={errorFor("email") ? true : undefined}
+              aria-describedby={describedBy("email")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="contactNumber" className="enroll-form-label">
-              Contact Number *
-            </label>
+          <Field id="contactNumber" label="Contact Number" required error={errorFor("contactNumber")}>
             <input
               id="contactNumber"
               type="tel"
               value={state.personalInfo.contactNumber || ""}
               onChange={(e) => handleInputChange("contactNumber", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("contactNumber")}
+              className={inputClass("contactNumber")}
               placeholder="09xxxxxxxxx"
+              aria-invalid={errorFor("contactNumber") ? true : undefined}
+              aria-describedby={describedBy("contactNumber")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="homeAddress" className="enroll-form-label">
-              Home Address *
-            </label>
+          <Field id="homeAddress" label="Home Address" required error={errorFor("homeAddress")}>
             <input
               id="homeAddress"
               type="text"
               value={state.personalInfo.homeAddress || ""}
               onChange={(e) => handleInputChange("homeAddress", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("homeAddress")}
+              className={inputClass("homeAddress")}
               placeholder="Enter home address"
+              aria-invalid={errorFor("homeAddress") ? true : undefined}
+              aria-describedby={describedBy("homeAddress")}
               required
             />
-          </div>
+          </Field>
         </div>
       </div>
 
@@ -232,30 +287,30 @@ export function PersonalInfoStep() {
         <h4 className="text-lg font-semibold text-enroll-heading">Emergency Contact</h4>
         
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="contactPerson" className="enroll-form-label">
-              Contact Person *
-            </label>
+          <Field id="contactPerson" label="Contact Person" required error={errorFor("contactPerson")}>
             <input
               id="contactPerson"
               type="text"
               value={state.personalInfo.contactPerson || ""}
               onChange={(e) => handleInputChange("contactPerson", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("contactPerson")}
+              className={inputClass("contactPerson")}
               placeholder="Enter contact person's name"
+              aria-invalid={errorFor("contactPerson") ? true : undefined}
+              aria-describedby={describedBy("contactPerson")}
               required
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="relationship" className="enroll-form-label">
-              Relationship *
-            </label>
+          <Field id="relationship" label="Relationship" required error={errorFor("relationship")}>
             <select
               id="relationship"
               value={state.personalInfo.relationship || ""}
               onChange={(e) => handleInputChange("relationship", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("relationship")}
+              className={inputClass("relationship")}
+              aria-invalid={errorFor("relationship") ? true : undefined}
+              aria-describedby={describedBy("relationship")}
               required
             >
               <option value="">Select relationship</option>
@@ -267,22 +322,22 @@ export function PersonalInfoStep() {
               <option value="Relative">Relative</option>
               <option value="Friend">Friend</option>
             </select>
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label htmlFor="emergencyContact" className="enroll-form-label">
-              Contact Number *
-            </label>
+          <Field id="emergencyContact" label="Contact Number" required error={errorFor("emergencyContact")}>
             <input
               id="emergencyContact"
               type="tel"
               value={state.personalInfo.emergencyContact || ""}
               onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
-              className="enroll-form-input"
+              onBlur={handleBlur("emergencyContact")}
+              className={inputClass("emergencyContact")}
               placeholder="09xxxxxxxxx"
+              aria-invalid={errorFor("emergencyContact") ? true : undefined}
+              aria-describedby={describedBy("emergencyContact")}
               required
             />
-          </div>
+          </Field>
         </div>
       </div>
     </div>

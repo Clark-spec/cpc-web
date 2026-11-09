@@ -7,9 +7,23 @@ type CameraCaptureModalProps = {
   open: boolean;
   onClose: () => void;
   onCapture: (file: File) => void;
+  title?: string;
+  description?: string;
+  fileNamePrefix?: string;
+  captureLabel?: string;
 };
 
 type CameraStatus = "starting" | "ready" | "error";
+
+const MAX_CAPTURE_EDGE = 1600;
+
+function captureDimensions(width: number, height: number) {
+  const longest = Math.max(width, height);
+  if (longest <= MAX_CAPTURE_EDGE) return { width, height };
+
+  const scale = MAX_CAPTURE_EDGE / longest;
+  return { width: Math.round(width * scale), height: Math.round(height * scale) };
+}
 
 function cameraErrorMessage(error: unknown): string {
   if (error instanceof DOMException) {
@@ -27,7 +41,15 @@ function cameraErrorMessage(error: unknown): string {
 }
 
 /** Captures a photo from the device camera and returns it as a JPEG file. */
-export function CameraCaptureModal({ open, onClose, onCapture }: CameraCaptureModalProps) {
+export function CameraCaptureModal({
+  open,
+  onClose,
+  onCapture,
+  title = "Take a photo",
+  description = "Position the subject in the frame, then capture. The photo will be attached to your complaint.",
+  fileNamePrefix = "complaint-photo",
+  captureLabel = "Take Photo",
+}: CameraCaptureModalProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraStatus>("starting");
@@ -90,8 +112,9 @@ export function CameraCaptureModal({ open, onClose, onCapture }: CameraCaptureMo
     }
 
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const dimensions = captureDimensions(video.videoWidth, video.videoHeight);
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
     const context = canvas.getContext("2d");
 
     if (!context) {
@@ -109,9 +132,7 @@ export function CameraCaptureModal({ open, onClose, onCapture }: CameraCaptureMo
           return;
         }
 
-        onCapture(
-          new File([blob], `complaint-photo-${Date.now()}.jpg`, { type: "image/jpeg" }),
-        );
+        onCapture(new File([blob], `${fileNamePrefix}-${Date.now()}.jpg`, { type: "image/jpeg" }));
         onClose();
       },
       "image/jpeg",
@@ -127,11 +148,10 @@ export function CameraCaptureModal({ open, onClose, onCapture }: CameraCaptureMo
             id="camera-capture-title"
             className="font-poppins text-lg leading-tight font-bold text-cpc-navy-text"
           >
-            Take a photo
+            {title}
           </h2>
           <p className="mt-1 font-poppins text-xs leading-relaxed text-cpc-heading-soft">
-            Position the subject in the frame, then capture. The photo will be attached to your
-            complaint.
+            {description}
           </p>
         </div>
 
@@ -190,7 +210,7 @@ export function CameraCaptureModal({ open, onClose, onCapture }: CameraCaptureMo
             className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Camera className="h-4 w-4" aria-hidden />
-            Take Photo
+            {captureLabel}
           </button>
         </div>
       </div>

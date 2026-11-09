@@ -52,7 +52,7 @@ export function FeaturesGrid() {
   ];
 
   return (
-    <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <section className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
       {features.map((feature) => (
         <FeatureCard
           key={feature.label}

@@ -6,6 +6,12 @@ import { PersonalInfoStep } from "@/components/features/student/enrollment/Perso
 import { SubjectsStep } from "@/components/features/student/enrollment/SubjectsStep";
 import { RequirementsStep } from "@/components/features/student/enrollment/RequirementsStep";
 import { ReviewStep } from "@/components/features/student/enrollment/ReviewStep";
+import {
+  validateCourse,
+  validatePersonalInfo,
+  validateSubjectSelection,
+  validateYearLevel,
+} from "@/components/features/student/enrollment/validation";
 
 export function EnrollmentFlow() {
   const navigate = useNavigate();
@@ -60,16 +66,15 @@ export function EnrollmentFlow() {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return (enrollmentData.personalInfo.firstName || enrollmentData.personalInfo.fullName) &&
-               enrollmentData.personalInfo.email &&
-               enrollmentData.personalInfo.contactNumber &&
-               enrollmentData.personalInfo.homeAddress &&
-               enrollmentData.personalInfo.emergencyContact &&
-               enrollmentData.personalInfo.contactPerson;
+        return Object.keys(validatePersonalInfo(enrollmentData.personalInfo)).length === 0;
       case 2:
-        return enrollmentData.subjects.length > 0;
+        return (
+          !validateCourse(state.course) &&
+          !validateYearLevel(state.yearLevel) &&
+          !validateSubjectSelection(enrollmentData.subjects.length)
+        );
       case 3:
-        return enrollmentData.requirements.every(r => r.status !== "pending");
+        return enrollmentData.requirements.every((requirement) => requirement.status !== "pending");
       default:
         return true;
     }
@@ -77,7 +82,7 @@ export function EnrollmentFlow() {
 
   return (
     <div className="enroll-layout">
-      <div className="enroll-content max-w-5xl mx-auto px-4 py-8">
+      <div className="enroll-content py-8">
         <div className="enroll-card p-8 mb-6">
           <div className="flex items-center justify-between mb-8">
             <div>

@@ -3,6 +3,7 @@ import { PortalFooter } from "@/components/common/layout/PortalFooter";
 import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { EnrollmentFlow } from "@/components/features/student/enrollment/EnrollmentFlow";
 import { EnrollmentHero } from "@/components/features/student/enrollment/EnrollmentHero";
+import { EnrollmentProvider } from "@/components/features/student/enrollment/EnrollmentProvider";
 
 const stepConfig: Record<number, { title: string; subtitle: string }> = {
   1: {
@@ -33,7 +34,9 @@ export default function EnrollmentStepPage() {
 
       <EnrollmentHero title={config.title} subtitle={config.subtitle} />
 
-      <EnrollmentFlow />
+      <EnrollmentProvider>
+        <EnrollmentFlow />
+      </EnrollmentProvider>
       <PortalFooter />
     </div>
   );

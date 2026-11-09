@@ -6,18 +6,20 @@ import { EnrollmentTimeline } from "@/components/features/student/enrollment/Enr
 export function EnrollmentStatusCard() {
   return (
     <div className="enroll-card p-8">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-enroll-hero-bg rounded-full mb-4">
-          <span className="text-sm font-semibold text-enroll-heading">Reference Number:</span>
-          <span className="text-sm font-mono font-bold text-enroll-primary">
-            {mockEnrollmentStatus.referenceNumber}
-          </span>
+      <div className="mb-8 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-enroll-hero-bg px-4 py-2">
+            <span className="text-sm font-semibold text-enroll-heading">Reference Number:</span>
+            <span className="text-sm font-mono font-bold text-enroll-primary">
+              {mockEnrollmentStatus.referenceNumber}
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-2">
+            <div className="h-3 w-3 animate-pulse rounded-full bg-enroll-primary" />
+            <span className="text-lg font-semibold text-enroll-primary">Under Review</span>
+          </div>
         </div>
-        <div className="inline-flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-enroll-primary animate-pulse" />
-          <span className="text-lg font-semibold text-enroll-primary">Under Review</span>
-        </div>
-        <p className="text-sm text-enroll-text mt-2">
+        <p className="mt-3 text-sm text-enroll-text">
           Submitted on {formatEnrollmentDate(mockEnrollmentStatus.submittedAt)}
         </p>
       </div>
