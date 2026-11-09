@@ -273,6 +273,14 @@ export const NAV_SECTIONS: NavSection[] = [
           },
           {
             type: "link",
+            id: "academic-calendar",
+            label: "Academic Calendar",
+            to: "/admin/academics/academic-calendar",
+            icon: CalendarRange,
+            roles: ["admin", "registrar", "dean"],
+          },
+          {
+            type: "link",
             id: "sections",
             label: "Sections",
             to: "/admin/academics/sections",

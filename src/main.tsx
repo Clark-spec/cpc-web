@@ -11,6 +11,7 @@ import { AdminLoginRoute, AdminShell } from "@/components/context/AdminShell";
 import { ProtectedEnrollment } from "@/components/context/ProtectedEnrollment";
 import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
 import ClassSchedulesAdminPage from "@/pages/admin/class-schedules";
+import AcademicCalendarAdminPage from "@/pages/admin/academic-calendar";
 import ComingSoonPage from "@/pages/admin/coming-soon";
 import DashboardPage from "@/pages/admin/dashboard";
 import EnrollmentApplicationsPage from "@/pages/admin/enrollment/applications";
@@ -48,6 +49,10 @@ export function AppRoutes() {
         <Route
           path="academics/class-schedules"
           element={<ClassSchedulesAdminPage />}
+        />
+        <Route
+          path="academics/academic-calendar"
+          element={<AcademicCalendarAdminPage />}
         />
         <Route
           path="enrollment/applications"
