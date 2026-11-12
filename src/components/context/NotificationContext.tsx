@@ -10,6 +10,14 @@ import {
   type ReactNode,
 } from "react";
 import { useToast } from "@/components/ui/toast";
+import {
+  fetchNotificationsApi,
+  markNotificationReadApi,
+  markAllNotificationsReadApi,
+  deleteNotificationApi,
+  deleteAllNotificationsApi,
+} from "@/services/notifications";
+import { useSSE } from "@/hooks/useSSE";
 
 export type NotificationType = "info" | "success" | "warning";
 
@@ -26,30 +34,37 @@ export interface AppNotification {
   createdAt: string;
   read: boolean;
   officeId?: string;
+  href?: string;
 }
 
 export type NotifyInput = {
   message: string;
   type?: NotificationType;
   officeId?: string;
+  href?: string;
   /** Skip the toast when several notifications are created at once. */
   silent?: boolean;
 };
 
-type NotificationContextValue = {
+export type NotificationContextValue = {
   notifications: AppNotification[];
   unreadCount: number;
+  isLoading: boolean;
   /** Adds a notification (newest first), persists it and shows a toast. */
   notify: (input: NotifyInput) => void;
-  markAllRead: () => void;
-  markRead: (id: string) => void;
+  markAllRead: () => Promise<void>;
+  markRead: (id: string) => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
   /** Clears the list (used by "Reset demo"). */
   resetNotifications: () => void;
+  refresh: () => Promise<void>;
 };
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
-const MAX_NOTIFICATIONS = 30;
+const MAX_NOTIFICATIONS = 50;
+const DEFAULT_STORAGE_KEY = "cpc:notifications:student";
 
 function isNotification(value: unknown): value is AppNotification {
   if (typeof value !== "object" || value === null) return false;
@@ -71,20 +86,24 @@ function readStored(key: string): AppNotification[] {
 
 type NotificationProviderProps = {
   children: ReactNode;
-  /** Each feature keeps its own persisted feed. */
-  storageKey: string;
+  /** Optional storage key for offline fallback. Defaults to shared key. */
+  storageKey?: string;
 };
 
 /**
- * Shared notification feed for the student portal. Features mount it with
- * their own `storageKey`; the top-bar bell reads it through `useNotifications`.
+ * Shared notification feed for the student portal. Connects to backend notifications
+ * API and synchronizes in real time via Server-Sent Events (SSE).
  */
-export function NotificationProvider({ children, storageKey }: NotificationProviderProps) {
+export function NotificationProvider({
+  children,
+  storageKey = DEFAULT_STORAGE_KEY,
+}: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<AppNotification[]>(() => readStored(storageKey));
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
-  // Avoid writing the value straight back when it arrived from another tab.
   const skipPersist = useRef(false);
 
+  // Sync to localStorage as offline cache
   useEffect(() => {
     if (skipPersist.current) {
       skipPersist.current = false;
@@ -93,24 +112,52 @@ export function NotificationProvider({ children, storageKey }: NotificationProvi
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(notifications.slice(0, MAX_NOTIFICATIONS)));
     } catch {
-      // Ignore storage failures (private mode / quota exceeded).
+      // Ignore storage failures
     }
   }, [notifications, storageKey]);
 
-  // The admin portal writes staff notifications into this same key; keep both
-  // tabs in sync without a manual refresh.
+  // Load from real backend endpoint
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchNotificationsApi();
+      if (Array.isArray(data.notifications)) {
+        setNotifications(data.notifications);
+      }
+    } catch {
+      // Offline fallback: keep existing stored items
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== storageKey) return;
-      skipPersist.current = true;
-      setNotifications(readStored(storageKey));
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [storageKey]);
+    void refresh();
+  }, [refresh]);
+
+  // Real-time synchronization via Server-Sent Events (SSE)
+  useSSE(
+    useCallback((type) => {
+      if (
+        type === "notification_updated" ||
+        type === "notification_created" ||
+        type === "service_request_updated" ||
+        type === "profile_updated"
+      ) {
+        fetchNotificationsApi()
+          .then((res) => {
+            if (Array.isArray(res.notifications)) {
+              setNotifications(res.notifications);
+            }
+          })
+          .catch(() => {});
+      }
+    }, []),
+    true,
+  );
 
   const notify = useCallback(
-    ({ message, type = "info", officeId, silent = false }: NotifyInput) => {
+    ({ message, type = "info", officeId, href, silent = false }: NotifyInput) => {
       const notification: AppNotification = {
         id: crypto.randomUUID(),
         message,
@@ -118,6 +165,7 @@ export function NotificationProvider({ children, storageKey }: NotificationProvi
         createdAt: new Date().toISOString(),
         read: false,
         officeId,
+        href,
       };
       setNotifications((previous) => [notification, ...previous].slice(0, MAX_NOTIFICATIONS));
       if (!silent) toast(message, type);
@@ -125,19 +173,57 @@ export function NotificationProvider({ children, storageKey }: NotificationProvi
     [toast],
   );
 
-  const markAllRead = useCallback(() => {
+  const markAllRead = useCallback(async () => {
     setNotifications((previous) =>
       previous.map((notification) => ({ ...notification, read: true })),
     );
+    try {
+      await markAllNotificationsReadApi();
+    } catch {
+      // Optimistic state remains
+    }
   }, []);
 
-  const markRead = useCallback((id: string) => {
+  const markRead = useCallback(async (id: string) => {
     setNotifications((previous) =>
       previous.map((notification) =>
         notification.id === id ? { ...notification, read: true } : notification,
       ),
     );
+    try {
+      await markNotificationReadApi(id);
+    } catch {
+      // Optimistic state remains
+    }
   }, []);
+
+  const deleteNotification = useCallback(
+    async (id: string) => {
+      const prev = notifications;
+      setNotifications((current) => current.filter((notification) => notification.id !== id));
+      try {
+        await deleteNotificationApi(id);
+        toast("Notification deleted", "info");
+      } catch (err) {
+        // Roll back on failure
+        setNotifications(prev);
+        toast(err instanceof Error ? err.message : "Failed to delete notification", "warning");
+      }
+    },
+    [notifications, toast],
+  );
+
+  const deleteAllNotifications = useCallback(async () => {
+    const prev = notifications;
+    setNotifications([]);
+    try {
+      await deleteAllNotificationsApi();
+      toast("All notifications deleted", "info");
+    } catch (err) {
+      setNotifications(prev);
+      toast(err instanceof Error ? err.message : "Failed to clear notifications", "warning");
+    }
+  }, [notifications, toast]);
 
   const resetNotifications = useCallback(() => setNotifications([]), []);
 
@@ -150,12 +236,27 @@ export function NotificationProvider({ children, storageKey }: NotificationProvi
     () => ({
       notifications,
       unreadCount,
+      isLoading,
       notify,
       markAllRead,
       markRead,
+      deleteNotification,
+      deleteAllNotifications,
       resetNotifications,
+      refresh,
     }),
-    [notifications, unreadCount, notify, markAllRead, markRead, resetNotifications],
+    [
+      notifications,
+      unreadCount,
+      isLoading,
+      notify,
+      markAllRead,
+      markRead,
+      deleteNotification,
+      deleteAllNotifications,
+      resetNotifications,
+      refresh,
+    ],
   );
 
   return (

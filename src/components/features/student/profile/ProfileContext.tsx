@@ -15,6 +15,7 @@ import {
   resetProfile,
   updateProfile,
 } from "@/services/studentProfile";
+import { useSSE } from "@/hooks/useSSE";
 import type {
   CorrectionRequestInput,
   EditableField,
@@ -114,6 +115,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [reloadToken]);
+
+  // Real-time synchronization via Server-Sent Events (SSE)
+  useSSE(
+    useCallback((type) => {
+      if (type === "profile_updated") {
+        getProfile()
+          .then((fresh) => {
+            setProfile(fresh);
+            setStatus("ready");
+          })
+          .catch(() => {});
+      }
+    }, []),
+    status === "ready",
+  );
 
   const reload = useCallback(() => {
     setStatus("loading");

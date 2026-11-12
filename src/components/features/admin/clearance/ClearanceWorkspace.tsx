@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { ErrorCard } from "@/components/common/feedback/ErrorCard";
 import { useHotkeys } from "@/hooks/useHotkeys";
@@ -53,6 +53,19 @@ export function ClearanceWorkspace() {
   const [approveRow, setApproveRow] = useState<ClearanceRequestRow | null>(null);
   const [rejectRow, setRejectRow] = useState<ClearanceRequestRow | null>(null);
   const [revokeRow, setRevokeRow] = useState<ClearanceRequestRow | null>(null);
+
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 1280 : false,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(max-width: 1279px)");
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    setIsMobile(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
 
   const dialogOpen =
     signaturesOpen || previewOpen || helpOpen || approveRow !== null || rejectRow !== null;
@@ -163,7 +176,7 @@ export function ClearanceWorkspace() {
         </div>
       )}
 
-      {panelVisible && selectedRow && (
+      {isMobile && panelVisible && selectedRow && (
         <div className="xl:hidden">
           <button
             type="button"

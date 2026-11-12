@@ -14,7 +14,7 @@ import type { OfficeFilter, StatusFilter } from "@/components/features/admin/cle
  * Both roles share the status pills underneath.
  */
 export function OfficeFilterTabs() {
-  const { isSuperAdmin, homeOffice, rows, officeLoad, filters, setFilter } = useClearanceAdmin();
+  const { isSuperAdmin, homeOffice, staff, rows, officeLoad, filters, setFilter } = useClearanceAdmin();
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const tabs = useMemo(
@@ -155,7 +155,11 @@ export function OfficeFilterTabs() {
         ) : (
           <p className="inline-flex w-fit items-center gap-2 rounded-xl border border-cpc-blue-accent/30 bg-cpc-blue-accent/10 px-3 py-1.5 font-poppins text-xs font-bold text-cpc-blue-accent">
             <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            {homeOffice ? OFFICE_TITLES[homeOffice] : "My Office"}
+            {homeOffice === "dean" && staff.title
+              ? staff.title
+              : homeOffice
+                ? OFFICE_TITLES[homeOffice]
+                : "My Office"}
           </p>
         )}
       </div>

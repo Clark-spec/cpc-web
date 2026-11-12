@@ -2,18 +2,19 @@
  * HTTP implementation of the Service Requests data source.
  *
  * Contract (relative to `VITE_API_BASE_URL`):
- *   GET    /catalog
- *   GET    /service-requests
- *   POST   /service-requests              (multipart)
- *   GET    /service-requests/:id
- *   GET    /service-requests/:id/document (binary)
- *   GET    /service-requests/drafts/current
- *   PUT    /service-requests/drafts       (multipart)
- *   DELETE /service-requests/drafts
- *   GET    /service-requests/notifications
- *   PATCH  /service-requests/notifications/read
+ *   GET    /service-requests/v1/catalog
+ *   GET    /service-requests/v1/
+ *   POST   /service-requests/v1/          (JSON body)
+ *   GET    /service-requests/v1/:id
+ *   GET    /service-requests/v1/:id/document (binary)
+ *   GET    /service-requests/v1/drafts/current
+ *   PUT    /service-requests/v1/drafts    (multipart)
+ *   DELETE /service-requests/v1/drafts
+ *   GET    /service-requests/v1/notifications
+ *   PATCH  /service-requests/v1/notifications/read
  */
 import { ApiError, apiClient, unwrap } from "@/lib/apiClient";
+import { getCsrfToken } from "@/services/auth";
 import {
   STATUS_LABELS,
   type PurposeOption,
@@ -279,7 +280,7 @@ export async function getCatalog(): Promise<{
   services: ServiceOption[];
   purposes: PurposeOption[];
 }> {
-  const body = unwrap<unknown>((await apiClient.get("/catalog")).data);
+  const body = unwrap<unknown>((await apiClient.get("/service-requests/v1/catalog")).data);
 
   if (Array.isArray(body)) {
     return {
@@ -309,7 +310,7 @@ export async function getCatalog(): Promise<{
 }
 
 export async function getServiceRequests(): Promise<ServiceRequest[]> {
-  const body = unwrap<unknown>((await apiClient.get("/service-requests")).data);
+  const body = unwrap<unknown>((await apiClient.get("/service-requests/v1/")).data);
   const raw = asRecord(body);
   const list = Array.isArray(body)
     ? body
@@ -323,7 +324,7 @@ export async function getServiceRequests(): Promise<ServiceRequest[]> {
 }
 
 export async function getServiceRequest(id: number): Promise<ServiceRequest> {
-  const body = unwrap<unknown>((await apiClient.get(`/service-requests/${id}`)).data);
+  const body = unwrap<unknown>((await apiClient.get(`/service-requests/v1/${id}`)).data);
   const requestBody = asRecord(body).request ?? body;
   return normalizeRequest(requestBody);
 }
@@ -332,11 +333,22 @@ export async function createServiceRequest(
   values: RequestFormValues,
   onProgress?: (percent: number) => void,
 ): Promise<ServiceRequest> {
+  const csrf = await getCsrfToken();
   const body = unwrap<unknown>(
     (
-      await apiClient.post("/service-requests", buildFormData(values), {
-        onUploadProgress: progressHandler(onProgress),
-      })
+      await apiClient.post(
+        "/service-requests/v1/",
+        {
+          serviceId: values.serviceId,
+          copies: values.copies,
+          purpose: values.purpose,
+          notes: values.notes,
+        },
+        {
+          headers: { "x-csrf-token": csrf },
+          onUploadProgress: progressHandler(onProgress),
+        },
+      )
     ).data,
   );
   const requestBody = asRecord(body).request ?? body;
@@ -345,7 +357,7 @@ export async function createServiceRequest(
 
 export async function getCurrentDraft(): Promise<ServiceRequestDraft | null> {
   try {
-    const body = unwrap<unknown>((await apiClient.get("/service-requests/drafts/current")).data);
+    const body = unwrap<unknown>((await apiClient.get("/service-requests/v1/drafts/current")).data);
     return normalizeDraft(asRecord(body).draft ?? body);
   } catch (error) {
     if (isNotFound(error)) return null;
@@ -357,9 +369,11 @@ export async function saveDraft(
   values: RequestFormValues,
   onProgress?: (percent: number) => void,
 ): Promise<ServiceRequestDraft> {
+  const csrf = await getCsrfToken();
   const body = unwrap<unknown>(
     (
-      await apiClient.put("/service-requests/drafts", buildFormData(values), {
+      await apiClient.put("/service-requests/v1/drafts", buildFormData(values), {
+        headers: { "x-csrf-token": csrf },
         onUploadProgress: progressHandler(onProgress),
       })
     ).data,
@@ -371,7 +385,10 @@ export async function saveDraft(
 
 export async function deleteDraft(): Promise<void> {
   try {
-    await apiClient.delete("/service-requests/drafts");
+    const csrf = await getCsrfToken();
+    await apiClient.delete("/service-requests/v1/drafts", {
+      headers: { "x-csrf-token": csrf },
+    });
   } catch (error) {
     if (isNotFound(error)) return;
     throw error;
@@ -382,7 +399,7 @@ export async function getNotifications(): Promise<{
   notifications: ServiceRequestNotification[];
   unread: number;
 }> {
-  const body = unwrap<unknown>((await apiClient.get("/service-requests/notifications")).data);
+  const body = unwrap<unknown>((await apiClient.get("/service-requests/v1/notifications")).data);
   const raw = asRecord(body);
   const list = Array.isArray(body)
     ? body
@@ -403,7 +420,14 @@ export async function getNotifications(): Promise<{
 }
 
 export async function markNotificationsRead(): Promise<void> {
-  await apiClient.patch("/service-requests/notifications/read");
+  const csrf = await getCsrfToken();
+  await apiClient.patch(
+    "/service-requests/v1/notifications/read",
+    {},
+    {
+      headers: { "x-csrf-token": csrf },
+    },
+  );
 }
 
 export async function downloadDocument(id: number, fileName: string): Promise<void> {

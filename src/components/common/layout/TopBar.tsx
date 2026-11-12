@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { BellIcon, MapPinIcon } from "@/components/common/display/icons";
+import { MapPinIcon } from "@/components/common/display/icons";
+import { NotificationBell } from "@/components/common/feedback/NotificationBell";
 
 const LOCATION = "Gabi, Cordova, Cebu";
 
 /** `bell` lets a page swap in its own notification control (e.g. the
- *  clearance bell with unread dot + dropdown); the default uses the same
- *  clear, borderless bell treatment as the Online Clearance header. */
+ *  clearance bell with unread dot + dropdown); the default renders the shared
+ *  real-time student notification bell. */
 export function TopBar({ bell }: { bell?: ReactNode }) {
   return (
     <div className="h-[73px] w-full bg-cpc-navy-top">
@@ -17,17 +18,9 @@ export function TopBar({ bell }: { bell?: ReactNode }) {
           </span>
         </div>
 
-        {bell ?? (
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative flex h-[50px] w-[50px] shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            {/* TODO: render an unread badge once the notifications API exists. */}
-            <BellIcon className="h-[26px] w-[26px] text-white" />
-          </button>
-        )}
+        {bell ?? <NotificationBell />}
       </div>
     </div>
   );
 }
+

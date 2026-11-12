@@ -28,11 +28,10 @@ import {
   wait,
   writeJson,
 } from "./primitives";
-import { seedRecords, seedTimeline } from "./seed";
 
 /* ---------------------------------------------------------------- records */
 
-/** Real API: `GET /clearance/records`. */
+/** Real API: `GET /clearance/records`. Starts clean without mock records. */
 export function readRecords(): ClearanceRecord[] {
   const stored = readJson<ClearanceRecord[]>(CLEARANCE_RECORDS_KEY, []);
   const records = Array.isArray(stored)
@@ -42,14 +41,7 @@ export function readRecords(): ClearanceRecord[] {
       )
     : [];
 
-  if (records.length > 0) return records;
-
-  const seeded = seedRecords();
-  writeJson(CLEARANCE_RECORDS_KEY, seeded);
-  if (!window.localStorage.getItem(CLEARANCE_TIMELINE_KEY)) {
-    writeJson(CLEARANCE_TIMELINE_KEY, seedTimeline(seeded));
-  }
-  return seeded;
+  return records;
 }
 
 export function writeRecords(records: ClearanceRecord[]): void {

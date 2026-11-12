@@ -1,6 +1,39 @@
 import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
 
+// Clean up legacy demo data keys from previous test sessions so user starts fresh
+const LEGACY_DEMO_KEYS = [
+  "cpc-sr-demo-requests-v1",
+  "cpc-sr-demo-requests-v2",
+  "cpc-sr-demo-notifications-v1",
+  "cpc-sr-demo-notifications-v2",
+  "cpc-sr-demo-draft-v1",
+  "cpc:notifications:student",
+  "cpc:notifications:clearance",
+  "cpc.clearance.records.v1",
+  "cpc.clearance.timeline.v1",
+  "cpc.admin.notifications.v1",
+  "cpc.admin.activity.v1",
+  "cpc:clearance:records",
+  "cpc:clearance:timeline",
+];
+
+const CLEANED_FLAG = "cpc:clean_demo_v3";
+if (typeof window !== "undefined" && !window.localStorage.getItem(CLEANED_FLAG)) {
+  for (const key of LEGACY_DEMO_KEYS) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+  }
+  try {
+    window.localStorage.setItem(CLEANED_FLAG, "true");
+  } catch {
+    // ignore
+  }
+}
+
 import { Navigate, Route, RouterProvider, Routes } from "react-router";
 import { AppProviders } from "@/components/context/app-providers";
 import { createAppRouter } from "@/lib/router";
@@ -8,6 +41,7 @@ import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
 import StaffLoginPage from "@/pages/auth/staff";
 import { AdminLoginRoute, AdminShell } from "@/components/context/AdminShell";
+import { RequireStudent } from "@/components/context/RequireStudent";
 import { ProtectedEnrollment } from "@/components/context/ProtectedEnrollment";
 import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
 import ComplaintsAdminPage from "@/pages/admin/complaints";
@@ -90,34 +124,33 @@ export function AppRoutes() {
         <Route path="*" element={<ComingSoonPage />} />
       </Route>
 
-      {/* Student home, shown after the student signs in. */}
-      <Route path="/student/home" element={<StudentHomePage />} />
+      {/* ── Protected student portal ─────────────────────────────────────── */}
+      <Route element={<RequireStudent />}>
+        {/* Student home */}
+        <Route path="/student/home" element={<StudentHomePage />} />
 
-      {/* Student services */}
-      <Route path="/student/service-requests" element={<ServiceRequestsPage />} />
-      <Route path="/student/request-status" element={<RequestStatusPage />} />
-      {/* Student services. */}
-      <Route path="/student-services/online-clearance" element={<ClearancePage />} />
+        {/* Student services */}
+        <Route path="/student/service-requests" element={<ServiceRequestsPage />} />
+        <Route path="/student/request-status" element={<RequestStatusPage />} />
+        <Route path="/student-services/online-clearance" element={<ClearancePage />} />
 
-      {/* Student support. */}
-      <Route path="/student-support/online-complaint" element={<OnlineComplaintPage />} />
+        {/* Student support */}
+        <Route path="/student-support/online-complaint" element={<OnlineComplaintPage />} />
 
-      {/* Academics. */}
-      <Route path="/academics/class-schedules" element={<ClassSchedulesPage />} />
-      <Route path="/academics/academic-calendar" element={<AcademicCalendarPage />} />
+        {/* Academics */}
+        <Route path="/academics/class-schedules" element={<ClassSchedulesPage />} />
+        <Route path="/academics/academic-calendar" element={<AcademicCalendarPage />} />
 
-      {/* My Account. */}
-      <Route path="/my-account/profile" element={<StudentProfilePage />} />
+        {/* My Account */}
+        <Route path="/my-account/profile" element={<StudentProfilePage />} />
 
-      {/* Enrollment routes - no app layout, pages render directly */}
-      <Route
-        path="/online-enrollment"
-        element={<ProtectedEnrollment />}
-      >
-        <Route index element={<OnlineEnrollmentPage />} />
-        <Route path="step/:step" element={<EnrollmentStepPage />} />
-        <Route path="confirmation" element={<EnrollmentConfirmationPage />} />
-        <Route path="status" element={<EnrollmentStatusPage />} />
+        {/* Enrollment flow */}
+        <Route path="/online-enrollment" element={<ProtectedEnrollment />}>
+          <Route index element={<OnlineEnrollmentPage />} />
+          <Route path="step/:step" element={<EnrollmentStepPage />} />
+          <Route path="confirmation" element={<EnrollmentConfirmationPage />} />
+          <Route path="status" element={<EnrollmentStatusPage />} />
+        </Route>
       </Route>
 
       {/* Catch-all redirect to login */}
@@ -147,3 +180,4 @@ export function AppRouter() {
 }
 
 createRoot(document.getElementById("root")!).render(<AppRouter />);
+

@@ -3,27 +3,27 @@ import { CalendarPlus, CalendarRange } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { PageBanner } from "@/components/common/display/PageBanner";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
-import { AcademicPeriodBar } from "./components/AcademicPeriodBar";
-import { CalendarStatCards } from "./components/CalendarStatCards";
-import { CalendarQuickActions } from "./components/CalendarQuickActions";
+import { AcademicPeriodBar } from "./AcademicPeriodBar";
+import { CalendarStatCards } from "./CalendarStatCards";
+import { CalendarQuickActions } from "./CalendarQuickActions";
 import {
   CalendarOverview,
   type CalendarViewMode,
-} from "./components/CalendarOverview";
-import { UpcomingEventsCard } from "./components/UpcomingEventsCard";
-import { DeadlinesCard } from "./components/DeadlinesCard";
-import { EventManagementTable } from "./components/EventManagementTable";
-import { CategoryLegendCard } from "./components/CategoryLegendCard";
-import { PublicationMonitor } from "./components/PublicationMonitor";
-import { RecentActivitiesCard } from "./components/RecentActivitiesCard";
-import { EventFormModal, type SaveMode } from "./components/EventFormModal";
+} from "./CalendarOverview";
+import { UpcomingEventsCard } from "./UpcomingEventsCard";
+import { DeadlinesCard } from "./DeadlinesCard";
+import { EventManagementTable } from "./EventManagementTable";
+import { CategoryLegendCard } from "./CategoryLegendCard";
+import { PublicationMonitor } from "./PublicationMonitor";
+import { RecentActivitiesCard } from "./RecentActivitiesCard";
+import { EventFormModal, type SaveMode } from "./EventFormModal";
 import {
   EventDetailsModal,
   type EventDetailAction,
-} from "./components/EventDetailsModal";
-import { DayEventsModal } from "./components/DayEventsModal";
-import { downloadEventsCsv, printEvents } from "./components/calendarExport";
-import { primaryButtonClass } from "./components/CalendarPieces";
+} from "./EventDetailsModal";
+import { DayEventsModal } from "./DayEventsModal";
+import { downloadEventsCsv, printEvents } from "./calendarExport";
+import { primaryButtonClass } from "./CalendarPieces";
 import {
   CATEGORY_META,
   SAMPLE_EVENTS,
@@ -45,7 +45,7 @@ import {
   type CalendarActivityAction,
   type EventCategory,
   type Semester,
-} from "./data/academicCalendar";
+} from "../data/academicCalendar";
 
 type FormState = {
   editing: AdminCalendarEvent | null;
@@ -459,18 +459,24 @@ export default function AcademicCalendarPage() {
         onReset={resetPeriod}
       />
 
-      <section aria-labelledby="calendar-statistics-heading" className="space-y-2.5">
-        <div>
-          <h2
-            id="calendar-statistics-heading"
-            className="font-poppins text-sm leading-tight font-semibold text-cpc-navy-text"
-          >
-            Academic Calendar Statistics
-          </h2>
-          <p className="mt-0.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
-            Live counts from the shared event dataset for A.Y. {year} · {semester}, updated after
-            every change.
-          </p>
+      <section aria-labelledby="calendar-statistics-heading" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
+          <div>
+            <h2
+              id="calendar-statistics-heading"
+              className="font-poppins text-sm font-bold tracking-tight text-cpc-navy-text"
+            >
+              Academic Calendar Statistics
+            </h2>
+            <p className="mt-0.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
+              Live counts from the shared event dataset for A.Y. {year} · {semester}, updated after
+              every change.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/70 px-2.5 py-1 font-poppins text-[10.5px] font-semibold text-cpc-heading-soft shadow-2xs backdrop-blur-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+            Live sync active
+          </span>
         </div>
         <CalendarStatCards stats={stats} />
       </section>

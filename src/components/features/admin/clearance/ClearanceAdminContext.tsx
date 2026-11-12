@@ -101,6 +101,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   const staff = user ?? ADMIN_USERS.admin;
   const isSuperAdmin = staff.role === "admin";
   const homeOffice = isSuperAdmin ? null : staff.office;
+  const homePrograms = isSuperAdmin ? null : (staff.homePrograms ?? null);
 
   const [records, setRecords] = useState<ClearanceRecord[]>([]);
   const [period, setPeriodState] = useState<ClearancePeriod>(DEFAULT_PERIOD);
@@ -117,8 +118,8 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   const deepLink = useRef<string | null>(readDeepLink());
 
   const rows = useMemo(
-    () => scopeRows(deriveRows(records, period.overdueDays), homeOffice),
-    [records, period.overdueDays, homeOffice],
+    () => scopeRows(deriveRows(records, period.overdueDays), homeOffice, homePrograms),
+    [records, period.overdueDays, homeOffice, homePrograms],
   );
 
   const effectiveFilters = useMemo<QueueFilters>(
@@ -156,6 +157,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
           const scoped = scopeRows(
             deriveRows(nextRecords, nextPeriod.overdueDays),
             homeOffice,
+            homePrograms,
           );
           const target = deepLink.current;
           const row = target.startsWith("student:")
@@ -182,7 +184,9 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    void load("initial");
+    queueMicrotask(() => {
+      void load("initial");
+    });
   }, [load]);
 
   const { live, lastSyncedAt, markSynced } = useStorageSync((reason) => {
@@ -358,6 +362,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
       staff,
       isSuperAdmin,
       homeOffice,
+      homePrograms,
       records,
       rows,
       visibleRows,
@@ -415,6 +420,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
       error,
       hasActiveFilters,
       homeOffice,
+      homePrograms,
       isSuperAdmin,
       kpis,
       lastSyncedAt,

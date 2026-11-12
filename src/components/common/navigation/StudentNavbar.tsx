@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { CaretDownIcon } from "@/components/common/display/icons";
 import { cn } from "@/lib/cn";
 import cpcLogo from "@/assets/cpc-logo.jpg";
+import { useAuth } from "@/components/context/useAuth";
 
 type NavLink = {
   label: string;
@@ -95,6 +96,7 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
   const { pathname } = useLocation();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { logout, user } = useAuth();
 
   return (
     <div
@@ -172,7 +174,26 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                       isGroupActive(pathname, item) && "text-cpc-blue-accent",
                     )}
                   >
-                    {item.label}
+                    {item.label === "My Account" && (
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cpc-blue-accent/30 bg-cpc-section-light">
+                        {user?.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="font-poppins text-[10px] font-bold text-cpc-blue-accent">
+                            {(user?.name ?? "S")
+                              .split(" ")
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join("")}
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    <span>{item.label}</span>
                     <CaretDownIcon
                       className={`h-[8px] w-[12px] transition-transform duration-150 ${open ? "rotate-180" : ""}`}
                     />
@@ -206,6 +227,19 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                             )}
                           </li>
                         ))}
+                        {/* Sign Out at the bottom of "My Account" */}
+                        {item.label === "My Account" && (
+                          <li className="mt-[4px] border-t border-cpc-input-border/50 pt-[4px]">
+                            <button
+                              type="button"
+                              onClick={() => { setOpenIndex(null); logout(); }}
+                              className="flex w-full items-center gap-[10px] px-[18px] py-[8px] font-poppins text-[15px] leading-[18px] font-normal whitespace-nowrap text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+                            >
+                              <LogOut className="h-[15px] w-[15px]" aria-hidden />
+                              Sign Out
+                            </button>
+                          </li>
+                        )}
                       </ul>
                     </div>
                   )}
@@ -235,6 +269,27 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
           className="absolute inset-x-0 top-full z-40 max-h-[70vh] overflow-y-auto border-t border-cpc-input-border bg-white shadow-[0_18px_40px_rgba(27,47,158,0.18)] lg:hidden"
         >
           <nav aria-label="Student portal (mobile)" className="mx-auto max-w-[1440px] px-4 py-3">
+            {user && (
+              <div className="mb-3 flex items-center gap-3 border-b border-cpc-input-border/70 pb-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-cpc-blue-accent/30 bg-cpc-section-light">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="font-poppins text-xs font-bold text-cpc-blue-accent">
+                      {user.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                    </span>
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate font-poppins text-sm font-semibold text-cpc-navy-text">
+                    {user.name}
+                  </p>
+                  <p className="truncate font-poppins text-xs text-cpc-heading-soft">
+                    {user.studentNumber ?? user.email}
+                  </p>
+                </div>
+              </div>
+            )}
             {navItems.map((item) => (
               <div key={item.label} className="border-b border-cpc-input-border/70 py-2 last:border-b-0">
                 <p className="font-poppins text-[11px] font-semibold tracking-[0.14em] text-cpc-muted-blue uppercase">
@@ -272,6 +327,17 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                 </ul>
               </div>
             ))}
+            {/* Mobile Sign Out */}
+            <div className="border-t border-cpc-input-border/70 pt-3 pb-1">
+              <button
+                type="button"
+                onClick={() => { setMobileOpen(false); logout(); }}
+                className="flex w-full items-center gap-2 rounded px-2 py-2 font-poppins text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+              >
+                <LogOut className="h-4 w-4" aria-hidden />
+                Sign Out
+              </button>
+            </div>
           </nav>
         </div>
       )}

@@ -15,6 +15,7 @@ import {
   type ReactNode,
 } from "react";
 import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/lib/clearanceStorage";
+import { ADMIN_NOTIFICATIONS_KEY } from "@/services/admin/storage";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { PENDING_PROFILE_CORRECTIONS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import {
@@ -27,6 +28,7 @@ import {
   markNotificationsRead as markNotificationsReadService,
   resetDemoData as resetDemoDataService,
 } from "@/services/admin";
+import { deleteAdminNotification as deleteAdminNotificationService } from "@/services/admin/notifications";
 import type {
   ActivityItem,
   AdminBadgeCounts,
@@ -59,6 +61,7 @@ type AdminDataContextValue = AdminDataState & {
   refresh: () => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
+  deleteNotification: (id: string) => void;
   generateSamples: () => Promise<void>;
   resetDemo: () => Promise<void>;
 };
@@ -144,7 +147,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   // queue and every derived count without a page reload.
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
-      if (event.key === CLEARANCE_STORAGE_KEY || event.key === CLEARANCE_NOTIFICATIONS_KEY) {
+      if (
+        event.key === CLEARANCE_STORAGE_KEY ||
+        event.key === CLEARANCE_NOTIFICATIONS_KEY ||
+        event.key === ADMIN_NOTIFICATIONS_KEY
+      ) {
         void load("silent");
       }
     };
@@ -174,6 +181,14 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       notifications: current.notifications.map((notification) =>
         notification.id === id ? { ...notification, read: true } : notification,
       ),
+    }));
+  }, []);
+
+  const deleteNotification = useCallback((id: string) => {
+    deleteAdminNotificationService(id);
+    setState((current) => ({
+      ...current,
+      notifications: current.notifications.filter((n) => n.id !== id),
     }));
   }, []);
 
@@ -215,6 +230,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       refresh,
       markAllNotificationsRead,
       markNotificationRead,
+      deleteNotification,
       generateSamples,
       resetDemo,
     }),
@@ -225,6 +241,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       loading,
       markAllNotificationsRead,
       markNotificationRead,
+      deleteNotification,
       profileCorrectionsCount,
       refresh,
       refreshing,

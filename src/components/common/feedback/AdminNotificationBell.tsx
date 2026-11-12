@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import {
   AlertTriangle,
@@ -7,6 +8,7 @@ import {
   CheckCheck,
   CheckCircle2,
   Info,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/lib/format";
@@ -27,11 +29,17 @@ const ICON_TONES = {
 } as const;
 
 export function AdminNotificationBell() {
-  const { notifications, unreadNotifications, markAllNotificationsRead, markNotificationRead } =
-    useAdminData();
+  const {
+    notifications,
+    unreadNotifications,
+    markAllNotificationsRead,
+    markNotificationRead,
+    deleteNotification,
+  } = useAdminData();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminNotification | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(wrapperRef, () => setOpen(false), open);
@@ -80,7 +88,7 @@ export function AdminNotificationBell() {
       {open && (
         <div
           id="admin-notification-panel"
-          className="admin-fade-in absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-cpc-tile-border bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
+          className="admin-fade-in absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-cpc-tile-border bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
         >
           <div className="flex items-center justify-between gap-2 border-b border-cpc-tile-border/70 px-3 py-2.5">
             <div>
@@ -119,12 +127,12 @@ export function AdminNotificationBell() {
               {notifications.map((notification) => {
                 const Icon = ICONS[notification.type];
                 return (
-                  <li key={notification.id}>
+                  <li key={notification.id} className="group relative">
                     <button
                       type="button"
                       onClick={() => void openNotification(notification)}
                       className={cn(
-                        "flex w-full cursor-pointer items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-cpc-section-light/60 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cpc-blue-accent",
+                        "flex w-full cursor-pointer items-start gap-2.5 px-3 py-2.5 pr-10 text-left transition-colors hover:bg-cpc-section-light/60 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-cpc-blue-accent",
                         !notification.read && "bg-cpc-section-light/30",
                       )}
                     >
@@ -151,6 +159,20 @@ export function AdminNotificationBell() {
                         />
                       )}
                     </button>
+
+                    {/* Delete button */}
+                    <button
+                      type="button"
+                      aria-label="Delete notification"
+                      title="Delete notification"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget(notification);
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-cpc-heading-soft opacity-0 transition-all hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-rose-500 group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                    </button>
                   </li>
                 );
               })}
@@ -158,6 +180,72 @@ export function AdminNotificationBell() {
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget &&
+        createPortal(
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="admin-confirm-delete-title"
+            aria-describedby="admin-confirm-delete-desc"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
+            onClick={() => setDeleteTarget(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-cpc-tile-border bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                  <Trash2 className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h2
+                    id="admin-confirm-delete-title"
+                    className="font-poppins text-lg font-bold text-cpc-navy-text"
+                  >
+                    Delete Notification
+                  </h2>
+                  <p
+                    id="admin-confirm-delete-desc"
+                    className="mt-0.5 font-poppins text-xs text-cpc-heading-soft"
+                  >
+                    Are you sure you want to delete this notification? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-cpc-tile-border/70 bg-cpc-section-light/60 p-3.5">
+                <p className="font-poppins text-xs leading-relaxed text-cpc-navy-text">
+                  &ldquo;{deleteTarget.message}&rdquo;
+                </p>
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="cursor-pointer rounded-xl border border-cpc-tile-border bg-white px-4 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteNotification(deleteTarget.id);
+                    setDeleteTarget(null);
+                    setOpen(false);
+                  }}
+                  className="cursor-pointer rounded-xl bg-rose-600 px-4 py-2 font-poppins text-xs font-semibold text-white shadow-xs transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

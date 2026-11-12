@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSSE } from "@/hooks/useSSE";
 import {
   createServiceRequest,
   deleteDraft,
@@ -116,6 +117,16 @@ export function useServiceRequestsPage() {
     setNotifications(notificationData.notifications);
     setUnread(notificationData.unread);
   }, []);
+
+  // Real-time synchronization via Server-Sent Events (SSE)
+  useSSE(
+    useCallback((type) => {
+      if (type === "service_request_updated") {
+        void refreshRequestsAndNotifications();
+      }
+    }, [refreshRequestsAndNotifications]),
+    !loading,
+  );
 
   const submit = useCallback(
     async (values: RequestFormValues): Promise<ServiceRequest | null> => {

@@ -88,16 +88,9 @@ async function simulateUpload(onProgress?: (percent: number) => void): Promise<v
   }
 }
 
-function daysAgo(days: number, hour = 9, minute = 0): string {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  date.setHours(hour, minute, 0, 0);
-  return date.toISOString();
-}
-
-const REQUESTS_KEY = "cpc-sr-demo-requests-v2";
-const NOTIFICATIONS_KEY = "cpc-sr-demo-notifications-v2";
-const DRAFT_KEY = "cpc-sr-demo-draft-v1";
+const REQUESTS_KEY = "cpc-sr-live-requests-v3";
+const NOTIFICATIONS_KEY = "cpc-sr-live-notifications-v3";
+const DRAFT_KEY = "cpc-sr-live-draft-v3";
 
 function readStore<T>(key: string): T | null {
   try {
@@ -129,117 +122,11 @@ let notificationsState: ServiceRequestNotification[] | null = null;
 let draftState: ServiceRequestDraft | null | undefined;
 
 function seedRequests(): ServiceRequest[] {
-  return [
-    {
-      id: 3,
-      referenceNumber: "SR-2026-00184",
-      service: DEMO_SERVICES[2],
-      copies: 1,
-      purpose: "Scholarship Application",
-      notes: "Please address the certificate to the scholarship committee.",
-      remarks:
-        "The certificate is being signed by the student services office. Please allow 2–3 working days before claiming it.",
-      status: "processing",
-      statusLabel: STATUS_LABELS.processing,
-      submittedAt: daysAgo(7, 9, 15),
-      updatedAt: daysAgo(3, 14, 5),
-      document: { name: "student-id.png", size: 184320, mime: "image/png" },
-      timeline: buildTimeline("processing", {
-        submitted: daysAgo(7, 9, 15),
-        under_review: daysAgo(4, 10, 40),
-      }),
-    },
-    {
-      id: 2,
-      referenceNumber: "SR-2026-00152",
-      service: DEMO_SERVICES[0],
-      copies: 2,
-      purpose: "Employment (Abroad)",
-      notes: "",
-      remarks:
-        "Your Transcript of Records is ready for pickup at the Registrar's Office, window 3, from 8:00 AM to 5:00 PM.",
-      status: "ready_for_release",
-      statusLabel: STATUS_LABELS.ready_for_release,
-      submittedAt: daysAgo(21, 13, 0),
-      updatedAt: daysAgo(11, 8, 30),
-      document: { name: "student-id.png", size: 184320, mime: "image/png" },
-      timeline: buildTimeline("ready_for_release", {
-        submitted: daysAgo(21, 13, 0),
-        under_review: daysAgo(19, 9, 10),
-        processing: daysAgo(15, 11, 25),
-        ready_for_release: daysAgo(11, 8, 30),
-      }),
-    },
-    {
-      id: 1,
-      referenceNumber: "SR-2025-00987",
-      service: DEMO_SERVICES[1],
-      copies: 1,
-      purpose: "Personal Records",
-      notes: "",
-      remarks: "Released to the student at the Registrar's Office.",
-      status: "released",
-      statusLabel: STATUS_LABELS.released,
-      submittedAt: daysAgo(450, 10, 0),
-      updatedAt: daysAgo(446, 9, 30),
-      document: { name: "student-id.png", size: 184320, mime: "image/png" },
-      timeline: buildTimeline("released", {
-        submitted: daysAgo(450, 10, 0),
-        under_review: daysAgo(450, 14, 30),
-        processing: daysAgo(448, 9, 5),
-        ready_for_release: daysAgo(447, 15, 20),
-        released: daysAgo(446, 9, 30),
-      }),
-    },
-  ];
+  return [];
 }
 
 function seedNotifications(): ServiceRequestNotification[] {
-  return [
-    {
-      id: 4,
-      type: "request_ready",
-      title: "Transcript is ready for release",
-      message:
-        "Your Transcript of Records (SR-2026-00152) is ready for pickup at the registrar's office.",
-      isRead: false,
-      createdAt: daysAgo(0, 8, 45),
-      requestId: 2,
-      referenceNumber: "SR-2026-00152",
-    },
-    {
-      id: 3,
-      type: "request_processing",
-      title: "Your request is being processed",
-      message:
-        "We started preparing your Certificate of Good Moral Character (SR-2026-00184).",
-      isRead: false,
-      createdAt: daysAgo(3, 14, 5),
-      requestId: 3,
-      referenceNumber: "SR-2026-00184",
-    },
-    {
-      id: 2,
-      type: "request_under_review",
-      title: "Request is under review",
-      message:
-        "Student services is reviewing your Certificate of Good Moral Character (SR-2026-00184).",
-      isRead: true,
-      createdAt: daysAgo(4, 10, 40),
-      requestId: 3,
-      referenceNumber: "SR-2026-00184",
-    },
-    {
-      id: 1,
-      type: "request_released",
-      title: "Document released",
-      message: "Your Certificate of Enrollment (SR-2025-00987) was released.",
-      isRead: true,
-      createdAt: daysAgo(447, 15, 20),
-      requestId: 1,
-      referenceNumber: "SR-2025-00987",
-    },
-  ];
+  return [];
 }
 
 function getRequests(): ServiceRequest[] {

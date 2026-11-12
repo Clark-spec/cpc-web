@@ -1,6 +1,14 @@
+import { Navigate } from "react-router";
 import { LoginForm } from "@/components/features/auth/LoginForm";
+import { useAuth } from "@/components/context/useAuth";
 
 export default function StudentLoginPage() {
+  const { isAuthenticated, role } = useAuth();
+
+  if (isAuthenticated && role === "student") {
+    return <Navigate to="/student/home" replace />;
+  }
+
   return (
     <LoginForm
       role="student"

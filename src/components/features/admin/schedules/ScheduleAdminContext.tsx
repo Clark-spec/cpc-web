@@ -187,7 +187,9 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   const sync = useStorageSync(() => {

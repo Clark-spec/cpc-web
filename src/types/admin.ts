@@ -10,7 +10,9 @@ import type { NotificationType, OfficeId } from "@/types/clearance";
 export type AdminRole =
   | "admin"
   | "registrar"
-  | "dean"
+  | "dean_cs"   // Dean of Computer Studies (BSIT)
+  | "dean_edu"  // Dean of Teacher Education (BEED)
+  | "dean_hm"   // Dean of Hospitality Management (BSHM)
   | "library"
   | "accounting"
   | "sao"
@@ -25,6 +27,12 @@ export type AdminUser = {
   office: OfficeId | null;
   initials: string;
   title: string;
+  /**
+   * Program names this dean is responsible for.
+   * Only set for `dean_cs`, `dean_edu`, `dean_hm` roles.
+   * `null` / undefined for all other roles.
+   */
+  homePrograms?: string[] | null;
 };
 
 export type ClearanceRequestStatus = "pending" | "signed" | "rejected";

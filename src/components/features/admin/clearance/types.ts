@@ -157,6 +157,8 @@ export type ClearanceAdminContextValue = {
   isSuperAdmin: boolean;
   /** The office a staff member belongs to; null for the admin role. */
   homeOffice: OfficeId | null;
+  /** The programs a department dean oversees; null for non-dean / admin roles. */
+  homePrograms: string[] | null;
 
   /* data */
   records: ClearanceRecord[];

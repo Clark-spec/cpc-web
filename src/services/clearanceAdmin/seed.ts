@@ -29,7 +29,19 @@ export const LAST_NAMES = [
   "Espiritu", "Fajardo", "Galan", "Herrera", "Ilagan", "Jimenez",
 ];
 
-export const SECTIONS = ["BSIT 3-A", "BSIT 3-B", "BSIT 3-C", "BSIT 3-D"];
+export const PROGRAMS = [
+  "BS Information Technology",
+  "Bachelor of Elementary Education",
+  "BS Hospitality Management",
+];
+
+export const SECTIONS_BY_PROGRAM: Record<string, string[]> = {
+  "BS Information Technology": ["BSIT 3-A", "BSIT 3-B", "BSIT 3-C", "BSIT 3-D"],
+  "Bachelor of Elementary Education": ["BEED 3-A", "BEED 3-B"],
+  "BS Hospitality Management": ["BSHM 3-A", "BSHM 3-B"],
+};
+
+export const SECTIONS = ["BSIT 3-A", "BSIT 3-B", "BSIT 3-C", "BSIT 3-D", "BEED 3-A", "BEED 3-B", "BSHM 3-A", "BSHM 3-B"];
 
 /** Six students deliberately parked past the three-day SLA. */
 export const OVERDUE_STUDENTS = new Set([3, 9, 17, 24, 31, 38]);
@@ -129,12 +141,15 @@ export function seedRecord(index: number, now: number): ClearanceRecord {
   const offices = seedOffices(index, now);
   const complete = isFullySigned(offices);
   const rotation = index % 3;
+  const program = PROGRAMS[index % PROGRAMS.length];
+  const programSections = SECTIONS_BY_PROGRAM[program] ?? SECTIONS;
+  const section = programSections[index % programSections.length];
 
   return {
     studentId: `STU-2026-${String(101 + index).padStart(4, "0")}`,
     studentName: `${FIRST_NAMES[index]} ${LAST_NAMES[index]}`,
-    section: SECTIONS[index % SECTIONS.length],
-    program: "BS Information Technology",
+    section,
+    program,
     yearLevel: "3rd Year",
     term: "1st",
     academicYear: "2026-2027",

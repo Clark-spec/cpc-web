@@ -1,6 +1,7 @@
-import { useState, type SubmitEvent } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuthLayoutMode } from "@/components/context/AuthLayoutModeContext";
+import { useAuth } from "@/components/context/useAuth";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 
 export type LoginRole = "student" | "staff";
@@ -25,20 +26,22 @@ type Credentials = {
   password: string;
 };
 
-function useLoginForm(redirectTo?: string) {
-  const navigate = useNavigate();
+function useLoginForm(role: LoginRole, redirectTo?: string) {
+  const { login, isLoading, error, clearError } = useAuth();
   const [credentials, setCredentials] = useState<Credentials>({ id: "", password: "" });
+  const navigate = useNavigate();
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // TODO: send `credentials` to the real Cordova Public College login API for
-    // this role, then navigate to the role's home page on success.
-    if (redirectTo) {
-      navigate(redirectTo);
+    clearError();
+    const ok = await login({ id: credentials.id, password: credentials.password, role });
+    if (ok) {
+      const destination = redirectTo ?? (role === "student" ? "/student/home" : "/admin/dashboard");
+      navigate(destination, { replace: true });
     }
   }
 
-  return { credentials, setCredentials, handleSubmit };
+  return { credentials, setCredentials, handleSubmit, isLoading, error };
 }
 
 function IdBadgeIcon({ className }: { className?: string }) {
@@ -97,7 +100,7 @@ function FooterLinks({ footerLinks }: { footerLinks: FooterLink[] }) {
 
 export function LoginForm(props: LoginFormProps) {
   const mode = useAuthLayoutMode();
-  const form = useLoginForm(props.redirectTo);
+  const form = useLoginForm(props.role, props.redirectTo);
 
   if (mode === "mobile") {
     return <MobileLoginForm {...props} {...form} />;
@@ -118,10 +121,12 @@ function DesktopLoginForm({
   credentials,
   setCredentials,
   handleSubmit,
+  isLoading,
+  error,
 }: LoginFormProps & FormInternals) {
   const iconClass = "pointer-events-none absolute top-1/2 left-[17px] h-[28px] w-[28px] -translate-y-1/2 text-cpc-icon";
   const inputClass =
-    "h-[70px] w-full rounded-[22px] border-2 border-cpc-input-border bg-white pr-[16px] pl-[56px] font-poppins text-[16px] text-cpc-label outline-none placeholder:text-cpc-placeholder focus:border-cpc-icon focus:ring-2 focus:ring-cpc-icon/30";
+    "h-[70px] w-full rounded-[22px] border-2 border-cpc-input-border bg-white pr-[16px] pl-[56px] font-poppins text-[16px] text-cpc-label outline-none placeholder:text-cpc-placeholder focus:border-cpc-icon focus:ring-2 focus:ring-cpc-icon/30 disabled:opacity-60";
   const labelClass = "font-poppins text-[16px] leading-[1.3] font-semibold text-cpc-label";
 
   return (
@@ -137,6 +142,15 @@ function DesktopLoginForm({
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-[9px] flex w-[67%] flex-col">
+        {error && (
+          <div
+            role="alert"
+            className="mb-[14px] rounded-[12px] border border-red-200 bg-red-50 px-[16px] py-[10px] font-poppins text-[14px] text-red-700"
+          >
+            {error}
+          </div>
+        )}
+
         <label htmlFor={`${role}-id`} className={labelClass}>
           {idLabel}
         </label>
@@ -147,6 +161,7 @@ function DesktopLoginForm({
             type="text"
             autoComplete="username"
             required
+            disabled={isLoading}
             placeholder={idPlaceholder}
             value={credentials.id}
             onChange={(event) => setCredentials({ ...credentials, id: event.target.value })}
@@ -164,6 +179,7 @@ function DesktopLoginForm({
             type="password"
             autoComplete="current-password"
             required
+            disabled={isLoading}
             placeholder="Enter your password"
             value={credentials.password}
             onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
@@ -173,9 +189,10 @@ function DesktopLoginForm({
 
         <button
           type="submit"
-          className="mt-[46px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon"
+          disabled={isLoading}
+          className="mt-[46px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Sign in
+          {isLoading ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
@@ -197,10 +214,12 @@ function MobileLoginForm({
   credentials,
   setCredentials,
   handleSubmit,
+  isLoading,
+  error,
 }: LoginFormProps & FormInternals) {
   const iconClass = "pointer-events-none absolute top-1/2 left-4 h-[22px] w-[22px] -translate-y-1/2 text-cpc-icon";
   const inputClass =
-    "h-[52px] w-full rounded-2xl border border-cpc-input-border bg-white pr-4 pl-12 font-poppins text-base text-cpc-label shadow-[inset_0_1px_4px_rgba(75,91,163,0.08),0_2px_10px_rgba(75,91,163,0.10)] outline-none placeholder:text-cpc-placeholder focus:border-cpc-icon focus:ring-2 focus:ring-cpc-icon/30";
+    "h-[52px] w-full rounded-2xl border border-cpc-input-border bg-white pr-4 pl-12 font-poppins text-base text-cpc-label shadow-[inset_0_1px_4px_rgba(75,91,163,0.08),0_2px_10px_rgba(75,91,163,0.10)] outline-none placeholder:text-cpc-placeholder focus:border-cpc-icon focus:ring-2 focus:ring-cpc-icon/30 disabled:opacity-60";
   const labelClass = "font-poppins text-[15px] leading-[1.3] font-semibold text-cpc-label";
 
   return (
@@ -216,6 +235,15 @@ function MobileLoginForm({
       </h1>
 
       <form onSubmit={handleSubmit} className="mt-6 flex w-full flex-col">
+        {error && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 font-poppins text-[13px] text-red-700"
+          >
+            {error}
+          </div>
+        )}
+
         <label htmlFor={`${role}-id`} className={labelClass}>
           {idLabel}
         </label>
@@ -226,6 +254,7 @@ function MobileLoginForm({
             type="text"
             autoComplete="username"
             required
+            disabled={isLoading}
             placeholder={idPlaceholder}
             value={credentials.id}
             onChange={(event) => setCredentials({ ...credentials, id: event.target.value })}
@@ -243,6 +272,7 @@ function MobileLoginForm({
             type="password"
             autoComplete="current-password"
             required
+            disabled={isLoading}
             placeholder="Enter your password"
             value={credentials.password}
             onChange={(event) => setCredentials({ ...credentials, password: event.target.value })}
@@ -252,9 +282,10 @@ function MobileLoginForm({
 
         <button
           type="submit"
-          className="mt-8 h-[52px] w-full cursor-pointer rounded-xl bg-cpc-button font-poppins text-base font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon"
+          disabled={isLoading}
+          className="mt-8 h-[52px] w-full cursor-pointer rounded-xl bg-cpc-button font-poppins text-base font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Sign in
+          {isLoading ? "Signing in…" : "Sign in"}
         </button>
       </form>
 

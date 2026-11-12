@@ -69,10 +69,15 @@ export type NavSection = {
   items: NavItem[];
 };
 
+/** All three program-scoped dean roles. */
+export const DEAN_ROLES: AdminRole[] = ["dean_cs", "dean_edu", "dean_hm"];
+
 export const ALL_ROLES: AdminRole[] = [
   "admin",
   "registrar",
-  "dean",
+  "dean_cs",
+  "dean_edu",
+  "dean_hm",
   "library",
   "accounting",
   "sao",
@@ -82,7 +87,9 @@ export const ALL_ROLES: AdminRole[] = [
 export const ROLE_LABELS: Record<AdminRole, string> = {
   admin: "Administrator",
   registrar: "Registrar Staff",
-  dean: "Dean",
+  dean_cs: "Dean – Computer Studies",
+  dean_edu: "Dean – Teacher Education",
+  dean_hm: "Dean – Hospitality Management",
   library: "Library Staff",
   accounting: "Accounting Staff",
   sao: "SAO / SSG Adviser",
@@ -92,7 +99,9 @@ export const ROLE_LABELS: Record<AdminRole, string> = {
 export const ROLE_OFFICES: Record<AdminRole, OfficeId | null> = {
   admin: null,
   registrar: "registrar",
-  dean: "dean",
+  dean_cs: "dean",
+  dean_edu: "dean",
+  dean_hm: "dean",
   library: "library",
   accounting: "accounting",
   sao: "sao",
@@ -117,13 +126,32 @@ export const ADMIN_USERS: Record<AdminRole, AdminUser> = {
     initials: "LR",
     title: "Registrar Staff",
   },
-  dean: {
-    id: "dean",
+  dean_cs: {
+    id: "dean_cs",
     name: "Dr. Miguel Santos",
-    role: "dean",
+    role: "dean_cs",
     office: "dean",
     initials: "MS",
-    title: "Dean",
+    title: "Dean – College of Computer Studies",
+    homePrograms: ["BS Information Technology"],
+  },
+  dean_edu: {
+    id: "dean_edu",
+    name: "Dr. Carmen Ramos",
+    role: "dean_edu",
+    office: "dean",
+    initials: "CR",
+    title: "Dean – College of Teacher Education",
+    homePrograms: ["Bachelor of Elementary Education"],
+  },
+  dean_hm: {
+    id: "dean_hm",
+    name: "Prof. Elena Valdez",
+    role: "dean_hm",
+    office: "dean",
+    initials: "EV",
+    title: "Dean – College of Hospitality Management",
+    homePrograms: ["BS Hospitality Management"],
   },
   library: {
     id: "library",
@@ -244,7 +272,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Service Requests",
             to: "/admin/service-requests",
             icon: Wrench,
-            roles: ["admin", "registrar", "sao", "dean"],
+            roles: ["admin", "registrar", "sao", ...DEAN_ROLES],
           },
           {
             type: "link",
@@ -261,7 +289,7 @@ export const NAV_SECTIONS: NavSection[] = [
         id: "academics",
         label: "Academics",
         icon: GraduationCap,
-        roles: ["admin", "registrar", "dean", "instructor"],
+        roles: ["admin", "registrar", ...DEAN_ROLES, "instructor"],
         children: [
           {
             type: "link",
@@ -269,7 +297,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Class Schedules",
             to: "/admin/academics/class-schedules",
             icon: CalendarDays,
-            roles: ["admin", "registrar", "dean", "instructor"],
+            roles: ["admin", "registrar", ...DEAN_ROLES, "instructor"],
           },
           {
             type: "link",
@@ -277,7 +305,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Academic Calendar",
             to: "/admin/academics/academic-calendar",
             icon: CalendarRange,
-            roles: ["admin", "registrar", "dean"],
+            roles: ["admin", "registrar", ...DEAN_ROLES],
           },
           {
             type: "link",
@@ -285,7 +313,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Sections",
             to: "/admin/academics/sections",
             icon: LayoutGrid,
-            roles: ["admin", "registrar", "dean"],
+            roles: ["admin", "registrar", ...DEAN_ROLES],
           },
           {
             type: "link",
@@ -293,7 +321,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Subjects",
             to: "/admin/academics/subjects",
             icon: BookOpen,
-            roles: ["admin", "registrar", "dean", "instructor"],
+            roles: ["admin", "registrar", ...DEAN_ROLES, "instructor"],
           },
           {
             type: "link",
@@ -301,7 +329,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Instructors",
             to: "/admin/academics/instructors",
             icon: UserRound,
-            roles: ["admin", "registrar", "dean"],
+            roles: ["admin", "registrar", ...DEAN_ROLES],
           },
         ],
       },
@@ -310,7 +338,7 @@ export const NAV_SECTIONS: NavSection[] = [
         id: "student-support",
         label: "Student Support",
         icon: LifeBuoy,
-        roles: ["admin", "registrar", "dean", "sao"],
+        roles: ["admin", "registrar", ...DEAN_ROLES, "sao"],
         children: [
           {
             type: "link",
@@ -318,7 +346,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Complaints",
             to: "/admin/support/complaints",
             icon: MessageSquareWarning,
-            roles: ["admin", "registrar", "dean", "sao"],
+            roles: ["admin", "registrar", ...DEAN_ROLES, "sao"],
             badgeKey: "complaints",
           },
           {

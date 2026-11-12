@@ -17,8 +17,13 @@ type CardConfig = {
   label: string;
   supporting: (stats: CalendarStats) => string;
   icon: LucideIcon;
-  iconTone: string;
+  iconBg: string;
+  iconText: string;
+  gradient: string;
+  tag: string;
+  tagClass: string;
   href: string;
+  getValue?: (stats: CalendarStats) => number;
 };
 
 const CARDS: CardConfig[] = [
@@ -27,7 +32,11 @@ const CARDS: CardConfig[] = [
     label: "Total Events",
     supporting: () => "Across academic year",
     icon: CalendarDays,
-    iconTone: "bg-[#E8EFFC] text-[#2449A8]",
+    iconBg: "bg-blue-50",
+    iconText: "text-blue-600",
+    gradient: "from-blue-600 to-indigo-500",
+    tag: "All Events",
+    tagClass: "bg-blue-50/90 text-blue-700",
     href: "academic-event-management",
   },
   {
@@ -35,7 +44,11 @@ const CARDS: CardConfig[] = [
     label: "Upcoming Events",
     supporting: () => "Next 30 days",
     icon: CalendarClock,
-    iconTone: "bg-[#F3EDFF] text-[#8B5CF6]",
+    iconBg: "bg-purple-50",
+    iconText: "text-purple-600",
+    gradient: "from-purple-600 to-violet-400",
+    tag: "Next 30d",
+    tagClass: "bg-purple-50/90 text-purple-700",
     href: "calendar-overview",
   },
   {
@@ -43,7 +56,11 @@ const CARDS: CardConfig[] = [
     label: "Published Events",
     supporting: () => "Visible to students",
     icon: Send,
-    iconTone: "bg-[#E9F7F1] text-[#20B77A]",
+    iconBg: "bg-emerald-50",
+    iconText: "text-emerald-600",
+    gradient: "from-emerald-500 to-teal-400",
+    tag: "Live",
+    tagClass: "bg-emerald-50/90 text-emerald-700",
     href: "publication-monitor",
   },
   {
@@ -51,14 +68,19 @@ const CARDS: CardConfig[] = [
     label: "Draft / Review",
     supporting: (stats) => `${stats.draft} draft · ${stats.pending} awaiting review`,
     icon: FileEdit,
-    iconTone: "bg-[#FEF4E7] text-[#F3A43B]",
+    iconBg: "bg-amber-50",
+    iconText: "text-amber-600",
+    gradient: "from-amber-500 to-orange-400",
+    tag: "Needs Action",
+    tagClass: "bg-amber-100/90 text-amber-800",
     href: "publication-monitor",
   },
 ];
 
-/** One click-to-scroll KPI card, styled like the Clearance KPI strip. */
+/** One click-to-scroll KPI card, styled like the Clearance & Schedule KPI strips. */
 function StatTile({ config, stats, index }: { config: CardConfig; stats: CalendarStats; index: number }) {
-  const value = useCountUp(stats[config.key], 700 + index * 120);
+  const targetValue = config.getValue ? config.getValue(stats) : stats[config.key];
+  const value = useCountUp(targetValue, 700 + index * 120);
   const Icon = config.icon;
   const needsAttention = config.key === "draft" && stats.draft + stats.pending > 0;
 
@@ -73,40 +95,82 @@ function StatTile({ config, stats, index }: { config: CardConfig; stats: Calenda
           block: "start",
         });
       }}
-      aria-label={`${config.label}: ${stats[config.key]}. ${config.supporting(stats)}`}
-      className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-5 text-left shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white hover:shadow-[0_16px_36px_rgba(15,36,104,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0"
+      aria-label={`${config.label}: ${targetValue}. ${config.supporting(stats)}`}
+      className={cn(
+        "group relative flex w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/85 p-5 text-left shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cpc-blue-accent/30 hover:bg-white hover:shadow-[0_16px_36px_rgba(15,36,104,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:hover:translate-y-0",
+        needsAttention && "border-amber-200/90 bg-amber-50/20 ring-1 ring-amber-200/70",
+      )}
     >
-      {/* Subtle ambient glow on hover */}
-      <div className="pointer-events-none absolute -right-6 -bottom-6 h-20 w-20 rounded-full bg-cpc-blue-accent/5 blur-xl transition-all duration-500 group-hover:scale-150 group-hover:bg-cpc-blue-accent/8" />
+      {/* Top accent gradient bar */}
+      <div
+        className={cn(
+          "absolute top-0 inset-x-0 h-1 bg-gradient-to-r opacity-80 transition-opacity group-hover:opacity-100",
+          config.gradient,
+        )}
+      />
 
-      <div className="relative z-10 flex items-center gap-3">
+      {/* Decorative ambient radial glow */}
+      <div className="pointer-events-none absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-cpc-blue-accent/5 blur-xl transition-all duration-500 group-hover:scale-150 group-hover:bg-cpc-blue-accent/10" />
+
+      {/* Header: Icon + Category/Status Tag */}
+      <div className="relative z-10 flex items-center justify-between gap-3">
         <span
-          className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105", config.iconTone)}
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-105",
+            config.iconBg,
+            config.iconText,
+          )}
           aria-hidden
         >
           <Icon className="h-5 w-5" />
         </span>
-        <p className="min-w-0 font-poppins text-xs leading-snug font-semibold text-cpc-heading-soft">
-          {config.label}
-        </p>
-      </div>
-
-      <div className="relative z-10 mt-4 flex items-end justify-between gap-3">
-        <p
-          aria-live="polite"
-          aria-atomic="true"
-          className="font-poppins text-[28px] xl:text-[30px] leading-none font-bold text-cpc-navy-text tabular-nums tracking-tight"
-        >
-          {value.toLocaleString()}
-        </p>
         <span
           className={cn(
-            "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 font-poppins text-[11px] leading-none font-semibold",
-            needsAttention ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200/80" : "bg-cpc-section-light text-cpc-heading-soft",
+            "rounded-full px-2.5 py-0.5 font-poppins text-[10px] font-bold uppercase tracking-wider",
+            needsAttention ? "bg-amber-100/90 text-amber-800" : config.tagClass,
           )}
         >
-          {needsAttention && <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />}
-          <span className="max-w-[150px] truncate">{config.supporting(stats)}</span>
+          {needsAttention ? "Needs Action" : config.tag}
+        </span>
+      </div>
+
+      {/* Middle: Label + Prominent Value */}
+      <div className="relative z-10 mt-3.5">
+        <p className="font-poppins text-xs font-semibold text-cpc-heading-soft">
+          {config.label}
+        </p>
+        <div className="mt-1 flex items-baseline gap-2">
+          <p
+            aria-live="polite"
+            aria-atomic="true"
+            className="font-poppins text-[30px] xl:text-[32px] font-bold leading-none text-cpc-navy-text tabular-nums tracking-tight"
+          >
+            {value.toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom: Dedicated full-width supporting badge (prevents horizontal clipping/overflow) */}
+      <div className="relative z-10 mt-3.5 flex items-center">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-poppins text-[11px] font-semibold leading-tight max-w-full",
+            needsAttention
+              ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200/80"
+              : config.key === "published"
+                ? "bg-emerald-50 text-emerald-700"
+                : config.key === "upcoming"
+                  ? "bg-purple-50 text-purple-700"
+                  : "bg-cpc-section-light/80 text-cpc-heading-soft",
+          )}
+        >
+          {needsAttention && (
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" aria-hidden />
+          )}
+          {config.key === "published" && (
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden />
+          )}
+          <span className="truncate">{config.supporting(stats)}</span>
         </span>
       </div>
     </button>
@@ -178,7 +242,7 @@ export function CalendarStatCards({
                 block: "start",
               })
             }
-            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition-all hover:bg-white/90 hover:shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
           >
             <item.icon className={cn("h-4 w-4 shrink-0", item.tone)} aria-hidden />
             <span className="min-w-0">

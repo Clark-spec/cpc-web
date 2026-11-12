@@ -462,12 +462,11 @@ const SEED_REQUESTS: ServiceRequestSeed[] = [
   },
 ];
 
-/** Fresh copy for local state; safe to mutate through `setState`. */
+/** Fresh queue: starts empty so requests are manually submitted. */
 export function buildSampleServiceRequests(): AdminServiceRequest[] {
-  return SEED_REQUESTS.map((request) => ({
-    ...request,
-    requirements: buildRequirements(request.paymentStatus),
-  }));
+  void buildRequirements;
+  void SEED_REQUESTS;
+  return [];
 }
 
 export function isSameDay(value: string, reference = new Date()): boolean {

@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { DEAN_ROLES } from "@/lib/navigation";
 import type { AdminRole, AdminUser } from "@/types/admin";
 import type { SectionId, SectionSchedule } from "@/types/schedule";
 import type { DraftSchedule, Instructor, ScheduleMasterData } from "@/types/scheduleAdmin";
@@ -37,16 +38,18 @@ export function useScheduleRoleScoping(
   master: ScheduleMasterData,
   draft: DraftSchedule,
 ) {
+  const isDean = DEAN_ROLES.includes(role);
+
   const canEditSection = useCallback(
     (section: SectionId) => {
       if (EDITING_ROLES.includes(role)) return true;
-      if (role === "dean") return DEAN_SECTIONS.includes(section);
+      if (isDean) return DEAN_SECTIONS.includes(section);
       return false;
     },
-    [role],
+    [isDean, role],
   );
 
-  const canEdit = EDITING_ROLES.includes(role) || role === "dean";
+  const canEdit = EDITING_ROLES.includes(role) || isDean;
 
   const myInstructor = useMemo(
     () => (user === null ? null : matchInstructor(master, user.name)),
@@ -56,7 +59,7 @@ export function useScheduleRoleScoping(
   const editDisabledReason = useCallback(
     (section?: SectionId) => {
       if (EDITING_ROLES.includes(role)) return null;
-      if (role === "dean") {
+      if (isDean) {
         return section !== undefined && !canEditSection(section)
           ? "Deans edit only their own department's sections."
           : null;
@@ -64,17 +67,17 @@ export function useScheduleRoleScoping(
       if (role === "instructor") return "Instructors view their teaching load read-only.";
       return "Only the Registrar and the Administrator can edit class schedules.";
     },
-    [canEditSection, role],
+    [canEditSection, isDean, role],
   );
 
   const sectionsForRole = useMemo<SectionId[]>(() => {
     const stored = draft.schedules.map((schedule) => schedule.section);
-    if (role === "dean") {
+    if (isDean) {
       const scoped = stored.filter((section) => canEditSection(section));
       return scoped.length > 0 ? scoped : DEAN_SECTIONS;
     }
     return stored.length > 0 ? stored : DEAN_SECTIONS;
-  }, [canEditSection, draft.schedules, role]);
+  }, [canEditSection, draft.schedules, isDean]);
 
   /**
    * The classes this staff member is answerable for, before any filter or

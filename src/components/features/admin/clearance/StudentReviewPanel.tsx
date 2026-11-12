@@ -69,9 +69,20 @@ function emailFor(name: string): string {
 function decisionBlockReason(
   row: ClearanceRequestRow,
   homeOffice: ClearanceRequestRow["office"] | null,
+  homePrograms?: string[] | null,
 ): string | null {
   if (homeOffice && row.office !== homeOffice) {
     return `This request belongs to the ${OFFICE_LABELS[row.office]}, not your office.`;
+  }
+  if (homeOffice === "dean" && homePrograms && homePrograms.length > 0) {
+    const matches = homePrograms.some((prog) => {
+      const pLower = prog.toLowerCase();
+      const rLower = (row.program ?? "").toLowerCase();
+      return rLower.includes(pLower) || pLower.includes(rLower);
+    });
+    if (!matches) {
+      return `This student's program (${row.program}) is not under your department.`;
+    }
   }
   switch (row.status) {
     case "requested":
@@ -100,7 +111,7 @@ export function StudentReviewPanel({
   onClose,
   sheet = false,
 }: StudentReviewPanelProps) {
-  const { selectedRow, selectedRecord, busy, isSuperAdmin, homeOffice, stepRequest } =
+  const { selectedRow, selectedRecord, busy, isSuperAdmin, homeOffice, homePrograms, stepRequest } =
     useClearanceAdmin();
 
   const headingId = useId();
@@ -124,6 +135,8 @@ export function StudentReviewPanel({
   /* Sheet mode mirrors StudentQuickViewDrawer: focus in on open, back on close. */
   useEffect(() => {
     if (!sheet) return;
+    // Guard: do not lock body scroll if on desktop (>= 1280px)
+    if (typeof window !== "undefined" && window.innerWidth >= 1280) return;
 
     previouslyFocused.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -169,7 +182,7 @@ export function StudentReviewPanel({
   }
 
   const row = selectedRow;
-  const blockReason = decisionBlockReason(row, homeOffice);
+  const blockReason = decisionBlockReason(row, homeOffice, homePrograms);
   const canDecide = blockReason === null;
   const canRevoke = isSuperAdmin && row.status === "signed";
 

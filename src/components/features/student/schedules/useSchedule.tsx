@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/toast";
 import {
   formatPublishedCaption,
   readPublishedSchedule,
+  fetchPublishedScheduleApi,
   subscribeToPublishedSchedule,
 } from "@/services/scheduleStudent/service";
 import {
@@ -108,14 +109,16 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     [published, section],
   );
 
-  // A publish in the staff portal — same tab or another window — lands here.
-  useEffect(
-    () =>
-      subscribeToPublishedSchedule(() => {
-        setPublished(readPublishedSchedule());
-      }),
-    [],
-  );
+  // A publish in the staff portal or backend update lands here.
+  useEffect(() => {
+    fetchPublishedScheduleApi().then((fresh) => {
+      setPublished(fresh);
+    });
+
+    return subscribeToPublishedSchedule(() => {
+      setPublished(readPublishedSchedule());
+    });
+  }, []);
 
   // First visit records the version this student is already looking at, so the
   // update banner can only ever announce a change made after that point.

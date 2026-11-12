@@ -8,6 +8,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "@/lib/cn";
+import { ALL_ROLES } from "@/lib/navigation";
 import type { AdminRole } from "@/types/admin";
 
 type CountKey = "enrollments" | "clearance" | "serviceRequests";
@@ -21,16 +22,6 @@ type QuickAction = {
   /** Pending volume shown as a pill, when the task is queue-driven. */
   countKey?: CountKey;
 };
-
-const ALL_ROLES: AdminRole[] = [
-  "admin",
-  "registrar",
-  "dean",
-  "library",
-  "accounting",
-  "sao",
-  "instructor",
-];
 
 const ACTIONS: QuickAction[] = [
   {

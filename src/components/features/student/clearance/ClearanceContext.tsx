@@ -10,7 +10,12 @@ import {
   type ReactNode,
 } from "react";
 import { useToast } from "@/components/ui/toast";
-import { CLEARANCE_PERIOD_KEY, CLEARANCE_STORAGE_KEY } from "@/lib/clearanceStorage";
+import { useAuth } from "@/components/context/useAuth";
+import {
+  CLEARANCE_CHANNEL_NAME,
+  CLEARANCE_PERIOD_KEY,
+  CLEARANCE_STORAGE_KEY,
+} from "@/lib/clearanceStorage";
 import { createInitialState, mockStudent } from "@/services/clearanceStudent/mock";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
@@ -65,6 +70,7 @@ const findOffice = (state: ClearanceState, officeId: OfficeId): OfficeSignature 
   state.offices.find((office) => office.office === officeId);
 
 export function ClearanceProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [state, setState] = useState<ClearanceState>(createInitialState);
   const [loading, setLoading] = useState(true);
   // Demo mode survives a reload so testers do not have to toggle it again.
@@ -73,6 +79,31 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const highlightTimer = useRef<number | null>(null);
   const { toast } = useToast();
   const { notify, resetNotifications } = useNotifications();
+
+  const student = useMemo<StudentProfile>(() => {
+    if (user && user.role === "student") {
+      return {
+        name: user.name || mockStudent.name,
+        studentId: user.studentNumber || user.id || mockStudent.studentId,
+        yearLevel: user.yearLevel ? `${user.yearLevel}rd Year` : mockStudent.yearLevel,
+        course: user.course || mockStudent.course,
+        program:
+          user.course === "BSIT"
+            ? "BS Information Technology"
+            : user.course || mockStudent.program,
+        academicYear: mockStudent.academicYear,
+        semester: mockStudent.semester,
+        term: mockStudent.term,
+        graduating: mockStudent.graduating,
+        date: new Date().toISOString().split("T")[0],
+        referenceNumber: state.referenceNumber ?? mockStudent.referenceNumber,
+      };
+    }
+    return {
+      ...mockStudent,
+      referenceNumber: state.referenceNumber ?? mockStudent.referenceNumber,
+    };
+  }, [user, state.referenceNumber]);
 
   // Initial fetch through the mock service.
   useEffect(() => {
@@ -99,18 +130,34 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Admin/staff signatures and the period switch are written to the same keys
-  // from another tab.
+  // from another tab or BroadcastChannel in the same session.
   useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== CLEARANCE_STORAGE_KEY && event.key !== CLEARANCE_PERIOD_KEY) return;
+    const refresh = () => {
       void getClearance()
         .then((next) => setState(next))
         .catch(() => {
-          // Keep the current state if the cross-tab read fails.
+          // Keep current state on error
         });
     };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== CLEARANCE_STORAGE_KEY && event.key !== CLEARANCE_PERIOD_KEY) return;
+      refresh();
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== "undefined") {
+      channel = new BroadcastChannel(CLEARANCE_CHANNEL_NAME);
+      channel.onmessage = () => {
+        refresh();
+      };
+    }
+
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      channel?.close();
+    };
   }, []);
 
   const isCleared = useMemo(
@@ -187,9 +234,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           type: "warning",
           officeId,
         });
+        toast(`${office.label} request cancelled.`, "info");
       }
     },
-    [notify],
+    [notify, toast],
   );
 
   /**
@@ -260,11 +308,11 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<ClearanceContextValue>(
     () => ({
-      student: mockStudent,
+      student,
       offices: state.offices,
       history: state.history,
       dateCleared: state.dateCleared,
-      referenceNumber: state.referenceNumber ?? mockStudent.referenceNumber,
+      referenceNumber: state.referenceNumber ?? student.referenceNumber,
       loading,
       isCleared,
       periodOpen: state.periodOpen ?? true,
@@ -280,6 +328,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       focusOffice,
     }),
     [
+      student,
       state,
       loading,
       isCleared,

@@ -54,12 +54,26 @@ export function deriveRows(
   return rows;
 }
 
-/** Office staff only ever see their own office; the admin sees everything. */
+/** Office staff only ever see their own office; the admin sees everything.
+ * Program-aware deans only see students from their respective department programs.
+ */
 export function scopeRows(
   rows: ClearanceRequestRow[],
   office: OfficeId | null,
+  homePrograms?: string[] | null,
 ): ClearanceRequestRow[] {
-  return office ? rows.filter((row) => row.office === office) : rows;
+  if (!office) return rows;
+  let filtered = rows.filter((row) => row.office === office);
+  if (office === "dean" && homePrograms && homePrograms.length > 0) {
+    filtered = filtered.filter((row) =>
+      homePrograms.some((prog) => {
+        const pLower = prog.toLowerCase();
+        const rLower = (row.program ?? "").toLowerCase();
+        return rLower.includes(pLower) || pLower.includes(rLower);
+      }),
+    );
+  }
+  return filtered;
 }
 
 /** Real API: `GET /clearance/requests`; filtering is server-side in a real build. */

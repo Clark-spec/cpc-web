@@ -1,18 +1,15 @@
 /* eslint-disable react-refresh/only-export-components -- provider + hook intentionally share a module */
 import type { ReactNode } from "react";
 import { NotificationProvider as PortalNotificationProvider } from "@/components/context/NotificationContext";
-
-import { CLEARANCE_NOTIFICATIONS_KEY as STUDENT_NOTIFICATIONS_KEY } from "@/lib/clearanceStorage";
-
-/**
- * (1) The staff portal writes decisions into `cpc:notifications:{studentId}`,
- * so the bell and the admin queue read and write one shared feed.
- */
-export const CLEARANCE_NOTIFICATIONS_KEY = STUDENT_NOTIFICATIONS_KEY;
+import { studentNotificationsKey } from "@/lib/clearanceStorage";
+import { getActiveStudent } from "@/services/clearanceStudent/service";
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
+  const activeStudent = getActiveStudent();
+  const key = studentNotificationsKey(activeStudent.studentId);
+
   return (
-    <PortalNotificationProvider storageKey={CLEARANCE_NOTIFICATIONS_KEY}>
+    <PortalNotificationProvider storageKey={key}>
       {children}
     </PortalNotificationProvider>
   );

@@ -2,42 +2,7 @@ import type { AdminNotification } from "@/types/admin";
 import { ADMIN_NOTIFICATIONS_KEY, isRecord, readJson, wait, writeJson } from "./storage";
 
 export function seedAdminNotifications(): AdminNotification[] {
-  const now = Date.now();
-
-  return [
-    {
-      id: "notif-1",
-      message: "3 clearance requests are waiting for your signature.",
-      type: "info",
-      createdAt: new Date(now - 8 * 60 * 1000).toISOString(),
-      read: false,
-      href: "/admin/clearance-requests",
-    },
-    {
-      id: "notif-2",
-      message: "A new enrollment application needs review.",
-      type: "warning",
-      createdAt: new Date(now - 35 * 60 * 1000).toISOString(),
-      read: false,
-      href: "/admin/enrollment/for-review",
-    },
-    {
-      id: "notif-3",
-      message: "Registrar signed 5 clearance requests today.",
-      type: "success",
-      createdAt: new Date(now - 2 * 60 * 60 * 1000).toISOString(),
-      read: false,
-      href: "/admin/clearance-requests",
-    },
-    {
-      id: "notif-4",
-      message: "Weekly enrollment summary is ready.",
-      type: "info",
-      createdAt: new Date(now - 26 * 60 * 60 * 1000).toISOString(),
-      read: true,
-      href: "/admin/dashboard",
-    },
-  ];
+  return [];
 }
 
 export function normalizeAdminNotification(value: unknown): AdminNotification | null {
@@ -94,4 +59,17 @@ export async function markNotificationsRead(ids?: string[]): Promise<void> {
   writeJson(ADMIN_NOTIFICATIONS_KEY, next);
   return wait(undefined, 200);
 }
+
+/** Removes a single admin notification by id from local storage. */
+export function deleteAdminNotification(id: string): void {
+  const notifications = readAdminNotifications();
+  const next = notifications.filter((n) => n.id !== id);
+  writeJson(ADMIN_NOTIFICATIONS_KEY, next);
+}
+
+/** Removes all admin notifications from local storage. */
+export function deleteAllAdminNotifications(): void {
+  writeJson(ADMIN_NOTIFICATIONS_KEY, []);
+}
+
 

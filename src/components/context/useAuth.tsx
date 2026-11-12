@@ -1,92 +1,156 @@
 /* eslint-disable react-refresh/only-export-components -- provider + hook intentionally share a module */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { navigate } from "@/lib/router";
+import { loginApi, logoutApi, getSessionApi, type AuthUser } from "@/services/auth";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type UserRole = "student" | "staff" | "admin" | null;
 
-type User = {
-  id: string;
-  name: string;
-  email: string;
+type User = Omit<AuthUser, "role"> & {
   role: UserRole;
-  studentId?: string;
-  course?: string;
-  yearLevel?: number;
 };
 
 type AuthContextType = {
   user: User | null;
   role: UserRole;
   isAuthenticated: boolean;
-  login: (credentials: { id: string; password: string; role: UserRole }) => Promise<void>;
-  logout: () => void;
+  login: (credentials: { id: string; password: string; role: UserRole }) => Promise<boolean>;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  error: string | null;
+  clearError: () => void;
 };
+
+// ─── Context ──────────────────────────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const USER_STORAGE_KEY = "cpc_user";
+const ACCESS_TOKEN_KEY = "cpc_access_token";
 
-/** Reads the session once, before the first render, so no state update is needed on mount. */
+/** Reads the persisted session once at startup. */
 function readStoredUser(): User | null {
-  const storedUser = sessionStorage.getItem(USER_STORAGE_KEY);
-  if (!storedUser) return null;
+  const raw = sessionStorage.getItem(USER_STORAGE_KEY);
+  if (!raw) return null;
   try {
-    return JSON.parse(storedUser) as User;
+    return JSON.parse(raw) as User;
   } catch {
     sessionStorage.removeItem(USER_STORAGE_KEY);
     return null;
   }
 }
 
+/** Normalises the backend role string to the frontend UserRole union. */
+function toUserRole(raw: string | undefined | null): UserRole {
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  if (lower === "student") return "student";
+  if (lower === "admin" || lower === "registrar" || lower === "dean" ||
+      lower.startsWith("dean_") ||
+      lower === "library" || lower === "accounting" || lower === "sao" ||
+      lower === "instructor") return "staff";
+  return null;
+}
+
+/** Returns the post-login route for the given role. */
+function redirectPath(role: UserRole): string {
+  if (role === "student") return "/student/home";
+  if (role === "staff") return "/admin/dashboard";
+  return "/login/student";
+}
+
+// ─── Provider ─────────────────────────────────────────────────────────────────
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(readStoredUser);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const login = async (credentials: { id: string; password: string; role: UserRole }) => {
+  // On mount, verify the stored session is still valid.
+  useEffect(() => {
+    const stored = readStoredUser();
+    if (!stored) return;
+
+    getSessionApi()
+      .then((freshUser) => {
+        const updated: User = { ...freshUser, role: toUserRole(freshUser.role) };
+        setUser(updated);
+        sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
+      })
+      .catch(() => {
+        // Session expired or server unreachable — clear local state.
+        setUser(null);
+        sessionStorage.removeItem(USER_STORAGE_KEY);
+        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      });
+    // Only run once after the initial render.
+  }, []);
+
+  const login = useCallback(
+    async (credentials: { id: string; password: string; role: UserRole }) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await loginApi({
+          identifier: credentials.id,
+          password: credentials.password,
+        });
+
+        const role = toUserRole(result.user.role);
+        const authUser: User = { ...result.user, role };
+
+        // Persist session and tokens.
+        sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
+        sessionStorage.setItem(ACCESS_TOKEN_KEY, result.accessToken);
+        sessionStorage.setItem("cpc_refresh_token", result.refreshToken);
+
+        setUser(authUser);
+        navigate(redirectPath(role), { replace: true });
+        return true;
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Login failed. Please try again.";
+        setError(message);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const logout = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const mockUser: User = {
-      id: credentials.id,
-      name: credentials.role === "student" ? "Juan Dela Cruz" : "Maria Santos",
-      email: `${credentials.id}@cpc.edu.ph`,
-      role: credentials.role,
-      studentId: credentials.role === "student" ? credentials.id : undefined,
-      course: "BS Computer Science",
-      yearLevel: 2,
-    };
-
-    setUser(mockUser);
-    sessionStorage.setItem("cpc_user", JSON.stringify(mockUser));
-    setIsLoading(false);
-
-    if (credentials.role === "student") {
-      navigate("/online-enrollment");
-    } else if (credentials.role === "staff") {
-      navigate("/dashboard");
-    } else {
-      navigate("/dashboard");
+    try {
+      await logoutApi();
+    } catch {
+      // Best-effort: clear client state regardless of network errors.
+    } finally {
+      setUser(null);
+      sessionStorage.removeItem(USER_STORAGE_KEY);
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      sessionStorage.removeItem("cpc_refresh_token");
+      setIsLoading(false);
+      navigate("/login/student", { replace: true });
     }
-  };
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-    sessionStorage.removeItem("cpc_user");
-    navigate("/login/student");
-  };
-  
+  const clearError = useCallback(() => setError(null), []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        role: user?.role || null,
+        role: user?.role ?? null,
         isAuthenticated: !!user,
         login,
         logout,
         isLoading,
+        error,
+        clearError,
       }}
     >
       {children}
