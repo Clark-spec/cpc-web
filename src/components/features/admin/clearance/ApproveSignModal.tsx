@@ -245,7 +245,7 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
                 <button
                   type="button"
                   onClick={() => setPadOpen(true)}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:animate-none"
+                  className="cpc-btn cpc-btn-secondary cpc-btn-sm"
                 >
                   <PenLine className="h-3.5 w-3.5" aria-hidden />
                   {captured ? "Change signature" : "Draw, type or upload"}
@@ -297,7 +297,7 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
           type="button"
           onClick={onClose}
           disabled={busy}
-          className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:animate-none disabled:cursor-not-allowed disabled:opacity-60"
+          className="cpc-btn cpc-btn-secondary"
         >
           Cancel
         </button>
@@ -305,7 +305,7 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
           type="button"
           onClick={() => void confirm()}
           disabled={!canConfirm}
-          className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:animate-none disabled:cursor-not-allowed disabled:opacity-60"
+          className="cpc-btn cpc-btn-primary"
         >
           {busy ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

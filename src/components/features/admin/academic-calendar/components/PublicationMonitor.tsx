@@ -108,7 +108,7 @@ export function PublicationMonitor({
                 <button
                   type="button"
                   onClick={() => onPublish(event)}
-                  className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-cpc-blue-accent px-2 py-1 font-poppins text-[11px] font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-cpc-blue-accent"
+                  className="cpc-btn cpc-btn-primary cpc-btn-sm shrink-0"
                 >
                   <Send className="h-3 w-3" aria-hidden />
                   Publish

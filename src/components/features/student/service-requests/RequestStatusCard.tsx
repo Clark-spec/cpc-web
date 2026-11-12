@@ -97,7 +97,7 @@ export function RequestStatusCard({ request, loading, error, onRetry }: RequestS
       {!loading && (
         <Link
           to="/student/request-status"
-          className="sr-btn-primary mt-4 w-full transition-shadow hover:shadow-[0_6px_16px_rgba(25,60,154,0.22)]"
+          className="cpc-btn cpc-btn-primary mt-4 w-full"
         >
           <ClipboardList className="h-4 w-4" aria-hidden />
           View Request Status

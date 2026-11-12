@@ -126,7 +126,7 @@ export function ProfileHeroCard({
               id="profile-edit-button"
               type="button"
               onClick={onEdit}
-              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-navy px-5 py-2.5 font-poppins text-sm font-semibold text-white shadow-[0_4px_14px_rgba(8,45,121,0.22)] transition-colors hover:bg-cpc-navy-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent lg:w-auto"
+              className="cpc-btn cpc-btn-primary w-full lg:w-auto"
             >
               <Pencil className="h-4 w-4" aria-hidden />
               Edit Profile

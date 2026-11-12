@@ -128,7 +128,7 @@ export function CalendarCard({
           <button
             type="button"
             onClick={onToday}
-            className="cursor-pointer rounded-lg border border-cpc-input-border px-3 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-secondary cpc-btn-sm"
           >
             Today
           </button>

@@ -179,7 +179,7 @@ export function StudentQuickViewDrawer({
           <Link
             to={`/admin/clearance-requests?student=${encodeURIComponent(student.id)}`}
             onClick={onClose}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-primary cpc-btn-block"
           >
             <ShieldCheck className="h-4 w-4" aria-hidden />
             View clearance requests

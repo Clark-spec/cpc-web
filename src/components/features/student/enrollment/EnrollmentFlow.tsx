@@ -83,7 +83,7 @@ export function EnrollmentFlow() {
   return (
     <div className="enroll-layout">
       <div className="enroll-content py-8">
-        <div className="enroll-card p-8 mb-6">
+        <div className="enroll-card mb-6 p-5 sm:p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-lg font-semibold text-enroll-heading">{currentTitle}</h2>
@@ -114,7 +114,7 @@ export function EnrollmentFlow() {
             <button
               onClick={handlePrev}
               disabled={step === 1}
-              className="cursor-pointer px-6 py-3 text-cpc-label transition-colors hover:text-cpc-navy-text disabled:cursor-not-allowed disabled:opacity-40"
+              className="cpc-btn cpc-btn-tertiary"
             >
               Back
             </button>
@@ -127,14 +127,14 @@ export function EnrollmentFlow() {
                 <button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className="enroll-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cpc-btn cpc-btn-primary"
                 >
                   Next
                 </button>
               ) : (
                 <button
                   onClick={() => navigate("/online-enrollment/confirmation")}
-                  className="enroll-btn-primary"
+                  className="cpc-btn cpc-btn-primary"
                 >
                   Submit Enrollment
                 </button>

@@ -25,12 +25,11 @@ export const HINT_TEXT_BASE = "mt-1 font-poppins text-[11px] text-cpc-heading-so
 
 export const DISABLED_BASE = "disabled:cursor-not-allowed disabled:opacity-60";
 
-/** The schedule module's button scale: `text-xs`, so a toolbar row never grows. */
-export const BTN =
-  "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap transition-colors motion-reduce:animate-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60";
+/** The schedule module's button scale: compact so a toolbar row never grows. */
+export const BTN = "cpc-btn cpc-btn-sm";
 
-export const BTN_PRIMARY = `${BTN} bg-cpc-button text-white hover:bg-cpc-navy`;
+export const BTN_PRIMARY = `${BTN} cpc-btn-primary`;
 
-export const BTN_ROSE = `${BTN} border border-rose-300 text-rose-700 hover:bg-rose-50`;
+export const BTN_ROSE = `${BTN} bg-rose-50 text-rose-700 hover:bg-rose-100`;
 
-export const BTN_NEUTRAL = `${BTN} border border-cpc-tile-border bg-white text-cpc-navy-text hover:bg-cpc-section-light`;
+export const BTN_NEUTRAL = `${BTN} cpc-btn-secondary`;

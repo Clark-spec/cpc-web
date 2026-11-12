@@ -61,7 +61,7 @@ export function AdminLayout() {
           id="admin-main"
           tabIndex={-1}
           key={pathname}
-          className="admin-fade-in mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 outline-none sm:px-6 sm:py-6 lg:px-8"
+          className="admin-fade-in mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 outline-none max-lg:overflow-x-clip sm:px-6 sm:py-6 lg:px-8"
         >
           <Outlet />
         </main>

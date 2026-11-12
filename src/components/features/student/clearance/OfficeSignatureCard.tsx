@@ -301,7 +301,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
             type="button"
             onClick={() => setModalOpen(true)}
             disabled={!periodOpen}
-            className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-cpc-navy py-2 font-poppins text-xs font-semibold text-white shadow-sm transition-all hover:bg-cpc-navy-deep hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-50"
+            className="cpc-btn cpc-btn-primary cpc-btn-sm cpc-btn-block"
           >
             {periodOpen ? (
               <Send className="h-3.5 w-3.5" aria-hidden />

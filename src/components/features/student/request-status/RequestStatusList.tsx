@@ -154,7 +154,7 @@ export function RequestStatusList({
           <p className="mt-1 max-w-[320px] font-poppins text-[11px] leading-[17px] text-sr-muted">
             Submit a request for a school document or service, then track its progress here.
           </p>
-          <Link to="/student/service-requests" className="sr-btn-primary mt-4">
+          <Link to="/student/service-requests" className="cpc-btn cpc-btn-primary mt-4">
             Submit a Request
           </Link>
         </div>
@@ -172,7 +172,7 @@ export function RequestStatusList({
           <button
             type="button"
             onClick={onClearFilters}
-            className="sr-btn-secondary mt-4"
+            className="cpc-btn cpc-btn-secondary mt-4"
           >
             Clear filters
           </button>

@@ -67,7 +67,7 @@ export function ProfileCompletenessCard({
             <button
               type="button"
               onClick={() => onFix(nextMissing.field)}
-              className="inline-flex w-fit cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white px-3 py-1.5 font-poppins text-xs font-semibold text-cpc-blue-accent transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm w-fit"
             >
               Add now
             </button>

@@ -47,7 +47,7 @@ export default function RequestStatusPage() {
               type="button"
               onClick={status.reload}
               disabled={busy}
-              className="sr-btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
+              className="cpc-btn cpc-btn-secondary"
             >
               <RefreshCw
                 className={cn("h-4 w-4", busy && "animate-spin")}

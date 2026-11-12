@@ -181,3 +181,12 @@ export function AppRouter() {
 
 createRoot(document.getElementById("root")!).render(<AppRouter />);
 
+// Production-only PWA registration. Dev and preview builds stay SW-free, and
+// a failed registration never blocks the app from rendering.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch(() => undefined);
+  });
+}

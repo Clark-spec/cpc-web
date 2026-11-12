@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
 import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
 import { validateRequirementFile } from "@/components/features/student/enrollment/validation";
 import type { RequirementDocument } from "@/components/features/student/enrollment/mockData";
 
 export function RequirementsStep() {
-  const { state, updateRequirementFile } = useEnrollment();
+  const { state, updateRequirementFile, updateRequirements } = useEnrollment();
   const [dragTarget, setDragTarget] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cameraTarget, setCameraTarget] = useState<RequirementDocument | null>(null);
@@ -23,6 +23,29 @@ export function RequirementsStep() {
     });
 
     if (!error) updateRequirementFile(requirement.id, file);
+  };
+
+  const handleRemoveFile = (requirement: RequirementDocument) => {
+    updateRequirements(
+      state.requirements.map((req) =>
+        req.id === requirement.id
+          ? {
+              ...req,
+              fileName: undefined,
+              fileSize: undefined,
+              uploadDate: undefined,
+              status: "pending" as const,
+            }
+          : req,
+      ),
+    );
+
+    setErrors((prev) => {
+      if (!(requirement.id in prev)) return prev;
+      const next = { ...prev };
+      delete next[requirement.id];
+      return next;
+    });
   };
 
   const handleDrag = (event: React.DragEvent, id: string, active: boolean) => {
@@ -82,33 +105,31 @@ export function RequirementsStep() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold text-enroll-heading mb-2">Submit Your Requirements</h3>
+        <h3 className="mb-2 text-lg font-semibold text-enroll-heading sm:text-xl">Submit Your Requirements</h3>
         <p className="text-sm text-enroll-muted">
           Upload the necessary documents required for your enrollment application. Ensure that all uploaded files are clear, complete, and readable.
         </p>
         <p className="text-xs text-enroll-text mt-1">
-          You can upload a file or take a photo of each document. Review the accepted formats and
-          file size limits before uploading.
+          You can upload a file, retake a photo, or remove an uploaded document to replace it.
+          Review the accepted formats and file size limits before uploading.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
         {state.requirements.map((requirement) => (
           <div key={requirement.id} className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
               <label className="block text-sm font-semibold text-enroll-heading">
                 {requirement.name} *
               </label>
-              {requirement.status === "pending" && (
-                <button
-                  type="button"
-                  onClick={() => setCameraTarget(requirement)}
-                  className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-enroll-border bg-enroll-card px-3 py-1.5 font-poppins text-xs font-semibold text-enroll-primary transition-colors hover:bg-enroll-hero-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
-                >
-                  <Camera className="h-3.5 w-3.5" aria-hidden />
-                  Take Photo
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setCameraTarget(requirement)}
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-enroll-border bg-enroll-card px-3 py-1.5 font-poppins text-xs font-semibold text-enroll-primary transition-colors hover:bg-enroll-hero-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
+              >
+                <Camera className="h-3.5 w-3.5" aria-hidden />
+                {requirement.status === "pending" ? "Take Photo" : "Retake Photo"}
+              </button>
             </div>
 
             {requirement.status === "pending" ? (
@@ -155,18 +176,29 @@ export function RequirementsStep() {
                 />
               </div>
             ) : (
-              <div className={`enroll-upload-box completed`}>
+              <div className="enroll-upload-box completed">
                 <div className="enroll-upload-file">
-                  <div className="enroll-upload-file-info">
-                    <div className="enroll-upload-file-name">
+                  <div className="enroll-upload-file-info min-w-0">
+                    <div className="enroll-upload-file-name truncate" title={requirement.fileName}>
                       {requirement.fileName}
                     </div>
                     <div className="enroll-upload-file-size">
                       {requirement.fileSize && formatFileSize(requirement.fileSize)}
                     </div>
                   </div>
-                  <div className={`enroll-upload-status ${getStatusColor(requirement.status)}`}>
-                    {getStatusText(requirement.status)}
+                  <div className="enroll-upload-file-actions flex shrink-0 items-center gap-2">
+                    <div className={`enroll-upload-status ${getStatusColor(requirement.status)}`}>
+                      {getStatusText(requirement.status)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile(requirement)}
+                      aria-label={`Remove ${requirement.name} file`}
+                      title="Remove file"
+                      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-enroll-border bg-enroll-card text-enroll-muted transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
+                    >
+                      <X className="h-4 w-4" aria-hidden />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -182,7 +214,7 @@ export function RequirementsStep() {
       </div>
 
       <div className="pt-4 border-t border-enroll-border">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="text-sm text-enroll-text">
             Documents Ready: {state.requirements.filter(r => r.status !== "pending").length} of {state.requirements.length}
           </span>

@@ -17,14 +17,12 @@ export const HEADER_CELL =
 
 export const CELL = "px-3 py-3 align-middle";
 
-export const BTN =
-  "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 font-poppins text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60";
+export const BTN = "cpc-btn cpc-btn-sm";
 
 export const NAV_BUTTON =
   "inline-flex cursor-pointer items-center gap-1 rounded-lg border border-cpc-tile-border bg-white px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-40";
 
-export const ROW_ACTION =
-  "inline-flex cursor-pointer items-center gap-1 rounded-lg border border-cpc-tile-border bg-white px-2 py-1.5 font-poppins text-[11px] font-semibold text-cpc-blue-accent transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-45";
+export const ROW_ACTION = "cpc-btn cpc-btn-secondary cpc-btn-sm";
 
 export const PAGE_SIZES = [10, 25, 50];
 

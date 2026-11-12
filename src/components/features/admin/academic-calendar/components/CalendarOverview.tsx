@@ -632,7 +632,7 @@ export function CalendarOverview({
           <button
             type="button"
             onClick={onAddEvent}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-cpc-blue-accent px-2.5 py-1.5 font-poppins text-[11px] font-semibold text-white shadow-xs transition-all hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-primary cpc-btn-sm"
           >
             <CalendarPlus className="h-3.5 w-3.5" aria-hidden />
             Add Event

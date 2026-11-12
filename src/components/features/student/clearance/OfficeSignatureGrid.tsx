@@ -97,7 +97,7 @@ export function OfficeSignatureGrid() {
               type="button"
               onClick={() => setConfirmOpen(false)}
               disabled={busy}
-              className="cursor-pointer rounded-lg border border-cpc-tile-border px-4 py-2.5 font-poppins text-sm font-medium text-cpc-label transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+              className="cpc-btn cpc-btn-secondary"
             >
               Cancel
             </button>
@@ -105,7 +105,7 @@ export function OfficeSignatureGrid() {
               type="button"
               onClick={handleRequestAll}
               disabled={busy || notRequested.length === 0}
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+              className="cpc-btn cpc-btn-primary"
             >
               {busy ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

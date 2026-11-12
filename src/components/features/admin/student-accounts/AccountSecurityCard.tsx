@@ -102,7 +102,7 @@ export function AccountSecurityCard() {
           type="button"
           onClick={save}
           disabled={!dirty}
-          className="inline-flex cursor-pointer items-center justify-center gap-1.5 self-start rounded-lg bg-cpc-button px-3.5 py-2 font-poppins text-xs font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
+          className="cpc-btn cpc-btn-primary cpc-btn-sm self-start sm:self-auto"
         >
           <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Save settings

@@ -36,11 +36,10 @@ export type StudentReviewPanelProps = {
   sheet?: boolean;
 };
 
-const BTN =
-  "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 font-poppins text-sm font-semibold transition-colors motion-reduce:animate-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60";
-const BTN_PRIMARY = `${BTN} bg-cpc-button text-white hover:bg-cpc-navy`;
-const BTN_ROSE = `${BTN} border border-rose-300 text-rose-700 hover:bg-rose-50`;
-const BTN_NEUTRAL = `${BTN} border border-cpc-tile-border text-cpc-navy-text hover:bg-cpc-section-light`;
+const BTN = "cpc-btn cpc-btn-sm";
+const BTN_PRIMARY = `${BTN} cpc-btn-primary`;
+const BTN_ROSE = `${BTN} bg-rose-50 text-rose-700 hover:bg-rose-100`;
+const BTN_NEUTRAL = `${BTN} cpc-btn-secondary`;
 const KBD =
   "rounded border border-cpc-tile-border bg-cpc-section-light px-1 py-px font-poppins text-[10px] font-bold text-cpc-label";
 

@@ -24,7 +24,7 @@ export function ProfileErrorState({ error, onRetry }: ProfileErrorStateProps) {
       <button
         type="button"
         onClick={onRetry}
-        className="mt-5 inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-navy px-5 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+        className="cpc-btn cpc-btn-primary mt-5"
       >
         <RefreshCw className="h-4 w-4" aria-hidden />
         Retry

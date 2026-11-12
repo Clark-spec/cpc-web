@@ -31,7 +31,7 @@ export function ClearanceBanner({ onPreviewStudent, onOpenSignatures }: Clearanc
               <button
                 type="button"
                 onClick={onOpenSignatures}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/80 bg-white/85 px-3.5 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-cpc-navy-text shadow-xs backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-cpc-blue-accent/30 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                className="cpc-btn cpc-btn-secondary cpc-btn-sm"
               >
                 <PenTool className="h-3.5 w-3.5 shrink-0 text-cpc-blue-accent" aria-hidden />
                 My Signatures
@@ -39,7 +39,7 @@ export function ClearanceBanner({ onPreviewStudent, onOpenSignatures }: Clearanc
               <button
                 type="button"
                 onClick={onPreviewStudent}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-cpc-blue-accent bg-cpc-blue-accent px-3.5 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:bg-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                className="cpc-btn cpc-btn-primary cpc-btn-sm"
               >
                 <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 Preview as Student

@@ -67,7 +67,7 @@ export function ReviewStep() {
               </div>
             </div>
             <button
-              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm mt-4"
               onClick={() => goToStep(1)}
             >
               Edit Personal Info
@@ -87,7 +87,7 @@ export function ReviewStep() {
               </div>
             </div>
             <button
-              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm mt-4"
               onClick={() => goToStep(2)}
             >
               Edit Course
@@ -118,7 +118,7 @@ export function ReviewStep() {
               </div>
             </div>
             <button
-              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm mt-4"
               onClick={() => goToStep(2)}
             >
               Edit Subjects
@@ -144,7 +144,7 @@ export function ReviewStep() {
               ))}
             </div>
             <button
-              className="btn-secondary text-sm font-medium mt-4 px-4 py-2"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm mt-4"
               onClick={() => goToStep(3)}
             >
               Edit Requirements

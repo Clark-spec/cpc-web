@@ -212,7 +212,7 @@ export function ClearancePeriodCard() {
               type="button"
               onClick={() => void handleReminders()}
               disabled={sending || busy}
-              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-xs font-semibold text-white transition-colors hover:bg-cpc-navy motion-reduce:animate-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+              className="cpc-btn cpc-btn-primary cpc-btn-block"
             >
               {sending || busy ? (
                 <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />

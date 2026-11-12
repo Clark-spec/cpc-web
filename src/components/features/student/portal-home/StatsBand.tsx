@@ -1,8 +1,7 @@
 import {
-  AwardIcon,
-  BadgeCheckIcon,
-  CalendarIcon,
-  GraduationCapIcon,
+  BookOpenIcon,
+  LandmarkIcon,
+  TrophyIcon,
   UsersIcon,
   type IconComponent,
 } from "@/components/common/display/icons";
@@ -14,24 +13,36 @@ type BandStat = {
 };
 
 const bandStats: BandStat[] = [
-  { value: "20+", label: "Years of Excellence", icon: CalendarIcon },
-  { value: "2000+", label: "Active Students", icon: UsersIcon },
-  { value: "100+", label: "Qualified Faculty", icon: GraduationCapIcon },
-  { value: "100+", label: "Awards & Recognitions", icon: AwardIcon },
-  { value: "95%", label: "Graduate Success Rate", icon: BadgeCheckIcon },
+  { value: "5000+", label: "Students Enrolled", icon: UsersIcon },
+  { value: "95%+", label: "Success Rate", icon: TrophyIcon },
+  { value: "50+", label: "Expert Faculty", icon: BookOpenIcon },
+  { value: "20+", label: "Centers Across City", icon: LandmarkIcon },
 ];
 
 export function StatsBand() {
   return (
-    <section aria-label="College statistics" className="mt-[31px] h-[125px] w-full bg-cpc-navy-top">
-      <div className="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-[110px]">
-        {bandStats.map((stat) => (
-          <div key={stat.label} className="flex items-center gap-[14px]">
-            <stat.icon className="h-[38px] w-[38px] text-white" />
+    <section aria-label="College statistics" className="w-full bg-cpc-navy-top">
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-2 gap-x-4 gap-y-6 px-5 py-6 sm:px-8 lg:flex lg:h-[104px] lg:items-center lg:gap-0 lg:px-[54px] lg:py-0">
+        {bandStats.map((stat, index) => (
+          <div
+            key={stat.label}
+            className="relative flex flex-1 items-center justify-center gap-[10px] lg:gap-[16px]"
+          >
+            <stat.icon className="h-[32px] w-[32px] shrink-0 text-white lg:h-[40px] lg:w-[40px]" />
             <div className="font-poppins">
-              <p className="text-[26px] leading-[28px] font-bold text-white">{stat.value}</p>
-              <p className="text-[14px] leading-[16px] font-normal text-[#d7dfff]">{stat.label}</p>
+              <p className="text-[20px] leading-[24px] font-bold text-white lg:text-[26px] lg:leading-[28px]">
+                {stat.value}
+              </p>
+              <p className="text-[11px] leading-[14px] font-normal text-white/80 lg:text-[13px] lg:leading-[16px]">
+                {stat.label}
+              </p>
             </div>
+            {index < bandStats.length - 1 && (
+              <span
+                aria-hidden
+                className="absolute top-[26px] right-0 bottom-[26px] hidden w-px bg-white/20 lg:block"
+              />
+            )}
           </div>
         ))}
       </div>

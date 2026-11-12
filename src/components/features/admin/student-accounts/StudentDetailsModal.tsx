@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { Modal } from "@/components/ui/modal";
 import { StudentStatusBadge } from "@/components/features/admin/student-accounts/statusBadges";
-import { BTN, sectionText } from "@/components/features/admin/student-accounts/shared";
+import { sectionText } from "@/components/features/admin/student-accounts/shared";
 import { COURSE_LABELS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -106,7 +106,7 @@ export function StudentDetailsModal({ student, onClose }: StudentDetailsModalPro
         <button
           type="button"
           onClick={onClose}
-          className={cn(BTN, "border border-cpc-tile-border text-cpc-navy-text hover:bg-cpc-section-light")}
+          className="cpc-btn cpc-btn-secondary cpc-btn-sm"
         >
           Close
         </button>

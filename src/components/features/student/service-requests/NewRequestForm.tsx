@@ -368,12 +368,12 @@ export function NewRequestForm({
         </div>
 
         <div className="flex flex-col gap-2.5 pt-1 sm:flex-row sm:items-center">
-          <button type="submit" className="sr-btn-primary" disabled={busy || fieldDisabled}>
+          <button type="submit" className="cpc-btn cpc-btn-primary" disabled={busy || fieldDisabled}>
             {submitting ? "Submitting…" : "Submit Request"}
           </button>
           <button
             type="button"
-            className="sr-btn-secondary"
+            className="cpc-btn cpc-btn-secondary"
             onClick={handleSaveDraft}
             disabled={busy || fieldDisabled}
           >

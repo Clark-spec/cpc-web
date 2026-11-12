@@ -338,7 +338,7 @@ export function OfficeLoadChart({ onSelectOffice }: OfficeLoadChartProps) {
                       <button
                         type="button"
                         onClick={() => pick(datum.office)}
-                        className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-cpc-tile-border bg-white px-2 py-1 font-poppins text-[10px] font-semibold text-cpc-blue-accent transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                        className="cpc-btn cpc-btn-tertiary cpc-btn-sm"
                       >
                         Filter
                         <ArrowRight className="h-3 w-3" aria-hidden />

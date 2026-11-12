@@ -45,14 +45,14 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-secondary"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-rose-600 px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+            className="cpc-btn bg-rose-600 text-white shadow-[0_8px_20px_rgba(225,29,72,0.22)] hover:bg-rose-700 focus-visible:outline-rose-500"
           >
             {confirmLabel}
           </button>

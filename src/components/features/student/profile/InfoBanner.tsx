@@ -64,7 +64,7 @@ export function InfoBanner() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-cpc-navy px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+              className="cpc-btn cpc-btn-primary"
             >
               Got it
             </button>

@@ -110,7 +110,7 @@ export function Modal({ open, onClose, labelledBy, children, className }: ModalP
           type="button"
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute top-3 right-3 z-10 rounded-full p-1.5 text-cpc-heading-soft transition-colors hover:bg-cpc-section-light hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          className="absolute top-3 right-3 z-20 rounded-full p-1.5 text-cpc-heading-soft transition-colors hover:bg-cpc-section-light hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
         >
           <X className="h-4 w-4" aria-hidden />
         </button>

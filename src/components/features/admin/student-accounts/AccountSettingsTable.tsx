@@ -56,7 +56,7 @@ export function AccountSettingsTable({
               <button
                 type="button"
                 onClick={onClearFilters}
-                className="cursor-pointer rounded-lg border border-cpc-tile-border bg-white px-3 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                className="cpc-btn cpc-btn-secondary cpc-btn-sm"
               >
                 Clear filters
               </button>

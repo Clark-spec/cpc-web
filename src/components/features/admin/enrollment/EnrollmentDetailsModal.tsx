@@ -208,7 +208,7 @@ export function EnrollmentDetailsModal({
                 setRejecting(false);
                 setShowError(false);
               }}
-              className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-white/80 bg-white/80 px-4 py-2 font-poppins text-xs font-semibold text-cpc-heading-soft shadow-xs backdrop-blur-xs transition-colors hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm"
             >
               Back
             </button>
@@ -226,7 +226,7 @@ export function EnrollmentDetailsModal({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-white/80 bg-white/80 px-4 py-2 font-poppins text-xs font-semibold text-cpc-heading-soft shadow-xs backdrop-blur-xs transition-colors hover:border-cpc-tile-border hover:bg-white hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm"
             >
               Close
             </button>
@@ -241,7 +241,7 @@ export function EnrollmentDetailsModal({
             <button
               type="button"
               onClick={() => onApprove(application)}
-              className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-cpc-navy px-4.5 py-2 font-poppins text-xs font-semibold text-white shadow-sm transition-colors hover:bg-cpc-navy-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+              className="cpc-btn cpc-btn-primary cpc-btn-sm"
             >
               <Check className="h-3.5 w-3.5" aria-hidden />
               Approve Application

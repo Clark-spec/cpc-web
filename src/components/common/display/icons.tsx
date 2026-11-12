@@ -149,6 +149,32 @@ export function AwardIcon({ className, strokeWidth }: IconProps) {
   );
 }
 
+export function TrophyIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </Svg>
+  );
+}
+
+export function LandmarkIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="M3 22h18" />
+      <path d="M6 18v-7" />
+      <path d="M10 18v-7" />
+      <path d="M14 18v-7" />
+      <path d="M18 18v-7" />
+      <path d="m12 2 8 4H4Z" />
+    </Svg>
+  );
+}
+
 export function BadgeCheckIcon({ className, strokeWidth }: IconProps) {
   return (
     <Svg className={className} strokeWidth={strokeWidth}>
@@ -180,6 +206,60 @@ export function ArrowRightIcon({ className, strokeWidth }: IconProps) {
     <Svg className={className} strokeWidth={strokeWidth}>
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
+    </Svg>
+  );
+}
+
+export function ChevronRightIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="m9 18 6-6-6-6" />
+    </Svg>
+  );
+}
+
+export function FacebookIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3Z" />
+    </Svg>
+  );
+}
+
+export function XIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="m4 4 16 16" />
+      <path d="M20 4 4 20" />
+    </Svg>
+  );
+}
+
+export function InstagramIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37Z" />
+      <path d="M17.5 6.5h.01" />
+    </Svg>
+  );
+}
+
+export function LinkedinIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6Z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </Svg>
+  );
+}
+
+export function YoutubeIcon({ className, strokeWidth }: IconProps) {
+  return (
+    <Svg className={className} strokeWidth={strokeWidth}>
+      <path d="M2.5 17a24.1 24.1 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.6 49.6 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.1 24.1 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.6 49.6 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <path d="m10 15 5-3-5-3Z" />
     </Svg>
   );
 }

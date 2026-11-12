@@ -199,7 +199,7 @@ export function CameraCaptureModal({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-secondary"
           >
             Cancel
           </button>
@@ -207,7 +207,7 @@ export function CameraCaptureModal({
             type="button"
             onClick={handleCapture}
             disabled={status !== "ready"}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="cpc-btn cpc-btn-primary"
           >
             <Camera className="h-4 w-4" aria-hidden />
             {captureLabel}

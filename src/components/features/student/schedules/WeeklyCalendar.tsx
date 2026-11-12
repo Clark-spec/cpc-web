@@ -322,7 +322,7 @@ export function WeeklyCalendar({ schedule, onOpenEntry }: WeeklyCalendarProps) {
             onClick={() =>
               setMobileView((current) => (current === "agenda" ? "week" : "agenda"))
             }
-            className="cursor-pointer rounded-lg border border-cpc-button px-3 py-2 font-poppins text-xs font-semibold text-cpc-button transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent md:hidden"
+            className="cpc-btn cpc-btn-secondary cpc-btn-sm md:hidden"
           >
             {mobileView === "agenda" ? "Week view" : "Day view"}
           </button>

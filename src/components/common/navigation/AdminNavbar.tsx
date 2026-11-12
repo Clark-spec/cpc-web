@@ -110,21 +110,21 @@ export function AdminNavbar({ onOpenSearch }: AdminNavbarProps) {
           <Menu className="h-5 w-5" aria-hidden />
         </button>
 
-        <div className="min-w-0 flex-1 md:flex-none">
+        <div className="min-w-0 flex-1 lg:flex-none">
           <Breadcrumbs />
         </div>
 
-        <div className="hidden flex-1 justify-center px-2 md:flex">
+        <div className="hidden min-w-0 flex-1 justify-center px-2 md:flex">
           <button
             type="button"
             onClick={onOpenSearch}
-            className="group flex h-10 w-full max-w-md cursor-pointer items-center gap-2 rounded-xl border border-cpc-tile-border/80 bg-cpc-section-light/40 px-3 text-left transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="group flex h-10 w-full min-w-0 max-w-md cursor-pointer items-center gap-2 rounded-xl border border-cpc-tile-border/80 bg-cpc-section-light/40 px-3 text-left transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
           >
             <Search className="h-4 w-4 shrink-0 text-cpc-heading-soft" aria-hidden />
-            <span className="truncate font-poppins text-xs text-cpc-heading-soft">
+            <span className="min-w-0 flex-1 truncate font-poppins text-xs text-cpc-heading-soft">
               Search students, requests...
             </span>
-            <kbd className="ml-auto hidden shrink-0 items-center gap-0.5 rounded border border-cpc-tile-border bg-white px-1.5 py-0.5 font-poppins text-[10px] font-semibold text-cpc-heading-soft md:inline-flex">
+            <kbd className="ml-auto hidden shrink-0 items-center gap-0.5 rounded border border-cpc-tile-border bg-white px-1.5 py-0.5 font-poppins text-[10px] font-semibold text-cpc-heading-soft lg:inline-flex">
               Ctrl K
             </kbd>
           </button>
@@ -151,7 +151,7 @@ export function AdminNavbar({ onOpenSearch }: AdminNavbarProps) {
                 className="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-2.5 font-poppins text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
               >
                 <Sparkles className="h-4 w-4" aria-hidden />
-                <span className="hidden md:inline">Demo</span>
+                <span className="hidden lg:inline">Demo</span>
                 <ChevronDown
                   className={cn("h-3.5 w-3.5 transition-transform", demoOpen && "rotate-180")}
                   aria-hidden
@@ -244,7 +244,7 @@ export function AdminNavbar({ onOpenSearch }: AdminNavbarProps) {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cpc-navy font-poppins text-[10px] font-semibold text-white">
                 {user.initials}
               </span>
-              <span className="hidden min-w-0 text-left md:block">
+              <span className="hidden min-w-0 text-left lg:block">
                 <span className="block max-w-[8rem] truncate font-poppins text-xs font-semibold text-cpc-navy-text">
                   {user.name}
                 </span>

@@ -58,7 +58,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="cpc-btn cpc-btn-secondary cpc-btn-sm"
           >
             {cancelLabel}
           </button>
@@ -67,10 +67,10 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={busy}
             className={cn(
-              "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
+              "cpc-btn cpc-btn-sm",
               danger
-                ? "bg-rose-600 hover:bg-rose-700 focus-visible:outline-rose-600"
-                : "bg-cpc-button hover:bg-cpc-navy focus-visible:outline-cpc-blue-accent",
+                ? "bg-rose-600 text-white hover:bg-rose-700 focus-visible:outline-rose-600"
+                : "cpc-btn-primary",
             )}
           >
             {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}

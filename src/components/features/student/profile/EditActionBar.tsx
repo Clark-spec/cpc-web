@@ -18,7 +18,7 @@ export function EditActionBar({ formId, saving, canSave, onCancel, className }: 
         type="button"
         onClick={onCancel}
         disabled={saving}
-        className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+        className="cpc-btn cpc-btn-secondary"
       >
         <X className="h-4 w-4" aria-hidden />
         Cancel
@@ -28,7 +28,7 @@ export function EditActionBar({ formId, saving, canSave, onCancel, className }: 
         type="submit"
         form={formId}
         disabled={!canSave || saving}
-        className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-cpc-navy px-4 py-2.5 font-poppins text-sm font-semibold text-white shadow-[0_4px_14px_rgba(8,45,121,0.22)] transition-colors hover:bg-cpc-navy-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-55"
+        className="cpc-btn cpc-btn-primary"
       >
         {saving ? (
           <>

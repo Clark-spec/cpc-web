@@ -30,12 +30,12 @@ export function SubmissionReceiptCard() {
       <NextStepsList />
 
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Link to="/online-enrollment/status" className="enroll-btn-primary">
+        <Link to="/online-enrollment/status" className="cpc-btn cpc-btn-primary">
           View Status
         </Link>
         <button
           onClick={() => window.print()}
-          className="cursor-pointer rounded-lg border border-cpc-button px-6 py-3 text-cpc-button transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          className="cpc-btn cpc-btn-secondary"
         >
           Print Receipt
         </button>

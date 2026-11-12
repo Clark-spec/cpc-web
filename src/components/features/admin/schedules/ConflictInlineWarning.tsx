@@ -80,7 +80,7 @@ export function ConflictInlineWarning({
         <button
           type="button"
           onClick={onFindSlots}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          className="cpc-btn cpc-btn-secondary cpc-btn-sm"
         >
           <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
           Find a free slot

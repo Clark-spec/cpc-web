@@ -89,7 +89,7 @@ export function UpcomingEventsCard({
             <button
               type="button"
               onClick={onAddEvent}
-              className="mt-1 inline-flex items-center gap-1 rounded-lg bg-cpc-blue-accent px-2.5 py-1.5 font-poppins text-xs font-semibold text-white hover:bg-cpc-navy"
+              className="cpc-btn cpc-btn-primary cpc-btn-sm mt-1"
             >
               <CalendarPlus className="h-3 w-3" aria-hidden />
               Add Event

@@ -223,39 +223,6 @@ body {
   max-width: 480px;
 }
 
-.enroll-btn-primary {
-  background: var(--color-cpc-button);
-  color: white;
-  font-family: var(--font-plus-jakarta);
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 0.875rem 2rem;
-  border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2px 6px rgba(8, 45, 121, 0.18);
-}
-
-.enroll-btn-primary:hover:not(:disabled) {
-  background: var(--color-cpc-navy);
-  box-shadow: 0 4px 12px rgba(8, 45, 121, 0.24);
-}
-
-.enroll-btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.enroll-btn-primary:focus-visible {
-  outline: 2px solid var(--color-cpc-blue-accent);
-  outline-offset: 2px;
-}
-
-.enroll-btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .enroll-status-line {
   display: flex;
   align-items: center;
@@ -571,6 +538,29 @@ body {
   color: var(--color-enroll-error);
 }
 
+/* Phones: give the document rows more room by trimming padding and stacking
+   the status/remove controls under the file name. */
+@media (max-width: 639px) {
+  .enroll-upload-box {
+    padding: 16px;
+  }
+
+  .enroll-upload-file {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .enroll-upload-file-info {
+    width: 100%;
+  }
+
+  .enroll-upload-file-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 .enroll-floating-card {
   animation: enroll-float 5s ease-in-out infinite;
 }
@@ -836,54 +826,6 @@ body {
   box-shadow: 0 2px 12px rgba(23, 43, 92, 0.05);
 }
 
-.sr-btn-primary,
-.sr-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: var(--font-plus-jakarta);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.sr-btn-primary {
-  background: var(--color-sr-primary);
-  color: #ffffff;
-}
-
-.sr-btn-primary:hover:not(:disabled) {
-  background: var(--color-sr-navy);
-}
-
-.sr-btn-secondary {
-  background: #ffffff;
-  border-color: var(--color-sr-border);
-  color: var(--color-sr-text);
-}
-
-.sr-btn-secondary:hover:not(:disabled) {
-  background: var(--color-sr-page);
-  border-color: #c3d4ef;
-}
-
-.sr-btn-primary:focus-visible,
-.sr-btn-secondary:focus-visible {
-  outline: 2px solid var(--color-sr-primary);
-  outline-offset: 2px;
-}
-
-.sr-btn-primary:disabled,
-.sr-btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* Compact variant of the enrollment form used by the service request card. */
 .sr-form .enroll-form-label {
   margin-bottom: 6px;
@@ -958,6 +900,29 @@ body {
   .profile-highlight {
     animation: none;
     box-shadow: inset 0 0 0 1px var(--color-cpc-blue-accent);
+  }
+}
+
+/* Student portal navbar: dropdown panels and the mobile menu settle in. */
+@keyframes studentNavDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.student-nav-panel {
+  animation: studentNavDrop 160ms ease-out;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-nav-panel {
+    animation: none;
   }
 }
 
@@ -1036,4 +1001,108 @@ body {
   .ac-fade {
     animation: none !important;
   }
+}
+
+/* Shared action buttons: primary, secondary, tertiary. */
+.cpc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.6875rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  font-family: var(--font-poppins);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 120ms ease;
+}
+
+.cpc-btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(1px);
+}
+
+.cpc-btn:focus-visible {
+  outline: 2px solid var(--color-cpc-navy-text);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(43, 75, 209, 0.2);
+}
+
+.cpc-btn:disabled,
+.cpc-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.cpc-btn-primary {
+  background: var(--color-cpc-blue-accent);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(27, 47, 158, 0.22);
+}
+
+.cpc-btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-cpc-navy-text);
+  box-shadow: 0 10px 24px rgba(27, 47, 158, 0.28);
+}
+
+.cpc-btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-cpc-navy);
+}
+
+.cpc-btn-secondary {
+  background: #ffffff;
+  border-color: var(--color-cpc-blue-accent);
+  color: var(--color-cpc-navy-text);
+}
+
+.cpc-btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-cpc-section-light);
+  color: var(--color-cpc-blue-accent);
+}
+
+.cpc-btn-tertiary {
+  background: transparent;
+  color: var(--color-cpc-navy-text);
+}
+
+.cpc-btn-tertiary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-cpc-section-light);
+  color: var(--color-cpc-blue-accent);
+}
+
+.cpc-btn-primary:focus-visible,
+.cpc-btn-secondary:focus-visible,
+.cpc-btn-tertiary:focus-visible {
+  box-shadow: 0 0 0 5px rgba(43, 75, 209, 0.2);
+}
+
+.cpc-btn-sm {
+  min-height: 2.25rem;
+  padding: 0.4375rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+}
+
+.cpc-btn-lg {
+  min-height: 3.25rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 0.9375rem;
+}
+
+.cpc-btn-block {
+  width: 100%;
 }

@@ -19,8 +19,7 @@ const LABEL_BASE =
 
 const STATUS_OPTIONS = ["pending", "in_review", "resolved"] as const;
 
-const BTN =
-  "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 py-2.5 font-poppins text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60";
+const BTN = "cpc-btn cpc-btn-sm";
 
 type ComplaintDetailsModalProps = {
   row: AdminComplaintRow;
@@ -231,7 +230,7 @@ export function ComplaintDetailsModal({
         <button
           type="button"
           onClick={onClose}
-          className={cn(BTN, "border border-cpc-tile-border text-cpc-navy-text hover:bg-cpc-section-light")}
+          className="cpc-btn cpc-btn-secondary cpc-btn-sm"
         >
           Close
         </button>
@@ -240,7 +239,7 @@ export function ComplaintDetailsModal({
           onClick={handleSave}
           disabled={!dirty}
           title={dirty ? undefined : "Change the status or remarks to save"}
-          className={cn(BTN, "bg-cpc-button text-white hover:bg-cpc-navy")}
+          className={cn(BTN, "cpc-btn-primary")}
         >
           <Check className="h-4 w-4 shrink-0" aria-hidden />
           Save changes

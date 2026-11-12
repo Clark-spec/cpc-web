@@ -172,14 +172,14 @@ export function RequestCorrectionModal({ open, onClose, fieldLabel }: RequestCor
             type="button"
             onClick={resetAndClose}
             disabled={sending}
-            className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-cpc-tile-border bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="cpc-btn cpc-btn-secondary"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={sending}
-            className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-cpc-navy px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="cpc-btn cpc-btn-primary"
           >
             {sending ? (
               <>

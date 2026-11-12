@@ -17,7 +17,7 @@ export function HeroSection() {
           </p>
           <button
             onClick={() => navigate("/online-enrollment/step/1")}
-            className="enroll-btn-primary"
+            className="cpc-btn cpc-btn-primary cpc-btn-lg"
           >
             Start Enrollment
           </button>

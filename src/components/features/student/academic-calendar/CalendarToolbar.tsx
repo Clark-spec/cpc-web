@@ -41,7 +41,7 @@ export function CalendarToolbar({ calendar }: { calendar: AcademicCalendar }) {
         <button
           type="button"
           onClick={calendar.openFullYear}
-          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-cpc-input-border bg-white px-3.5 py-2 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+          className="cpc-btn cpc-btn-secondary cpc-btn-sm"
         >
           <CalendarRange className="h-3.5 w-3.5" aria-hidden />
           View Full Year
@@ -50,7 +50,7 @@ export function CalendarToolbar({ calendar }: { calendar: AcademicCalendar }) {
           type="button"
           onClick={handleDownload}
           disabled={downloading}
-          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-cpc-blue-accent px-3.5 py-2 font-poppins text-xs font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-wait disabled:opacity-70"
+          className="cpc-btn cpc-btn-primary cpc-btn-sm"
         >
           <Download className="h-3.5 w-3.5" aria-hidden />
           {downloading ? "Preparing PDF…" : "Download Calendar"}

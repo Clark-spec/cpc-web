@@ -264,7 +264,7 @@ export function ProfileCorrectionModal({
         <button
           type="button"
           onClick={onClose}
-          className={cn(BTN, "border border-cpc-tile-border text-cpc-navy-text hover:bg-cpc-section-light")}
+          className="cpc-btn cpc-btn-secondary cpc-btn-sm"
         >
           Close
         </button>
@@ -273,7 +273,7 @@ export function ProfileCorrectionModal({
             <button
               type="button"
               onClick={handleReject}
-              className={cn(BTN, "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100")}
+              className={cn(BTN, "bg-rose-50 text-rose-700 hover:bg-rose-100")}
             >
               <X className="h-4 w-4 shrink-0" aria-hidden />
               Reject request
@@ -281,7 +281,7 @@ export function ProfileCorrectionModal({
             <button
               type="button"
               onClick={handleApprove}
-              className={cn(BTN, "bg-cpc-button text-white hover:bg-cpc-navy")}
+              className={cn(BTN, "cpc-btn-primary")}
             >
               <Check className="h-4 w-4 shrink-0" aria-hidden />
               Approve request

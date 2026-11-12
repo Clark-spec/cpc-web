@@ -36,8 +36,8 @@ export function EnrollmentStatusCard() {
       </div>
 
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-        <button className="enroll-btn-primary">Download Receipt</button>
-        <button className="cursor-pointer rounded-lg border border-cpc-button px-6 py-3 text-cpc-button transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent">
+        <button className="cpc-btn cpc-btn-primary">Download Receipt</button>
+        <button className="cpc-btn cpc-btn-secondary">
           Contact Support
         </button>
       </div>

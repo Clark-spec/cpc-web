@@ -566,7 +566,7 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                 <button
                   type="button"
                   onClick={() => setCameraOpen(true)}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-1.5 font-poppins text-xs font-semibold text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                  className="cpc-btn cpc-btn-secondary cpc-btn-sm"
                 >
                   <Camera className="h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
                   Take Photo
@@ -605,7 +605,7 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   ? "You can file one complaint every 3 days."
                   : undefined
               }
-              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2.5 font-poppins text-sm font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              className="cpc-btn cpc-btn-primary w-full sm:w-auto"
             >
               <Send className="h-4 w-4" aria-hidden />
               Submit Complaint

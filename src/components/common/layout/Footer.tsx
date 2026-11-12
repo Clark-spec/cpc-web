@@ -1,10 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { cn } from "@/lib/cn";
 import {
-  ArrowRightIcon,
+  ChevronRightIcon,
+  FacebookIcon,
+  InstagramIcon,
+  LinkedinIcon,
   MailIcon,
   MapPinIcon,
   PhoneIcon,
+  XIcon,
+  YoutubeIcon,
   type IconComponent,
 } from "@/components/common/display/icons";
 import cpcLogo from "@/assets/cpc-logo.jpg";
@@ -12,6 +17,10 @@ import cpcLogo from "@/assets/cpc-logo.jpg";
 type FooterLink = {
   label: string;
   to: string;
+};
+
+type FooterLinkWithIcon = FooterLink & {
+  icon: IconComponent;
 };
 
 type LinkGroup = {
@@ -59,7 +68,28 @@ const legalLinks: FooterLink[] = [
   { label: "Terms of Service", to: "#" },
 ];
 
+const socialLinks: FooterLinkWithIcon[] = [
+  { label: "Facebook", to: "#", icon: FacebookIcon },
+  { label: "X", to: "#", icon: XIcon },
+  { label: "Instagram", to: "#", icon: InstagramIcon },
+  { label: "LinkedIn", to: "#", icon: LinkedinIcon },
+  { label: "YouTube", to: "#", icon: YoutubeIcon },
+];
+
 const NEWSLETTER_BLURB = "Stay updated with the latest news and events from Cordova Public College.";
+
+function SectionHeading({ children, fluid }: { children: string; fluid: boolean }) {
+  return (
+    <h3
+      className={cn(
+        "font-poppins text-[13px] leading-[18px] font-semibold tracking-[0.1em] text-white uppercase",
+        fluid && "text-sm sm:text-[13px]",
+      )}
+    >
+      {children}
+    </h3>
+  );
+}
 
 function NewsletterForm({ fluid }: { fluid: boolean }) {
   const [email, setEmail] = useState("");
@@ -70,35 +100,27 @@ function NewsletterForm({ fluid }: { fluid: boolean }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-[10px]">
-      <div
+    <form onSubmit={handleSubmit} className="mt-[14px]">
+      <label htmlFor="newsletter-email" className="sr-only">
+        Email address
+      </label>
+      <input
+        id="newsletter-email"
+        type="email"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="Your email address"
         className={cn(
-          "flex h-[37px] items-stretch border border-white",
-          fluid ? "w-full max-w-[280px] lg:max-w-[243px]" : "w-full max-w-[243px]",
+          "h-[40px] w-full max-w-[300px] rounded-[4px] bg-white px-[12px] font-poppins text-[12px] leading-[12px] text-cpc-navy-text outline-none placeholder:text-[#8e9deb] focus-visible:ring-2 focus-visible:ring-cpc-placeholder focus-visible:ring-offset-2 focus-visible:ring-offset-cpc-navy-top",
+          fluid && "sm:text-[13px] lg:text-[12px]",
         )}
+      />
+      <button
+        type="submit"
+        className="cpc-btn cpc-btn-primary cpc-btn-sm mt-[10px]"
       >
-        <label htmlFor="newsletter-email" className="sr-only">
-          Email address
-        </label>
-        <input
-          id="newsletter-email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Enter your email"
-          className={cn(
-            "min-w-0 flex-1 bg-white px-[10px] font-poppins text-[11px] leading-[11px] text-cpc-label outline-none placeholder:text-[#8e9deb]",
-            fluid && "sm:text-[13px] lg:text-[11px]",
-          )}
-        />
-        <button
-          type="submit"
-          aria-label="Subscribe"
-          className="flex w-[33px] shrink-0 cursor-pointer items-center justify-center border border-white bg-cpc-navy-top transition-colors hover:bg-[#1d3690]"
-        >
-          <ArrowRightIcon className="h-[16px] w-[16px] text-white" />
-        </button>
-      </div>
+        Sign up
+      </button>
     </form>
   );
 }
@@ -115,59 +137,67 @@ type FooterProps = {
 export function Footer({ fluid = false }: FooterProps) {
   return (
     <footer className="w-full bg-cpc-navy-top font-poppins">
-      <div
-        className={cn(
-          "mx-auto w-full max-w-[1440px]",
-          fluid ? "px-4 py-6 sm:px-6 sm:py-8 lg:px-[25px] lg:py-[18px]" : "px-[25px] py-[18px]",
-        )}
-      >
-        <div
-          className={cn(
-            "items-start",
-            fluid
-              ? "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-[373fr_222fr_224fr_311fr_243fr] lg:gap-0"
-              : "grid grid-cols-[373fr_222fr_224fr_311fr_243fr]",
-          )}
-        >
-          <div className="flex items-center gap-[12px]">
-            <img
-              src={cpcLogo}
-              alt="Cordova Public College seal"
-              className="h-[68px] w-[68px] rounded-full object-cover"
-            />
-            <div className="min-w-0">
-              <p
-                className={cn(
-                  "text-[19px] leading-[22px] font-bold text-white uppercase",
-                  fluid && "text-[17px] sm:text-[19px]",
-                )}
-              >
-                Cordova Public College
-              </p>
-              <p className="text-[16px] leading-[20px] font-normal text-white">Servire Populum</p>
-            </div>
+      <div className={cn("mx-auto w-full max-w-[1440px]", fluid ? "px-4 sm:px-6 lg:px-[25px]" : "px-4 sm:px-6 lg:px-[86px]")}>
+        <div className="flex flex-col items-start gap-[18px] border-b border-white/10 py-[26px] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-[14px] gap-y-[8px]">
+            <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-[2px]">
+              <img
+                src={cpcLogo}
+                alt="Cordova Public College seal"
+                className="h-full w-full rounded-full object-cover"
+              />
+            </span>
+            <p
+              className={cn(
+                "text-[18px] leading-[22px] font-bold text-white uppercase",
+                fluid && "text-[16px] sm:text-[18px]",
+              )}
+            >
+              Cordova Public College
+            </p>
+            <span aria-hidden className="hidden h-[22px] w-px bg-white/20 sm:block" />
+            <p className="text-[11px] leading-[14px] font-normal tracking-[0.18em] text-white/60 uppercase">
+              Servire Populum
+            </p>
           </div>
 
+          <ul className="flex items-center gap-[10px]">
+            {socialLinks.map((social) => (
+              <li key={social.label}>
+                <a
+                  href={social.to}
+                  aria-label={social.label}
+                  className="flex h-[34px] w-[34px] items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-white/40 hover:bg-white/10 hover:text-white"
+                >
+                  <social.icon className="h-[16px] w-[16px]" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="grid grid-cols-1 gap-x-[30px] gap-y-[28px] py-[30px] sm:grid-cols-2 lg:grid-cols-[340fr_230fr_300fr_308fr]">
           {linkGroups.map((group) => (
             <nav key={group.title} aria-label={group.title}>
-              <h3
+              <SectionHeading fluid={fluid}>{group.title}</SectionHeading>
+              <ul
                 className={cn(
-                  "text-[22px] leading-[24px] font-semibold text-white",
-                  fluid && "text-lg sm:text-[22px]",
+                  "mt-[14px]",
+                  group.title === "Quick Links"
+                    ? "grid grid-cols-2 gap-x-[16px] gap-y-[7px]"
+                    : "space-y-[7px]",
                 )}
               >
-                {group.title}
-              </h3>
-              <ul className="mt-[8px] leading-[18px]">
                 {group.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.to}
                       className={cn(
-                        "text-[16px] font-normal text-white hover:underline",
-                        fluid && "inline-block py-0.5 text-sm sm:text-[16px]",
+                        "group flex items-center gap-[6px] text-[13px] leading-[20px] font-normal text-white/70 transition-colors hover:text-white",
+                        fluid && "py-[1px]",
                       )}
                     >
+                      <ChevronRightIcon className="h-[12px] w-[12px] shrink-0 text-white/40 transition-colors group-hover:text-white" />
                       {link.label}
                     </a>
                   </li>
@@ -177,22 +207,15 @@ export function Footer({ fluid = false }: FooterProps) {
           ))}
 
           <div className="min-w-0">
-            <h3
-              className={cn(
-                "text-[22px] leading-[24px] font-semibold text-white",
-                fluid && "text-lg sm:text-[22px]",
-              )}
-            >
-              Contact Us
-            </h3>
-            <ul className="mt-[8px] space-y-[4px]">
+            <SectionHeading fluid={fluid}>Contact Us</SectionHeading>
+            <ul className="mt-[14px] space-y-[12px]">
               {contacts.map((contact) => (
-                <li key={contact.text} className="flex items-center gap-[8px]">
-                  <contact.icon className="h-[16px] w-[16px] shrink-0 text-white" />
+                <li key={contact.text} className="flex items-start gap-[10px]">
+                  <contact.icon className="mt-[3px] h-[14px] w-[14px] shrink-0 text-white/50" />
                   <span
                     className={cn(
-                      "text-[16px] leading-[18px] font-normal text-white",
-                      fluid && "text-sm break-all sm:text-[16px]",
+                      "text-[13px] leading-[20px] font-normal text-white/70",
+                      fluid && "break-all text-sm sm:text-[13px]",
                     )}
                   >
                     {contact.text}
@@ -202,19 +225,12 @@ export function Footer({ fluid = false }: FooterProps) {
             </ul>
           </div>
 
-          <div>
-            <h3
-              className={cn(
-                "text-[22px] leading-[24px] font-semibold text-white",
-                fluid && "text-lg sm:text-[22px]",
-              )}
-            >
-              Newsletter
-            </h3>
+          <div className="min-w-0">
+            <SectionHeading fluid={fluid}>Newsletter</SectionHeading>
             <p
               className={cn(
-                "mt-[8px] text-[16px] leading-[19px] font-normal text-white",
-                fluid && "text-sm sm:text-[16px]",
+                "mt-[14px] max-w-[300px] text-[12px] leading-[18px] font-normal text-white/60",
+                fluid && "text-sm sm:text-[12px]",
               )}
             >
               {NEWSLETTER_BLURB}
@@ -224,21 +240,21 @@ export function Footer({ fluid = false }: FooterProps) {
         </div>
       </div>
 
-      <div className={cn("w-full bg-cpc-navy-deep", fluid ? "py-3 lg:h-[58px] lg:py-0" : "h-[58px]")}>
+      <div className="w-full border-t border-white/10">
         <div
           className={cn(
-            "mx-auto flex h-full w-full max-w-[1440px] items-center justify-between px-[30px]",
-            fluid && "flex-col gap-2 px-4 text-center sm:flex-row sm:px-6 sm:text-left lg:px-[30px]",
+            "mx-auto flex w-full max-w-[1440px] flex-col items-center gap-2 py-[18px] text-center sm:flex-row sm:justify-between sm:text-left",
+            fluid ? "px-4 sm:px-6 lg:px-[25px]" : "px-4 sm:px-6 lg:px-[86px]",
           )}
         >
-          <p className="text-[13px] leading-[13px] font-normal text-white">
+          <p className="text-[12px] leading-[16px] font-normal text-white/60">
             © 2026 Cordova Public College. All rights reserved.
           </p>
-          <p className="flex items-center gap-[8px] text-[13px] leading-[13px] font-normal text-white">
+          <p className="flex items-center gap-[12px] text-[12px] leading-[16px] font-normal text-white/60">
             {legalLinks.map((link, index) => (
-              <span key={link.label} className="flex items-center gap-[8px]">
-                {index > 0 && <span aria-hidden>|</span>}
-                <a href={link.to} className="hover:underline">
+              <span key={link.label} className="flex items-center gap-[12px]">
+                {index > 0 && <span aria-hidden className="text-white/30">|</span>}
+                <a href={link.to} className="transition-colors hover:text-white hover:underline">
                   {link.label}
                 </a>
               </span>

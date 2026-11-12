@@ -223,7 +223,7 @@ export function SubjectListTable({ schedule, onOpenEntry }: SubjectListTableProp
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-cpc-button px-3 py-2 font-poppins text-xs font-semibold text-cpc-button transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-secondary cpc-btn-sm"
           >
             <Printer className="h-4 w-4" aria-hidden />
             Print / Save as PDF
@@ -231,7 +231,7 @@ export function SubjectListTable({ schedule, onOpenEntry }: SubjectListTableProp
           <button
             type="button"
             onClick={handleDownloadCsv}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cpc-button px-3 py-2 font-poppins text-xs font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+            className="cpc-btn cpc-btn-primary cpc-btn-sm"
           >
             <Download className="h-4 w-4" aria-hidden />
             Download CSV

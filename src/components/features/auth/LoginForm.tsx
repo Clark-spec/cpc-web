@@ -190,7 +190,7 @@ function DesktopLoginForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-[46px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-button font-poppins text-[16px] font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon disabled:cursor-not-allowed disabled:opacity-70"
+          className="mt-[46px] h-[62px] w-[85%] cursor-pointer self-center rounded-[11px] bg-cpc-blue-accent font-poppins text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(27,47,158,0.22)] transition-colors hover:bg-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? "Signing in…" : "Sign in"}
         </button>
@@ -283,7 +283,7 @@ function MobileLoginForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="mt-8 h-[52px] w-full cursor-pointer rounded-xl bg-cpc-button font-poppins text-base font-bold text-white transition-colors hover:bg-[#3e518c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-icon disabled:cursor-not-allowed disabled:opacity-70"
+          className="mt-8 h-[52px] w-full cursor-pointer rounded-xl bg-cpc-blue-accent font-poppins text-base font-bold text-white shadow-[0_8px_20px_rgba(27,47,158,0.22)] transition-colors hover:bg-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? "Signing in…" : "Sign in"}
         </button>

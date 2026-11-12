@@ -127,7 +127,7 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            <fieldset className="mt-3">
+            <fieldset className="mt-4 min-w-0">
               <legend className="font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">
                 Demo role
               </legend>
@@ -197,7 +197,7 @@ export default function AdminLoginPage() {
               type="button"
               onClick={handleLogin}
               disabled={busy}
-              className="mt-2.5 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-cpc-button px-4 py-2 font-poppins text-xs font-semibold text-white transition-colors hover:bg-cpc-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm"
+              className="cpc-btn cpc-btn-primary cpc-btn-block mt-2.5"
             >
               {busy ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />

@@ -26,14 +26,14 @@ export const textareaClass = `${inputClass} min-h-[76px] resize-y leading-relaxe
 
 export function primaryButtonClass(extra?: string) {
   return cn(
-    "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-cpc-blue-accent bg-cpc-blue-accent px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-white transition-colors hover:bg-cpc-blue-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60",
+    "cpc-btn cpc-btn-primary cpc-btn-sm",
     extra,
   );
 }
 
 export function secondaryButtonClass(extra?: string) {
   return cn(
-    "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-2 font-poppins text-xs font-semibold whitespace-nowrap text-cpc-navy-text transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60",
+    "cpc-btn cpc-btn-secondary cpc-btn-sm",
     extra,
   );
 }

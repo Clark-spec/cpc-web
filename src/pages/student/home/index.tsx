@@ -4,13 +4,14 @@ import { AboutSection } from "@/components/features/student/portal-home/AboutSec
 import { CtaSection } from "@/components/features/student/portal-home/CtaSection";
 import { HeroSection } from "@/components/features/student/portal-home/HeroSection";
 import { ProgramsSection } from "@/components/features/student/portal-home/ProgramsSection";
-import { QuickAccessCard } from "@/components/features/student/portal-home/QuickAccessCard";
 import { StatsBand } from "@/components/features/student/portal-home/StatsBand";
 import { TopBar } from "@/components/common/layout/TopBar";
-import { useHomeFrame } from "@/hooks/useHomeFrame";
+import { useChromeFrame } from "@/hooks/useChromeFrame";
 
 export default function StudentHomePage() {
-  const scale = useHomeFrame();
+  // Below the desktop breakpoint the page reflows instead of scaling its
+  // 1440px frame, so phones get full-size type and the mobile navbar.
+  const scale = useChromeFrame();
 
   return (
     <div
@@ -19,15 +20,14 @@ export default function StudentHomePage() {
     >
       <header className="relative z-30">
         <TopBar />
-        <StudentNavbar />
+        <StudentNavbar fluid />
       </header>
 
       <main>
         <HeroSection />
-        <QuickAccessCard />
+        <StatsBand />
         <AboutSection />
         <ProgramsSection />
-        <StatsBand />
         <CtaSection />
       </main>
 

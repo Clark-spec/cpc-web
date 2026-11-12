@@ -107,7 +107,7 @@ export function AccountActionModal({
         <button
           type="button"
           onClick={onClose}
-          className={cn(BTN, "border border-cpc-tile-border text-cpc-navy-text hover:bg-cpc-section-light")}
+          className="cpc-btn cpc-btn-secondary cpc-btn-sm"
         >
           Cancel
         </button>
@@ -118,7 +118,7 @@ export function AccountActionModal({
             BTN,
             confirmation.destructive
               ? "bg-rose-600 text-white hover:bg-rose-700"
-              : "bg-cpc-button text-white hover:bg-cpc-navy",
+              : "cpc-btn-primary",
           )}
         >
           {confirmation.confirmLabel}
