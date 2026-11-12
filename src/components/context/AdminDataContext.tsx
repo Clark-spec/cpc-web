@@ -29,6 +29,11 @@ import {
   resetDemoData as resetDemoDataService,
 } from "@/services/admin";
 import { deleteAdminNotification as deleteAdminNotificationService } from "@/services/admin/notifications";
+import {
+  deleteAdminNotificationApi,
+  fetchAdminNotificationFeed,
+  markAdminNotificationsReadApi,
+} from "@/services/admin/notificationFeed";
 import type {
   ActivityItem,
   AdminBadgeCounts,
@@ -89,6 +94,15 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     PENDING_PROFILE_CORRECTIONS,
   );
 
+  const loadNotifications = useCallback(async (): Promise<AdminNotification[]> => {
+    try {
+      return await fetchAdminNotificationFeed();
+    } catch {
+      // Backend unreachable: keep the demo bell working off local storage.
+      return getAdminNotifications();
+    }
+  }, []);
+
   const load = useCallback(
     async (mode: LoadMode) => {
       if (!user) return;
@@ -105,7 +119,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
           getEnrollmentOverview(),
           getRecentActivity(),
           getClearanceRequests(user),
-          getAdminNotifications(),
+          loadNotifications(),
         ]);
 
         // The brief skeleton makes the first paint feel like a real fetch.
@@ -133,8 +147,34 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
         setRefreshing(false);
       }
     },
-    [user],
+    [loadNotifications, user],
   );
+
+  // Admin sessions use a bearer token, which EventSource cannot send, so the
+  // staff bell polls the feed while the tab is visible.
+  const syncNotifications = useCallback(async () => {
+    try {
+      const notifications = await fetchAdminNotificationFeed();
+      setState((current) => ({ ...current, notifications }));
+    } catch {
+      // Keep the last known feed; the next tick retries.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const poll = () => {
+      if (document.visibilityState === "visible") void syncNotifications();
+    };
+    const timer = window.setInterval(poll, 10_000);
+    document.addEventListener("visibilitychange", poll);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", poll);
+    };
+  }, [syncNotifications, user]);
 
   useEffect(() => {
     // Initial fetch: the service is the external store, so this is the
@@ -164,7 +204,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, [load]);
 
   const markAllNotificationsRead = useCallback(async () => {
-    await markNotificationsReadService();
+    try {
+      await markAdminNotificationsReadApi();
+    } catch {
+      await markNotificationsReadService();
+    }
     setState((current) => ({
       ...current,
       notifications: current.notifications.map((notification) => ({
@@ -175,7 +219,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markNotificationRead = useCallback(async (id: string) => {
-    await markNotificationsReadService([id]);
+    try {
+      await markAdminNotificationsReadApi([id]);
+    } catch {
+      await markNotificationsReadService([id]);
+    }
     setState((current) => ({
       ...current,
       notifications: current.notifications.map((notification) =>
@@ -185,6 +233,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteNotification = useCallback((id: string) => {
+    void deleteAdminNotificationApi(id).catch(() => {
+      // Nothing to restore: the local copy is the fallback source.
+    });
     deleteAdminNotificationService(id);
     setState((current) => ({
       ...current,

@@ -20,6 +20,7 @@ import {
   type PurposeOption,
   type RequestDocument,
   type RequestFormValues,
+  type RequestId,
   type RequestStatus,
   type ServiceOption,
   type ServiceRequest,
@@ -203,7 +204,7 @@ function normalizeRequest(value: unknown): ServiceRequest {
       });
 
   return {
-    id: readNumber(raw.id, raw.request_id) ?? 0,
+    id: readId(raw.id, raw.request_id),
     referenceNumber:
       readString(raw.reference_number, raw.referenceNumber, raw.reference_no, raw.code) ?? "",
     service: normalizeService(raw.service ?? raw.service_name ?? raw.serviceName),
@@ -220,17 +221,25 @@ function normalizeRequest(value: unknown): ServiceRequest {
   };
 }
 
+function readId(...values: unknown[]): RequestId | "" {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return "";
+}
+
 function normalizeNotification(value: unknown): ServiceRequestNotification {
   const raw = asRecord(value);
   return {
-    id: readNumber(raw.id, raw.notification_id) ?? 0,
+    id: readId(raw.id, raw.notification_id),
     type: readString(raw.type, raw.category) ?? "request_update",
     title: readString(raw.title, raw.subject) ?? "Request update",
     message: readString(raw.message, raw.body, raw.description) ?? "",
     isRead: readBoolean(raw.is_read, raw.isRead, raw.read) ?? false,
     createdAt:
       readString(raw.created_at, raw.createdAt, raw.timestamp) ?? new Date().toISOString(),
-    requestId: readNumber(raw.request_id, raw.requestId) ?? null,
+    requestId: readId(raw.request_id, raw.requestId) || null,
     referenceNumber: readString(raw.reference_number, raw.referenceNumber) ?? null,
   };
 }
@@ -260,7 +269,7 @@ function buildFormData(values: RequestFormValues): FormData {
   form.append("copies", String(values.copies));
   form.append("purpose", values.purpose);
   form.append("notes", values.notes);
-  if (values.document) form.append("student_id", values.document);
+  for (const document of values.documents) form.append("student_id", document);
   return form;
 }
 
@@ -323,8 +332,10 @@ export async function getServiceRequests(): Promise<ServiceRequest[]> {
   return list.map(normalizeRequest).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 }
 
-export async function getServiceRequest(id: number): Promise<ServiceRequest> {
-  const body = unwrap<unknown>((await apiClient.get(`/service-requests/v1/${id}`)).data);
+export async function getServiceRequest(id: RequestId): Promise<ServiceRequest> {
+  const body = unwrap<unknown>(
+    (await apiClient.get(`/service-requests/v1/${encodeURIComponent(String(id))}`)).data,
+  );
   const requestBody = asRecord(body).request ?? body;
   return normalizeRequest(requestBody);
 }
@@ -430,10 +441,13 @@ export async function markNotificationsRead(): Promise<void> {
   );
 }
 
-export async function downloadDocument(id: number, fileName: string): Promise<void> {
-  const response = await apiClient.get(`/service-requests/${id}/document`, {
-    responseType: "blob",
-  });
+export async function downloadDocument(id: RequestId, fileName: string): Promise<void> {
+  const response = await apiClient.get(
+    `/service-requests/v1/${encodeURIComponent(String(id))}/document`,
+    {
+      responseType: "blob",
+    },
+  );
 
   const blob = response.data as Blob;
   const disposition = String(response.headers["content-disposition"] ?? "");

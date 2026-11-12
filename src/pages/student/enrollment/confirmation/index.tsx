@@ -11,7 +11,7 @@ export default function EnrollmentConfirmationPage() {
   useLogEnrollmentSubmission();
 
   return (
-    <div className="w-full overflow-x-hidden bg-white font-poppins">
+    <div className="w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <EnrollmentHero

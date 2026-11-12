@@ -11,6 +11,8 @@ type ComplaintsTableProps = {
   totalRows: number;
   page: number;
   pageSize: number;
+  /** First load in flight; shows a skeleton instead of the empty state. */
+  loading?: boolean;
   hasActiveFilters: boolean;
   onView: (row: AdminComplaintRow) => void;
   onPageChange: (page: number) => void;
@@ -45,6 +47,7 @@ export function ComplaintsTable({
   totalRows,
   page,
   pageSize,
+  loading = false,
   hasActiveFilters,
   onView,
   onPageChange,
@@ -62,7 +65,14 @@ export function ComplaintsTable({
       aria-label="Complaint queue"
       className="rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_18px_50px_rgba(15,36,104,0.22)]"
     >
-      {totalRows === 0 ? (
+      {loading && totalRows === 0 ? (
+        <p
+          aria-live="polite"
+          className="px-4 py-14 text-center font-poppins text-xs font-medium text-cpc-heading-soft"
+        >
+          Loading complaints…
+        </p>
+      ) : totalRows === 0 ? (
         <EmptyState
           icon={hasActiveFilters ? SearchX : Inbox}
           title={hasActiveFilters ? "No complaints match these filters" : "No complaints filed yet"}
@@ -155,7 +165,7 @@ export function ComplaintsTable({
                           {row.anonymous && (
                             <p className="flex items-center gap-1 font-poppins text-[10px] text-cpc-heading-soft">
                               <EyeOff className="h-2.5 w-2.5 shrink-0" aria-hidden />
-                              Anonymous to students
+                              Identity hidden
                             </p>
                           )}
                         </div>

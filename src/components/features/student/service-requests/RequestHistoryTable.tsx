@@ -1,4 +1,4 @@
-import type { ServiceRequest } from "@/services/serviceRequests/student";
+import type { RequestId, ServiceRequest } from "@/services/serviceRequests/student";
 import { StatusBadge } from "@/components/features/student/service-requests/StatusBadge";
 import { formatDate } from "@/components/features/student/service-requests/format";
 
@@ -7,7 +7,7 @@ type RequestHistoryTableProps = {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
-  onView: (id: number) => void;
+  onView: (id: RequestId) => void;
 };
 
 function HistoryIcon({ className }: { className?: string }) {

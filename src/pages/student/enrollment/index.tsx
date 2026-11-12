@@ -6,7 +6,7 @@ import { HeroSection } from "@/components/features/student/enrollment/HeroSectio
 
 export default function OnlineEnrollmentPage() {
   return (
-    <div className="w-full overflow-x-hidden bg-white font-poppins">
+    <div className="w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <EnrollmentHero

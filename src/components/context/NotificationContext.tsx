@@ -28,6 +28,8 @@ export type NotificationType = "info" | "success" | "warning";
  */
 export interface AppNotification {
   id: string;
+  /** Short event heading, e.g. "New Response from Student Support". */
+  title?: string;
   message: string;
   type: NotificationType;
   /** ISO date-time. */
@@ -50,12 +52,16 @@ export type NotificationContextValue = {
   notifications: AppNotification[];
   unreadCount: number;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  /** True when the backend holds older pages beyond the loaded window. */
+  hasMore: boolean;
   /** Adds a notification (newest first), persists it and shows a toast. */
   notify: (input: NotifyInput) => void;
   markAllRead: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
   deleteAllNotifications: () => Promise<void>;
+  loadMore: () => Promise<void>;
   /** Clears the list (used by "Reset demo"). */
   resetNotifications: () => void;
   refresh: () => Promise<void>;
@@ -63,6 +69,7 @@ export type NotificationContextValue = {
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
+const PAGE_SIZE = 20;
 const MAX_NOTIFICATIONS = 50;
 const DEFAULT_STORAGE_KEY = "cpc:notifications:student";
 
@@ -99,9 +106,19 @@ export function NotificationProvider({
   storageKey = DEFAULT_STORAGE_KEY,
 }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<AppNotification[]>(() => readStored(storageKey));
+  const [unreadCount, setUnreadCount] = useState<number>(
+    () => readStored(storageKey).filter((notification) => !notification.read).length,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const { toast } = useToast();
   const skipPersist = useRef(false);
+  const notificationsRef = useRef(notifications);
+
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
 
   // Sync to localStorage as offline cache
   useEffect(() => {
@@ -116,43 +133,91 @@ export function NotificationProvider({
     }
   }, [notifications, storageKey]);
 
+  /**
+   * Pulls the newest page. The limit keeps any "See earlier" pages the reader
+   * already expanded instead of collapsing the list on every realtime event.
+   */
+  const syncFeed = useCallback(async () => {
+    const limit = Math.max(PAGE_SIZE, Math.min(notificationsRef.current.length, MAX_NOTIFICATIONS));
+    const data = await fetchNotificationsApi({ limit });
+    setNotifications(data.notifications);
+    setUnreadCount(data.unread);
+    setHasMore(data.hasMore);
+  }, []);
+
   // Load from real backend endpoint
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await fetchNotificationsApi();
-      if (Array.isArray(data.notifications)) {
-        setNotifications(data.notifications);
-      }
+      await syncFeed();
     } catch {
       // Offline fallback: keep existing stored items
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [syncFeed]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
-  // Real-time synchronization via Server-Sent Events (SSE)
+  /**
+   * Applies a pushed alert without waiting on the feed. Returns false when the
+   * payload is unusable, in which case the caller falls back to a refetch.
+   */
+  const applyPushedNotification = useCallback((data: unknown) => {
+    if (typeof data !== "object" || data === null) return false;
+    const raw = data as Partial<AppNotification>;
+    if (typeof raw.id !== "string" || !raw.id) return false;
+    if (typeof raw.message !== "string" || !raw.message) return false;
+
+    const incoming: AppNotification = {
+      id: raw.id,
+      title: typeof raw.title === "string" && raw.title ? raw.title : undefined,
+      message: raw.message,
+      type: raw.type === "success" || raw.type === "warning" ? raw.type : "info",
+      createdAt:
+        typeof raw.createdAt === "string" && raw.createdAt
+          ? raw.createdAt
+          : new Date().toISOString(),
+      read: false,
+      href: typeof raw.href === "string" && raw.href ? raw.href : undefined,
+    };
+
+    if (notificationsRef.current.some((notification) => notification.id === incoming.id)) {
+      return true;
+    }
+
+    setNotifications((previous) =>
+      previous.some((notification) => notification.id === incoming.id)
+        ? previous
+        : [incoming, ...previous].slice(0, MAX_NOTIFICATIONS),
+    );
+    setUnreadCount((previous) => previous + 1);
+    return true;
+  }, []);
+
+  // Real-time synchronization via Server-Sent Events (SSE). `connected` also
+  // fires after an automatic reconnect, so missed notifications are fetched.
   useSSE(
-    useCallback((type) => {
-      if (
-        type === "notification_updated" ||
-        type === "notification_created" ||
-        type === "service_request_updated" ||
-        type === "profile_updated"
-      ) {
-        fetchNotificationsApi()
-          .then((res) => {
-            if (Array.isArray(res.notifications)) {
-              setNotifications(res.notifications);
-            }
-          })
-          .catch(() => {});
-      }
-    }, []),
+    useCallback(
+      (type, data) => {
+        if (type === "notification_created" && applyPushedNotification(data)) {
+          return;
+        }
+        if (
+          type === "connected" ||
+          type === "notification_updated" ||
+          type === "notification_created" ||
+          type === "complaint_updated" ||
+          type === "service_request_updated" ||
+          type === "profile_updated"
+        ) {
+          void syncFeed().catch(() => {});
+        }
+      },
+      [applyPushedNotification, syncFeed],
+    ),
     true,
   );
 
@@ -168,15 +233,36 @@ export function NotificationProvider({
         href,
       };
       setNotifications((previous) => [notification, ...previous].slice(0, MAX_NOTIFICATIONS));
+      setUnreadCount((previous) => previous + 1);
       if (!silent) toast(message, type);
     },
     [toast],
   );
 
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    try {
+      const offset = notificationsRef.current.length;
+      const data = await fetchNotificationsApi({ limit: PAGE_SIZE, offset });
+      setNotifications((previous) => {
+        const seen = new Set(previous.map((notification) => notification.id));
+        return [...previous, ...data.notifications.filter((notification) => !seen.has(notification.id))];
+      });
+      setUnreadCount(data.unread);
+      setHasMore(data.hasMore);
+    } catch {
+      // Keep the current page; the footer button can be retried.
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [hasMore, isLoadingMore]);
+
   const markAllRead = useCallback(async () => {
     setNotifications((previous) =>
       previous.map((notification) => ({ ...notification, read: true })),
     );
+    setUnreadCount(0);
     try {
       await markAllNotificationsReadApi();
     } catch {
@@ -185,11 +271,15 @@ export function NotificationProvider({
   }, []);
 
   const markRead = useCallback(async (id: string) => {
+    const wasUnread = notificationsRef.current.some(
+      (notification) => notification.id === id && !notification.read,
+    );
     setNotifications((previous) =>
       previous.map((notification) =>
         notification.id === id ? { ...notification, read: true } : notification,
       ),
     );
+    if (wasUnread) setUnreadCount((previous) => Math.max(0, previous - 1));
     try {
       await markNotificationReadApi(id);
     } catch {
@@ -199,49 +289,62 @@ export function NotificationProvider({
 
   const deleteNotification = useCallback(
     async (id: string) => {
-      const prev = notifications;
+      const previous = notificationsRef.current;
+      const removed = previous.find((notification) => notification.id === id);
       setNotifications((current) => current.filter((notification) => notification.id !== id));
+      if (removed && !removed.read) {
+        setUnreadCount((current) => Math.max(0, current - 1));
+      }
       try {
         await deleteNotificationApi(id);
         toast("Notification deleted", "info");
       } catch (err) {
         // Roll back on failure
-        setNotifications(prev);
+        setNotifications(previous);
+        if (removed && !removed.read) {
+          setUnreadCount((current) => current + 1);
+        }
         toast(err instanceof Error ? err.message : "Failed to delete notification", "warning");
       }
     },
-    [notifications, toast],
+    [toast],
   );
 
   const deleteAllNotifications = useCallback(async () => {
-    const prev = notifications;
+    const previous = notificationsRef.current;
+    const previousUnread = unreadCount;
     setNotifications([]);
+    setUnreadCount(0);
+    setHasMore(false);
     try {
       await deleteAllNotificationsApi();
       toast("All notifications deleted", "info");
     } catch (err) {
-      setNotifications(prev);
+      setNotifications(previous);
+      setUnreadCount(previousUnread);
       toast(err instanceof Error ? err.message : "Failed to clear notifications", "warning");
     }
-  }, [notifications, toast]);
+  }, [toast, unreadCount]);
 
-  const resetNotifications = useCallback(() => setNotifications([]), []);
-
-  const unreadCount = useMemo(
-    () => notifications.filter((notification) => !notification.read).length,
-    [notifications],
-  );
+  const resetNotifications = useCallback(() => {
+    setNotifications([]);
+    setUnreadCount(0);
+    setHasMore(false);
+  }, []);
 
   const value = useMemo<NotificationContextValue>(
     () => ({
       notifications,
       unreadCount,
       isLoading,
+      isLoadingMore,
+      hasMore,
       notify,
       markAllRead,
       markRead,
       deleteNotification,
       deleteAllNotifications,
+      loadMore,
       resetNotifications,
       refresh,
     }),
@@ -249,11 +352,14 @@ export function NotificationProvider({
       notifications,
       unreadCount,
       isLoading,
+      isLoadingMore,
+      hasMore,
       notify,
       markAllRead,
       markRead,
       deleteNotification,
       deleteAllNotifications,
+      loadMore,
       resetNotifications,
       refresh,
     ],

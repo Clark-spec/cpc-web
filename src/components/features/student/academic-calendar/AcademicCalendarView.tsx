@@ -13,7 +13,7 @@ export function AcademicCalendarView() {
   const calendar = useAcademicCalendar();
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-white font-poppins">
+    <div className="min-h-screen w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <AcademicCalendarHero />

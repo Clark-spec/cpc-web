@@ -3,10 +3,11 @@ import { RequestHistoryTable } from "@/components/features/student/service-reque
 import { RequestStatusColumn } from "@/components/features/student/service-requests/RequestStatusColumn";
 import { ServiceRequestNotice } from "@/components/features/student/service-requests/ServiceRequestNotice";
 import type { ServiceRequestsPage } from "@/components/features/student/service-requests/useServiceRequests";
+import type { RequestId } from "@/services/serviceRequests/types";
 
 type ServiceRequestsMainProps = {
   page: ServiceRequestsPage;
-  onViewRequest: (requestId: number) => void;
+  onViewRequest: (requestId: RequestId) => void;
 };
 
 /** Request form, status column, and the full request history. */

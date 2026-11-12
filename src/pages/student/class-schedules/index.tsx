@@ -11,7 +11,7 @@ export default function ClassSchedulesPage() {
   return (
     <ToastProvider>
       <ScheduleProvider>
-        <div className="min-h-screen w-full overflow-x-hidden bg-white font-poppins">
+        <div className="min-h-screen w-full overflow-x-clip bg-white font-poppins">
           <PortalHeader />
           <PageHero />
           <ScheduleContent />

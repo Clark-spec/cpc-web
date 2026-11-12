@@ -132,6 +132,7 @@ export type ActivityItem = {
 
 export type AdminNotification = {
   id: string;
+  title?: string;
   message: string;
   type: NotificationType;
   createdAt: string;

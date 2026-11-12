@@ -2,13 +2,15 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ACCEPTED_DOCUMENT_TYPES,
   MAX_DOCUMENT_BYTES,
+  MAX_DOCUMENT_PHOTOS,
+  MIN_DOCUMENT_PHOTOS,
   type PurposeOption,
   type RequestFormValues,
   type ServiceOption,
   type ServiceRequest,
   type ServiceRequestDraft,
 } from "@/services/serviceRequests/student";
-import { DocumentUpload } from "@/components/features/student/service-requests/DocumentUpload";
+import { StudentIdUpload } from "@/components/features/student/service-requests/StudentIdUpload";
 
 type NewRequestFormProps = {
   services: ServiceOption[];
@@ -72,7 +74,7 @@ export function NewRequestForm({
   const [copies, setCopies] = useState("1");
   const [purpose, setPurpose] = useState("");
   const [notes, setNotes] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [savedDocument, setSavedDocument] = useState(draft?.document ?? null);
   const [errors, setErrors] = useState<FormErrors>({});
   const appliedDraft = useRef<string | null>(null);
@@ -97,7 +99,7 @@ export function NewRequestForm({
     setCopies("1");
     setPurpose("");
     setNotes("");
-    setFile(null);
+    setFiles([]);
     setSavedDocument(null);
     setErrors({});
   }
@@ -113,8 +115,8 @@ export function NewRequestForm({
 
     if (!purpose) next.purpose = "Select the purpose of your request.";
 
-    if (requireFile && !file && !savedDocument) {
-      next.document = "Upload a valid student ID before submitting.";
+    if (requireFile && files.length + (savedDocument ? 1 : 0) < MIN_DOCUMENT_PHOTOS) {
+      next.document = "Upload at least 1 photo of your student ID before submitting.";
     }
 
     return next;
@@ -126,7 +128,7 @@ export function NewRequestForm({
       copies: Number(copies) || 1,
       purpose,
       notes,
-      document: file,
+      documents: files,
     };
   }
 
@@ -152,10 +154,10 @@ export function NewRequestForm({
     const saved = await onSaveDraft(buildValues());
     if (saved) {
       setErrors({});
-      // A newly uploaded file now lives in the draft; the text fields stay as typed.
-      if (file) {
-        setSavedDocument({ name: file.name, size: file.size, mime: file.type });
-        setFile(null);
+      // A newly uploaded photo now lives in the draft; the text fields stay as typed.
+      if (files[0]) {
+        setSavedDocument({ name: files[0].name, size: files[0].size, mime: files[0].type });
+        setFiles([]);
       }
     }
   }
@@ -165,24 +167,54 @@ export function NewRequestForm({
     if (discarded) resetForm();
   }
 
-  function handleSelectDocument(nextFile: File) {
-    if (!ACCEPTED_DOCUMENT_TYPES.includes(nextFile.type)) {
+  function handleAddDocuments(nextFiles: File[]) {
+    if (nextFiles.length === 0) return;
+
+    const slots = MAX_DOCUMENT_PHOTOS - files.length - (savedDocument ? 1 : 0);
+    if (slots <= 0) {
       setErrors((current) => ({
         ...current,
-        document: "Upload a PDF, PNG, or JPG file.",
+        document: `You can upload up to ${MAX_DOCUMENT_PHOTOS} photos. Remove one before adding another.`,
       }));
       return;
     }
-    if (nextFile.size > MAX_DOCUMENT_BYTES) {
-      setErrors((current) => ({
-        ...current,
-        document: "The file is larger than 5 MB. Please upload a smaller file.",
-      }));
-      return;
+
+    const accepted: File[] = [];
+    let error: string | undefined;
+
+    for (const nextFile of nextFiles) {
+      if (!ACCEPTED_DOCUMENT_TYPES.includes(nextFile.type)) {
+        error = "Upload a PDF, PNG, or JPG file.";
+        continue;
+      }
+      if (nextFile.size > MAX_DOCUMENT_BYTES) {
+        error = "Each photo must be 5 MB or smaller.";
+        continue;
+      }
+      accepted.push(nextFile);
     }
-    setErrors((current) => ({ ...current, document: undefined }));
-    setFile(nextFile);
+
+    if (nextFiles.length > slots) {
+      error = `You can upload up to ${MAX_DOCUMENT_PHOTOS} photos of your student ID.`;
+    }
+
+    const room = accepted.slice(0, slots);
+    if (room.length > 0) setFiles((current) => [...current, ...room]);
+    setErrors((current) => ({ ...current, document: error }));
   }
+
+  function handleRemoveDocument(index: number) {
+    setFiles((current) => current.filter((_, position) => position !== index));
+    setErrors((current) => ({ ...current, document: undefined }));
+  }
+
+  function handleRemoveSavedDocument() {
+    setSavedDocument(null);
+    setErrors((current) => ({ ...current, document: undefined }));
+  }
+
+  const documentCount = files.length + (savedDocument ? 1 : 0);
+  const hasDocument = documentCount > 0;
 
   const fieldDisabled = busy || catalogLoading || Boolean(catalogError) || services.length === 0;
 
@@ -211,29 +243,30 @@ export function NewRequestForm({
 
       <form className="sr-form mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
         <div>
-          <label htmlFor="service-select" className="enroll-form-label">
-            Service Selection <RequiredMark />
-          </label>
-          <select
-            id="service-select"
-            className="enroll-form-select"
-            value={serviceId === "" ? "" : String(serviceId)}
-            onChange={(event) => {
-              setServiceId(event.target.value ? Number(event.target.value) : "");
-              setErrors((current) => ({ ...current, serviceId: undefined }));
-            }}
-            disabled={fieldDisabled}
-            aria-invalid={Boolean(errors.serviceId || catalogError)}
-          >
-            <option value="">
-              {catalogLoading ? "Loading services…" : "Select a service"}
-            </option>
-            {services.map((service) => (
-              <option key={service.id} value={service.id}>
-                {service.name}
-              </option>
-            ))}
-          </select>
+          <div className="enroll-float-field">
+            <select
+              id="service-select"
+              className="enroll-form-select"
+              value={serviceId === "" ? "" : String(serviceId)}
+              data-filled={serviceId === "" ? "false" : "true"}
+              onChange={(event) => {
+                setServiceId(event.target.value ? Number(event.target.value) : "");
+                setErrors((current) => ({ ...current, serviceId: undefined }));
+              }}
+              disabled={fieldDisabled}
+              aria-invalid={Boolean(errors.serviceId || catalogError)}
+            >
+              <option value=""></option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.name}
+                </option>
+              ))}
+            </select>
+            <label htmlFor="service-select" className="enroll-float-label">
+              Service Selection <RequiredMark />
+            </label>
+          </div>
           {catalogError ? (
             <span className="enroll-form-error">
               Services could not be loaded. Please refresh the page.
@@ -245,76 +278,89 @@ export function NewRequestForm({
 
         <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
           <div>
-            <label htmlFor="copies-input" className="enroll-form-label">
-              Number of Copies <RequiredMark />
-            </label>
-            <input
-              id="copies-input"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={10}
-              step={1}
-              className="enroll-form-input"
-              value={copies}
-              onChange={(event) => {
-                const digits = event.target.value.replace(/[^\d]/g, "");
-                setCopies(digits);
-                setErrors((current) => ({ ...current, copies: undefined }));
-              }}
-              onBlur={() => {
-                const parsed = Number(copies);
-                const safe = Number.isFinite(parsed) ? Math.trunc(parsed) : 1;
-                setCopies(String(Math.min(10, Math.max(1, safe))));
-              }}
-              disabled={fieldDisabled}
-              aria-invalid={Boolean(errors.copies)}
-            />
+            <div className="enroll-float-field">
+              <input
+                id="copies-input"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={10}
+                step={1}
+                className="enroll-form-input"
+                value={copies}
+                data-filled={copies === "" ? "false" : "true"}
+                onChange={(event) => {
+                  const digits = event.target.value.replace(/[^\d]/g, "");
+                  setCopies(digits);
+                  setErrors((current) => ({ ...current, copies: undefined }));
+                }}
+                onBlur={() => {
+                  const parsed = Number(copies);
+                  const safe = Number.isFinite(parsed) ? Math.trunc(parsed) : 1;
+                  setCopies(String(Math.min(10, Math.max(1, safe))));
+                }}
+                disabled={fieldDisabled}
+                aria-invalid={Boolean(errors.copies)}
+              />
+              <label htmlFor="copies-input" className="enroll-float-label">
+                Number of Copies <RequiredMark />
+              </label>
+            </div>
             {errors.copies && <span className="enroll-form-error">{errors.copies}</span>}
           </div>
 
           <div>
-            <label htmlFor="purpose-select" className="enroll-form-label">
-              Purpose <RequiredMark />
-            </label>
-            <select
-              id="purpose-select"
-              className="enroll-form-select"
-              value={purpose}
-              onChange={(event) => {
-                setPurpose(event.target.value);
-                setErrors((current) => ({ ...current, purpose: undefined }));
-              }}
-              disabled={fieldDisabled}
-              aria-invalid={Boolean(errors.purpose)}
-            >
-              <option value="">Select a purpose</option>
-              {purposes.map((option) => (
-                <option key={option.id} value={option.label}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="enroll-float-field">
+              <select
+                id="purpose-select"
+                className="enroll-form-select"
+                value={purpose}
+                data-filled={purpose === "" ? "false" : "true"}
+                onChange={(event) => {
+                  setPurpose(event.target.value);
+                  setErrors((current) => ({ ...current, purpose: undefined }));
+                }}
+                disabled={fieldDisabled}
+                aria-invalid={Boolean(errors.purpose)}
+              >
+                <option value=""></option>
+                {purposes.map((option) => (
+                  <option key={option.id} value={option.label}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="purpose-select" className="enroll-float-label">
+                Purpose <RequiredMark />
+              </label>
+            </div>
             {errors.purpose && <span className="enroll-form-error">{errors.purpose}</span>}
           </div>
         </div>
 
         <div>
-          <label htmlFor="notes-input" className="enroll-form-label">
-            Additional Notes
-          </label>
-          <textarea
-            id="notes-input"
-            rows={3}
-            maxLength={1000}
-            className="enroll-form-textarea resize-y"
-            placeholder="Add anything else that should be noted."
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            disabled={fieldDisabled}
-          />
-          <div className="mt-1 text-right font-poppins text-[10px] text-sr-muted">
-            {notes.length}/1000
+          <div className="enroll-float-field">
+            <textarea
+              id="notes-input"
+              rows={3}
+              maxLength={1000}
+              className="enroll-form-textarea resize-y"
+              placeholder=" "
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              disabled={fieldDisabled}
+            />
+            <label htmlFor="notes-input" className="enroll-float-label">
+              Additional Notes
+            </label>
+          </div>
+          <div className="mt-1 flex items-start justify-between gap-3 font-poppins text-[10px] text-sr-muted">
+            <span className="leading-relaxed">
+              Add anything else that should be noted.
+            </span>
+            <span className="shrink-0 tabular-nums">
+              {notes.length}/1000
+            </span>
           </div>
         </div>
 
@@ -333,7 +379,7 @@ export function NewRequestForm({
             </div>
             <span
               className={
-                file || savedDocument
+                hasDocument
                   ? "inline-flex items-center gap-1.5 rounded-full border border-[#C4EBD9] bg-[#E3F7EE] px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-[#1E8A57]"
                   : "inline-flex items-center gap-1.5 rounded-full border border-[#F6DEB4] bg-[#FEF4E2] px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-[#B7791F]"
               }
@@ -341,12 +387,12 @@ export function NewRequestForm({
               <span
                 aria-hidden
                 className={
-                  file || savedDocument
+                  hasDocument
                     ? "h-1.5 w-1.5 rounded-full bg-[#1E8A57]"
                     : "h-1.5 w-1.5 rounded-full bg-[#D68A16]"
                 }
               />
-              {file || savedDocument ? "Uploaded" : "Missing"}
+              {hasDocument ? `Uploaded ${documentCount}/${MAX_DOCUMENT_PHOTOS}` : "Missing"}
             </span>
           </div>
         </div>
@@ -356,13 +402,15 @@ export function NewRequestForm({
             Document Upload
           </h3>
 
-          <DocumentUpload
-            file={file}
+          <StudentIdUpload
+            files={files}
             savedDocument={savedDocument}
+            maxFiles={MAX_DOCUMENT_PHOTOS}
             progress={progress}
             disabled={fieldDisabled}
-            onSelect={handleSelectDocument}
-            onRemove={() => setFile(null)}
+            onAdd={handleAddDocuments}
+            onRemove={handleRemoveDocument}
+            onRemoveSaved={handleRemoveSavedDocument}
           />
           {errors.document && <span className="enroll-form-error">{errors.document}</span>}
         </div>

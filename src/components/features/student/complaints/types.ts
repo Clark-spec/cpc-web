@@ -5,9 +5,13 @@ export type Complaint = {
   referenceNumber: string;
   subject: string;
   category: string;
+  description?: string;
   filedAt: string;
+  updatedAt?: string;
   status: ComplaintStatus;
   anonymous: boolean;
+  attachmentName?: string | null;
+  adminRemarks?: string;
 };
 
 export type ComplaintFormValues = {

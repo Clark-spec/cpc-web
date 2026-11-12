@@ -66,6 +66,7 @@ import EnrollmentStatusPage from "@/pages/student/enrollment/status";
 import EnrollmentStepPage from "@/pages/student/enrollment/step";
 import StudentProfilePage from "@/pages/student/profile";
 import OnlineComplaintPage from "@/pages/student/online-complaint";
+import ComplaintStatusPage from "@/pages/student/complaint-status";
 
 export function AppRoutes() {
   return (
@@ -143,6 +144,7 @@ export function AppRoutes() {
 
         {/* My Account */}
         <Route path="/my-account/profile" element={<StudentProfilePage />} />
+        <Route path="/student/complaint-status" element={<ComplaintStatusPage />} />
 
         {/* Enrollment flow */}
         <Route path="/online-enrollment" element={<ProtectedEnrollment />}>

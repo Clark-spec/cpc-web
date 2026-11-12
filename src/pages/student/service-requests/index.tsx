@@ -5,14 +5,15 @@ import { ServiceRequestDialog } from "@/components/features/student/service-requ
 import { ServiceRequestsHero } from "@/components/features/student/service-requests/ServiceRequestsHero";
 import { ServiceRequestsMain } from "@/components/features/student/service-requests/ServiceRequestsMain";
 import { useServiceRequestsPage } from "@/components/features/student/service-requests/useServiceRequests";
+import type { RequestId } from "@/services/serviceRequests/types";
 
 /** Route: /student/service-requests */
 export default function ServiceRequestsPage() {
   const page = useServiceRequestsPage();
-  const [viewRequestId, setViewRequestId] = useState<number | null>(null);
+  const [viewRequestId, setViewRequestId] = useState<RequestId | null>(null);
 
   return (
-    <div className="w-full overflow-x-hidden bg-white font-poppins">
+    <div className="w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <ServiceRequestsHero />

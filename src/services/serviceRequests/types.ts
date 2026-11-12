@@ -24,8 +24,11 @@ export type RequestDocument = {
   mime: string;
 };
 
+/** The API uses UUID strings; the local demo adapter uses numbers. */
+export type RequestId = string | number;
+
 export type ServiceRequest = {
-  id: number;
+  id: RequestId;
   referenceNumber: string;
   service: {
     id: number;
@@ -70,13 +73,13 @@ export type ServiceRequestDraft = {
 };
 
 export type ServiceRequestNotification = {
-  id: number;
+  id: RequestId;
   type: string;
   title: string;
   message: string;
   isRead: boolean;
   createdAt: string;
-  requestId: number | null;
+  requestId: RequestId | null;
   referenceNumber: string | null;
 };
 
@@ -85,9 +88,11 @@ export type RequestFormValues = {
   copies: number;
   purpose: string;
   notes: string;
-  document: File | null;
+  documents: File[];
 };
 
+export const MIN_DOCUMENT_PHOTOS = 1;
+export const MAX_DOCUMENT_PHOTOS = 2;
 export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const ACCEPTED_DOCUMENT_TYPES = ["application/pdf", "image/png", "image/jpeg"];
 export const ACCEPTED_DOCUMENT_LABEL = "PDF, PNG, or JPG up to 5 MB";

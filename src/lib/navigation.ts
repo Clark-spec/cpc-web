@@ -72,6 +72,14 @@ export type NavSection = {
 /** All three program-scoped dean roles. */
 export const DEAN_ROLES: AdminRole[] = ["dean_cs", "dean_edu", "dean_hm"];
 
+/** Roles that own Student Support > Complaints (mirrors the backend allow-list). */
+export const COMPLAINT_ADMIN_ROLES: AdminRole[] = [
+  "admin",
+  "registrar",
+  ...DEAN_ROLES,
+  "sao",
+];
+
 export const ALL_ROLES: AdminRole[] = [
   "admin",
   "registrar",
@@ -338,7 +346,7 @@ export const NAV_SECTIONS: NavSection[] = [
         id: "student-support",
         label: "Student Support",
         icon: LifeBuoy,
-        roles: ["admin", "registrar", ...DEAN_ROLES, "sao"],
+        roles: COMPLAINT_ADMIN_ROLES,
         children: [
           {
             type: "link",
@@ -346,7 +354,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Complaints",
             to: "/admin/support/complaints",
             icon: MessageSquareWarning,
-            roles: ["admin", "registrar", ...DEAN_ROLES, "sao"],
+            roles: COMPLAINT_ADMIN_ROLES,
             badgeKey: "complaints",
           },
           {

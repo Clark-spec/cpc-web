@@ -3,6 +3,7 @@ import {
   downloadDocument,
   getErrorMessage,
   getServiceRequest,
+  type RequestId,
   type ServiceRequest,
 } from "@/services/serviceRequests/student";
 import { RequestTimeline } from "@/components/features/student/service-requests/RequestTimeline";
@@ -10,7 +11,7 @@ import { StatusBadge } from "@/components/features/student/service-requests/Stat
 import { formatDateTime, formatFileSize } from "@/components/features/student/service-requests/format";
 
 type RequestDetailsModalProps = {
-  requestId: number;
+  requestId: RequestId;
   onClose: () => void;
 };
 

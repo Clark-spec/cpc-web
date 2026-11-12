@@ -10,7 +10,7 @@ export function ClearanceView() {
   useDemoModeShortcut();
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-white font-poppins">
+    <div className="min-h-screen w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader bell={<NotificationBell />} />
 
       <ClearanceMain />

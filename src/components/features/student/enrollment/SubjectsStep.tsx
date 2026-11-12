@@ -106,7 +106,7 @@ export function SubjectsStep() {
           Choose the subjects you want to enroll in for the semester.
         </p>
 
-        <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {state.subjects.map((subject) => (
             <div
               key={subject.code}
@@ -117,17 +117,17 @@ export function SubjectsStep() {
               }`}
               onClick={() => handleToggleSubject(subject.code)}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       checked={subject.isSelected}
                       onChange={() => handleToggleSubject(subject.code)}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-5 h-5 text-enroll-primary rounded border-enroll-border focus:ring-enroll-primary"
+                      className="w-5 h-5 shrink-0 text-enroll-primary rounded border-enroll-border focus:ring-enroll-primary"
                     />
-                    <div>
+                    <div className="min-w-0">
                       <h4 className="font-semibold text-enroll-heading">
                         {subject.code} - {subject.title}
                       </h4>
@@ -140,8 +140,8 @@ export function SubjectsStep() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-sm font-semibold text-enroll-heading">
+                <div className="shrink-0 text-right">
+                  <span className="text-sm font-semibold text-enroll-heading whitespace-nowrap">
                     {subject.units} units
                   </span>
                 </div>

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { StudentNavbar } from "@/components/common/navigation/StudentNavbar";
 import { useChromeFrame } from "@/hooks/useChromeFrame";
+import { useHideOnScroll } from "@/hooks/useHideOnScroll";
+import { cn } from "@/lib/cn";
 import { TopBar } from "@/components/common/layout/TopBar";
 
 type PortalHeaderProps = {
@@ -15,9 +17,16 @@ type PortalHeaderProps = {
  */
 export function PortalHeader({ bell }: PortalHeaderProps) {
   const zoom = useChromeFrame();
+  const hidden = useHideOnScroll();
 
   return (
-    <header className="relative z-30" style={{ zoom }}>
+    <header
+      className={cn(
+        "sticky top-0 z-50 transition-transform duration-300 ease-out",
+        hidden && "-translate-y-full",
+      )}
+      style={{ zoom }}
+    >
       <TopBar bell={bell} />
       <StudentNavbar fluid />
     </header>

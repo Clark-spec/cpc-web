@@ -26,6 +26,12 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Requests that bring their own bearer (the admin demo bridge) opt out of the
+ * shared 401 refresh flow, which would otherwise overwrite the student session.
+ */
+export type NoRefreshConfig = { skipAuthRefresh?: boolean };
+
 export function readAccessToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -55,7 +61,9 @@ export const apiClient = axios.create({
 // ── Request interceptor: attach Bearer token ────────────────────────────────
 apiClient.interceptors.request.use((config) => {
   const token = readAccessToken();
-  if (token) {
+  // A caller may pass its own bearer (e.g. the admin demo session) that must
+  // not be replaced by the student token.
+  if (token && !config.headers.has("Authorization")) {
     config.headers.set("Authorization", `Bearer ${token}`);
   }
   config.headers.set("Accept", "application/json");
@@ -112,7 +120,10 @@ function flushRefreshQueue(token: string | null) {
   _refreshQueue = [];
 }
 
-type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+type RetryConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  skipAuthRefresh?: boolean;
+};
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -123,7 +134,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
 
     // Only attempt refresh on 401 and only once per request.
-    if (status !== 401 || !config || config._retry) {
+    if (status !== 401 || !config || config._retry || config.skipAuthRefresh) {
       return Promise.reject(toApiError(error));
     }
 

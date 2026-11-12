@@ -11,6 +11,7 @@ import {
   type PurposeOption,
   type RequestFormValues,
   type RequestDocument,
+  type RequestId,
   type ServiceOption,
   type ServiceRequest,
   type ServiceRequestDraft,
@@ -170,7 +171,7 @@ function setDraftState(next: ServiceRequestDraft | null): void {
 }
 
 /* Uploaded files are kept in memory so "Download" returns the real file. */
-const documentBlobs = new Map<number, Blob>();
+const documentBlobs = new Map<string, Blob>();
 
 function documentFromFile(file: File): RequestDocument {
   return { name: file.name, size: file.size, mime: file.type };
@@ -200,9 +201,9 @@ export async function getServiceRequests(): Promise<ServiceRequest[]> {
   return [...getRequests()];
 }
 
-export async function getServiceRequest(id: number): Promise<ServiceRequest> {
+export async function getServiceRequest(id: RequestId): Promise<ServiceRequest> {
   await wait(250);
-  const request = getRequests().find((item) => item.id === id);
+  const request = getRequests().find((item) => String(item.id) === String(id));
   if (!request) throw new Error("This request could not be found.");
   return request;
 }
@@ -217,15 +218,15 @@ export async function createServiceRequest(
   if (!service) throw new Error("Select the service you need before submitting.");
   if (!values.purpose) throw new Error("Select the purpose of your request before submitting.");
 
-  const document = values.document
-    ? documentFromFile(values.document)
+  const document = values.documents[0]
+    ? documentFromFile(values.documents[0])
     : (getDraftState()?.document ?? null);
   if (!document) throw new Error("Upload a valid student ID before submitting.");
 
   const existing = getRequests();
   const submittedAt = new Date().toISOString();
   const request: ServiceRequest = {
-    id: existing.reduce((max, item) => Math.max(max, item.id), 0) + 1,
+    id: existing.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1,
     referenceNumber: nextReferenceNumber(existing),
     service,
     copies: values.copies,
@@ -239,13 +240,13 @@ export async function createServiceRequest(
     timeline: buildTimeline("submitted", { submitted: submittedAt }),
   };
 
-  if (values.document) documentBlobs.set(request.id, values.document);
+  if (values.documents[0]) documentBlobs.set(String(request.id), values.documents[0]);
 
   setRequests([request, ...existing]);
 
   const notifications = getNotificationsState();
   const nextNotificationId =
-    notifications.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+    notifications.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1;
   setNotifications([
     {
       id: nextNotificationId,
@@ -276,8 +277,8 @@ export async function saveDraft(
   await simulateUpload(onProgress);
 
   const existing = getDraftState();
-  const document = values.document
-    ? documentFromFile(values.document)
+  const document = values.documents[0]
+    ? documentFromFile(values.documents[0])
     : (existing?.document ?? null);
 
   const draft: ServiceRequestDraft = {
@@ -362,10 +363,10 @@ function createDemoIdCard(): Promise<Blob> {
  * Hands the stored student ID to the browser as a download. Files uploaded in
  * this session are real; seeded requests get a generated placeholder image.
  */
-export async function downloadDocument(id: number, fileName: string): Promise<void> {
+export async function downloadDocument(id: RequestId, fileName: string): Promise<void> {
   await wait(300);
 
-  const stored = documentBlobs.get(id);
+  const stored = documentBlobs.get(String(id));
   const blob = stored ?? (await createDemoIdCard());
   const downloadName = stored
     ? fileName

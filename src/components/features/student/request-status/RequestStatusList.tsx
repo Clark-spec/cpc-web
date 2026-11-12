@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, Filter, Inbox, Search, X } from "lucide-reac
 import { cn } from "@/lib/cn";
 import { StatusBadge } from "@/components/features/student/service-requests/StatusBadge";
 import { formatDate, formatDateTime } from "@/components/features/student/service-requests/format";
-import type { ServiceRequest } from "@/services/serviceRequests/student";
+import type { RequestId, ServiceRequest } from "@/services/serviceRequests/student";
 import {
   STATUS_FILTER_OPTIONS,
   type StatusCounts,
@@ -23,7 +23,7 @@ type RequestStatusListProps = {
   onStatusFilterChange: (value: StatusFilter) => void;
   onClearFilters: () => void;
   onRetry: () => void;
-  onView: (id: number) => void;
+  onView: (id: RequestId) => void;
 };
 
 const CONTROL_CLASSES =

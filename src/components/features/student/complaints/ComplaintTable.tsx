@@ -1,4 +1,5 @@
 import { MessageSquareWarning, UserRound } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/components/features/student/service-requests/format";
 import type { Complaint } from "./types";
@@ -6,12 +7,41 @@ import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
 
 type ComplaintTableProps = {
   complaints: Complaint[];
+  loading?: boolean;
+  /** Row just updated by a live office change; flashes once. */
+  highlightId?: string | null;
 };
 
-const HEADINGS = ["Reference No.", "Subject", "Category", "Date Filed", "Status"];
+const HEADINGS = [
+  "Reference No.",
+  "Subject",
+  "Category",
+  "Date Filed",
+  "Status",
+  "Response",
+];
+
+function ResponseCell({ remark }: { remark?: string }) {
+  const text = remark?.trim();
+  if (!text) {
+    return <span className="font-poppins text-sm text-cpc-heading-soft">—</span>;
+  }
+  return (
+    <p
+      className="max-w-[18rem] truncate font-poppins text-xs leading-relaxed text-cpc-navy-text"
+      title={text}
+    >
+      {text}
+    </p>
+  );
+}
 
 /** The "My Complaints" card: filed complaints with a mobile card layout. */
-export function ComplaintTable({ complaints }: ComplaintTableProps) {
+export function ComplaintTable({
+  complaints,
+  loading = false,
+  highlightId,
+}: ComplaintTableProps) {
   return (
     <section
       id="my-complaints"
@@ -46,18 +76,19 @@ export function ComplaintTable({ complaints }: ComplaintTableProps) {
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-cpc-tile-border bg-cpc-section-light/40 px-4 py-12 text-center">
             <MessageSquareWarning className="h-9 w-9 text-cpc-muted-blue" aria-hidden />
             <p className="mt-3 font-poppins text-sm font-semibold text-cpc-navy-text">
-              No complaints filed yet
+              {loading ? "Loading your complaints…" : "No complaints filed yet"}
             </p>
             <p className="mt-1 max-w-md font-poppins text-xs leading-relaxed text-cpc-heading-soft">
-              Complaints you submit will appear here with their reference number, date filed, and
-              status.
+              {loading
+                ? "Fetching your latest complaint records."
+                : "Complaints you submit will appear here with their reference number, date filed, and status."}
             </p>
           </div>
         ) : (
           <>
             {/* Desktop table */}
             <div className="hidden overflow-x-auto rounded-xl border border-cpc-input-border md:block">
-              <table className="w-full min-w-[760px] border-collapse text-left">
+              <table className="w-full min-w-[900px] border-collapse text-left">
                 <thead className="bg-cpc-section-light">
                   <tr>
                     {HEADINGS.map((heading) => (
@@ -76,7 +107,10 @@ export function ComplaintTable({ complaints }: ComplaintTableProps) {
                   {complaints.map((complaint) => (
                     <tr
                       key={complaint.id}
-                      className="border-b border-cpc-input-border/70 transition-colors last:border-b-0 hover:bg-cpc-section-light/60"
+                      className={cn(
+                        "border-b border-cpc-input-border/70 transition-colors last:border-b-0 hover:bg-cpc-section-light/60",
+                        highlightId === complaint.id && "profile-highlight",
+                      )}
                     >
                       <td className="px-4 py-3">
                         <span className="font-poppins text-sm font-semibold whitespace-nowrap text-cpc-navy-text">
@@ -105,6 +139,9 @@ export function ComplaintTable({ complaints }: ComplaintTableProps) {
                       <td className="px-4 py-3">
                         <ComplaintStatusBadge status={complaint.status} />
                       </td>
+                      <td className="px-4 py-3">
+                        <ResponseCell remark={complaint.adminRemarks} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -116,7 +153,10 @@ export function ComplaintTable({ complaints }: ComplaintTableProps) {
               {complaints.map((complaint) => (
                 <article
                   key={complaint.id}
-                  className="rounded-xl border border-cpc-input-border bg-white p-4 shadow-[0_6px_18px_rgba(27,47,158,0.05)]"
+                  className={cn(
+                    "rounded-xl border border-cpc-input-border bg-white p-4 shadow-[0_6px_18px_rgba(27,47,158,0.05)]",
+                    highlightId === complaint.id && "profile-highlight",
+                  )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -154,6 +194,17 @@ export function ComplaintTable({ complaints }: ComplaintTableProps) {
                       </dd>
                     </div>
                   </dl>
+
+                  {complaint.adminRemarks?.trim() && (
+                    <div className="mt-3 rounded-lg border border-cpc-tile-border bg-cpc-section-light/40 px-3 py-2">
+                      <p className="font-poppins text-[10px] font-semibold tracking-[0.1em] text-cpc-heading-soft uppercase">
+                        Student Support Response
+                      </p>
+                      <p className="mt-1 font-poppins text-xs leading-relaxed text-cpc-navy-text">
+                        {complaint.adminRemarks}
+                      </p>
+                    </div>
+                  )}
                 </article>
               ))}
             </div>

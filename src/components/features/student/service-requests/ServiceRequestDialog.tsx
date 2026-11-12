@@ -1,7 +1,8 @@
 import { RequestDetailsModal } from "@/components/features/student/service-requests/RequestDetailsModal";
+import type { RequestId } from "@/services/serviceRequests/types";
 
 type ServiceRequestDialogProps = {
-  requestId: number | null;
+  requestId: RequestId | null;
   onClose: () => void;
 };
 

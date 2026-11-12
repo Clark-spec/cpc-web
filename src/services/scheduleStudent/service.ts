@@ -22,6 +22,7 @@ import {
 import { apiClient } from "@/lib/apiClient";
 import { seedPublishedSchedule } from "./mockAdmin";
 import type { PublishedSchedule } from "@/types/scheduleAdmin";
+import type { DayCode, SectionId, SectionSchedule, ScheduleEntry } from "@/types/schedule";
 
 /** Every key whose change means the student's timetable may have moved. */
 const SCHEDULE_KEYS: string[] = [
@@ -31,10 +32,183 @@ const SCHEDULE_KEYS: string[] = [
   SCHEDULE_HISTORY_KEY,
 ];
 
+function isSectionSchedule(value: unknown): value is SectionSchedule {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Partial<SectionSchedule>;
+  return typeof record.section === "string" && Array.isArray(record.entries);
+}
+
 export function isPublishedSchedule(value: unknown): value is PublishedSchedule {
   if (typeof value !== "object" || value === null) return false;
   const record = value as Partial<PublishedSchedule>;
-  return typeof record.version === "number" && Array.isArray(record.schedules);
+  return (
+    typeof record.version === "number" &&
+    Array.isArray(record.schedules) &&
+    record.schedules.every(isSectionSchedule)
+  );
+}
+
+// ── API payload adapter ─────────────────────────────────────────────────────
+// `/schedules/v1/published` sends a flat list of class rows. The pages expect
+// one SectionSchedule per section, so the payload is grouped and normalised
+// here instead of teaching every component the backend's vocabulary.
+
+const SECTION_ALIASES: Record<string, SectionId> = {
+  "bsit-3a": "BSIT-3A",
+  "bsit 3-a": "BSIT-3A",
+  "bsit-3b": "BSIT-3B",
+  "bsit 3-b": "BSIT-3B",
+  "bsit-3c": "BSIT-3C",
+  "bsit 3-c": "BSIT-3C",
+  "bsit-3d": "BSIT-3D",
+  "bsit 3-d": "BSIT-3D",
+};
+
+const DAY_ALIASES: Record<string, DayCode> = {
+  mon: "MON",
+  monday: "MON",
+  tue: "TUE",
+  tues: "TUE",
+  tuesday: "TUE",
+  wed: "WED",
+  wednesday: "WED",
+  thu: "THU",
+  thur: "THU",
+  thursday: "THU",
+  fri: "FRI",
+  friday: "FRI",
+  sat: "SAT",
+  saturday: "SAT",
+};
+
+const COLOR_KEYS = [
+  "blue",
+  "emerald",
+  "violet",
+  "amber",
+  "rose",
+  "sky",
+  "teal",
+  "orange",
+  "indigo",
+];
+
+const DEFAULT_SEMESTER = "1st Semester";
+const DEFAULT_ACADEMIC_YEAR = "2026-2027";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function readText(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function toSection(value: unknown): SectionId | null {
+  const text = readText(value);
+  if (!text) return null;
+  return SECTION_ALIASES[text.toLowerCase()] ?? null;
+}
+
+function toDay(value: unknown): DayCode | null {
+  const text = readText(value);
+  if (!text) return null;
+  return DAY_ALIASES[text.toLowerCase()] ?? null;
+}
+
+/** "07:30" -> 450 minutes from midnight. */
+function toMinutes(value: unknown): number | null {
+  const text = readText(value);
+  if (!text) return null;
+  const match = /^(\d{1,2}):(\d{2})/.exec(text);
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+/** "1st Semester, A.Y. 2026-2027" -> { semester, academicYear }. */
+function parseTerm(label: unknown): { semester: string; academicYear: string } {
+  const text = readText(label) ?? "";
+  const [semesterPart, yearPart] = text.split(/,\s*A\.?Y\.?\s*/i);
+  return {
+    semester: semesterPart?.trim() || DEFAULT_SEMESTER,
+    academicYear: yearPart?.trim() || DEFAULT_ACADEMIC_YEAR,
+  };
+}
+
+function toEntry(value: unknown, index: number): ScheduleEntry | null {
+  const raw = asRecord(value);
+  const days = Array.isArray(raw.days)
+    ? Array.from(new Set(raw.days.map(toDay).filter((day): day is DayCode => day !== null)))
+    : [];
+  if (days.length === 0) return null;
+
+  const startMin = toMinutes(raw.startTime) ?? 0;
+  const endMin = toMinutes(raw.endTime) ?? startMin + 60;
+  const code = readText(raw.code, raw.subjectCode) ?? "";
+  const room = readText(raw.room, raw.roomSetA) ?? "";
+
+  return {
+    id: readText(raw.id) ?? `api-${index}`,
+    subjectCode: code,
+    title: readText(raw.subject, raw.title) ?? code,
+    days,
+    startMin,
+    endMin,
+    roomSetA: room,
+    roomSetB: readText(raw.roomSetB) ?? room,
+    units: typeof raw.units === "number" ? raw.units : 0,
+    instructor: readText(raw.instructor) ?? "",
+    status: raw.status === "not_active" ? "not_active" : "active",
+    colorKey: COLOR_KEYS[index % COLOR_KEYS.length],
+  };
+}
+
+function mapApiSchedule(value: unknown): PublishedSchedule | null {
+  const payload = asRecord(value);
+  if (typeof payload.version !== "number" || !Array.isArray(payload.schedules)) {
+    return null;
+  }
+
+  const publishedAt = readText(payload.publishedAt) ?? new Date().toISOString();
+  const publishedBy = readText(payload.publishedBy) ?? "Registrar";
+
+  // Already grouped in the portal's own shape.
+  if (payload.schedules.every(isSectionSchedule)) {
+    return {
+      version: payload.version,
+      publishedAt,
+      publishedBy,
+      schedules: payload.schedules as SectionSchedule[],
+    };
+  }
+
+  const { semester, academicYear } = parseTerm(payload.semesterLabel);
+  const grouped = new Map<SectionId, ScheduleEntry[]>();
+
+  payload.schedules.forEach((row, index) => {
+    const raw = asRecord(row);
+    const section = toSection(raw.section);
+    const entry = toEntry(raw, index);
+    if (!section || !entry) return;
+    const entries = grouped.get(section) ?? [];
+    entries.push(entry);
+    grouped.set(section, entries);
+  });
+
+  return {
+    version: payload.version,
+    publishedAt,
+    publishedBy,
+    schedules: Array.from(grouped, ([section, entries]) => ({
+      section,
+      semester,
+      academicYear,
+      entries,
+    })),
+  };
 }
 
 /** The published record, seeding it first when this student ran ahead of staff. */
@@ -58,10 +232,10 @@ export function readPublishedSchedule(): PublishedSchedule {
 export async function fetchPublishedScheduleApi(): Promise<PublishedSchedule> {
   try {
     const response = await apiClient.get("/schedules/v1/published");
-    const data = response.data?.data?.schedule;
-    if (data && isPublishedSchedule(data)) {
-      localStorage.setItem(SCHEDULE_PUBLISHED_KEY, JSON.stringify(data));
-      return data;
+    const mapped = mapApiSchedule(response.data?.data?.schedule);
+    if (mapped) {
+      localStorage.setItem(SCHEDULE_PUBLISHED_KEY, JSON.stringify(mapped));
+      return mapped;
     }
   } catch {
     // Fall back to storage or seed

@@ -9,14 +9,15 @@ import { RequestDetailsModal } from "@/components/features/student/service-reque
 import { RequestStatusList } from "@/components/features/student/request-status/RequestStatusList";
 import { StatusSummaryCards } from "@/components/features/student/request-status/StatusSummaryCards";
 import { useRequestStatus } from "@/components/features/student/request-status/useRequestStatus";
+import type { RequestId } from "@/services/serviceRequests/types";
 
 export default function RequestStatusPage() {
   const status = useRequestStatus();
-  const [viewRequestId, setViewRequestId] = useState<number | null>(null);
+  const [viewRequestId, setViewRequestId] = useState<RequestId | null>(null);
   const busy = status.loading || status.refreshing;
 
   return (
-    <div className="w-full overflow-x-hidden bg-white font-poppins">
+    <div className="w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <PageHeroBanner

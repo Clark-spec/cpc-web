@@ -5,14 +5,24 @@ import type { AppNotification } from "@/components/context/NotificationContext";
 export type NotificationsApiResponse = {
   notifications: AppNotification[];
   unread: number;
+  total: number;
+  hasMore: boolean;
 };
 
-export async function fetchNotificationsApi(): Promise<NotificationsApiResponse> {
+type NotificationQuery = {
+  limit?: number;
+  offset?: number;
+};
+
+export async function fetchNotificationsApi(
+  query: NotificationQuery = {},
+): Promise<NotificationsApiResponse> {
   const response = await apiClient.get<{
     status: string;
     data: {
       notifications: Array<{
         id: string;
+        title?: string | null;
         message: string;
         type: "info" | "success" | "warning";
         createdAt: string;
@@ -21,12 +31,21 @@ export async function fetchNotificationsApi(): Promise<NotificationsApiResponse>
         href?: string | null;
       }>;
       unread: number;
+      total?: number;
+      hasMore?: boolean;
     };
-  }>("/notifications/v1");
+  }>("/notifications/v1", {
+    params: {
+      ...(query.limit !== undefined ? { limit: query.limit } : {}),
+      ...(query.offset !== undefined ? { offset: query.offset } : {}),
+    },
+  });
 
-  const rawList = response.data?.data?.notifications ?? [];
+  const payload = response.data?.data;
+  const rawList = payload?.notifications ?? [];
   const notifications: AppNotification[] = rawList.map((n) => ({
     id: n.id,
+    title: n.title ?? undefined,
     message: n.message,
     type: n.type ?? "info",
     createdAt: n.createdAt,
@@ -37,7 +56,9 @@ export async function fetchNotificationsApi(): Promise<NotificationsApiResponse>
 
   return {
     notifications,
-    unread: response.data?.data?.unread ?? notifications.filter((n) => !n.read).length,
+    unread: payload?.unread ?? notifications.filter((n) => !n.read).length,
+    total: payload?.total ?? notifications.length,
+    hasMore: Boolean(payload?.hasMore),
   };
 }
 
@@ -76,4 +97,3 @@ export async function deleteAllNotificationsApi(): Promise<void> {
     headers: { "x-csrf-token": csrf },
   });
 }
-

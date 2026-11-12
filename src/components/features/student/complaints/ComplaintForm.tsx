@@ -1,9 +1,11 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   Camera,
   CheckCircle2,
   Clock,
+  ImagePlus,
   MessageSquareWarning,
+  Paperclip,
   Send,
   ShieldCheck,
   UserRound,
@@ -11,18 +13,18 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/components/ui/toast";
-import { DocumentUpload } from "@/components/features/student/service-requests/DocumentUpload";
 import {
   ACCEPTED_DOCUMENT_TYPES,
   MAX_DOCUMENT_BYTES,
 } from "@/services/serviceRequests";
+import { formatFileSize } from "@/components/features/student/service-requests/format";
 import { formatDateTime } from "@/lib/format";
 import { COMPLAINT_CATEGORIES } from "./mockComplaints";
 import type { ComplaintFormValues } from "./types";
 import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
 
 type ComplaintFormProps = {
-  onSubmit: (values: ComplaintFormValues) => string;
+  onSubmit: (values: ComplaintFormValues) => Promise<string>;
   cooldownUntil: string | null;
 };
 
@@ -54,10 +56,6 @@ const FIELD_IDS: Record<FieldName, string> = {
   attachment: "complaint-attachment",
 };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const STUDENT_ID_PATTERN = /^[A-Za-z0-9-]{4,20}$/;
-const CONTACT_PATTERN = /^\+?\d{10,13}$/;
-
 function formatRemaining(ms: number): string {
   const totalMinutes = Math.max(1, Math.ceil(ms / 60_000));
   const days = Math.floor(totalMinutes / 1440);
@@ -65,43 +63,15 @@ function formatRemaining(ms: number): string {
   const minutes = totalMinutes % 60;
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
-  if (hours > 0) parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
-  if (days === 0 && minutes > 0) {
-    parts.push(`${minutes} ${minutes === 1 ? "min" : "mins"}`);
-  }
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0 || days > 0) parts.push(`${hours}h`);
+  parts.push(`${minutes}m`);
 
-  return parts.join(" ") || "less than a minute";
+  return parts.join(" ");
 }
 
 function validate(values: ComplaintFormValues): ComplaintFormErrors {
   const errors: ComplaintFormErrors = {};
-
-  if (!values.anonymous) {
-    if (values.fullName.trim().length < 3) {
-      errors.fullName = "Enter your full name.";
-    }
-
-    const studentId = values.studentId.trim();
-    if (!studentId) {
-      errors.studentId = "Enter your student ID.";
-    } else if (!STUDENT_ID_PATTERN.test(studentId)) {
-      errors.studentId = "Use 4–20 letters, numbers, or hyphens.";
-    }
-
-    if (values.courseYearLevel.trim().length < 3) {
-      errors.courseYearLevel = "Enter your course and year level.";
-    }
-
-    if (!EMAIL_PATTERN.test(values.email.trim())) {
-      errors.email = "Enter a valid email address.";
-    }
-
-    const contact = values.contactNumber.replace(/[\s()-]/g, "");
-    if (!CONTACT_PATTERN.test(contact)) {
-      errors.contactNumber = "Enter a valid contact number (10–13 digits).";
-    }
-  }
 
   if (!values.category) {
     errors.category = "Select a complaint category.";
@@ -131,24 +101,30 @@ function Field({
   label,
   error,
   className,
+  required = true,
   children,
 }: {
   id: string;
   label: string;
   error?: string;
   className?: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="enroll-form-label">
-        {label}
-        <span className="text-sr-danger" aria-hidden>
-          {" "}
-          *
-        </span>
-      </label>
-      {children}
+      <div className="enroll-float-field">
+        {children}
+        <label htmlFor={id} className="enroll-float-label">
+          {label}
+          {required && (
+            <span className="text-sr-danger" aria-hidden>
+              {" "}
+              *
+            </span>
+          )}
+        </label>
+      </div>
       {error && (
         <span id={`${id}-error`} className="enroll-form-error" role="alert">
           {error}
@@ -164,6 +140,9 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
   const [values, setValues] = useState<ComplaintFormValues>(EMPTY_VALUES);
   const [errors, setErrors] = useState<ComplaintFormErrors>({});
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [attachmentDrag, setAttachmentDrag] = useState(false);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [submitted, setSubmitted] = useState<{
     referenceNumber: string;
@@ -177,7 +156,7 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
   useEffect(() => {
     if (!cooldownUntil) return;
 
-    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(timer);
   }, [cooldownUntil]);
 
@@ -223,9 +202,9 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
     update("attachment", file);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (cooldownActive) return;
+    if (cooldownActive || submitting) return;
 
     const nextErrors = validate(values);
 
@@ -237,25 +216,42 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
       return;
     }
 
-    const referenceNumber = onSubmit({
-      ...values,
-      fullName: values.anonymous ? "" : values.fullName.trim(),
-      studentId: values.anonymous ? "" : values.studentId.trim(),
-      courseYearLevel: values.anonymous ? "" : values.courseYearLevel.trim(),
-      email: values.anonymous ? "" : values.email.trim(),
-      contactNumber: values.anonymous ? "" : values.contactNumber.trim(),
-      subject: values.subject.trim(),
-      description: values.description.trim(),
-    });
+    setSubmitting(true);
+    setSubmitted(null);
 
-    setSubmitted({
-      referenceNumber,
-      subject: values.subject.trim(),
-      anonymous: values.anonymous,
-    });
-    setValues(EMPTY_VALUES);
-    setErrors({});
-    toast(`Complaint submitted successfully. Reference No. ${referenceNumber}.`, "success");
+    try {
+      const referenceNumber = await onSubmit({
+        ...values,
+        fullName: values.anonymous ? "" : values.fullName.trim(),
+        studentId: values.anonymous ? "" : values.studentId.trim(),
+        courseYearLevel: values.anonymous ? "" : values.courseYearLevel.trim(),
+        email: values.anonymous ? "" : values.email.trim(),
+        contactNumber: values.anonymous ? "" : values.contactNumber.trim(),
+        subject: values.subject.trim(),
+        description: values.description.trim(),
+      });
+
+      setSubmitted({
+        referenceNumber,
+        subject: values.subject.trim(),
+        anonymous: values.anonymous,
+      });
+      setValues(EMPTY_VALUES);
+      setErrors({});
+      toast(
+        `Complaint submitted successfully. Reference No. ${referenceNumber}.`,
+        "success",
+      );
+    } catch (error) {
+      toast(
+        error instanceof Error
+          ? error.message
+          : "Could not submit your complaint. Please try again.",
+        "error",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -324,12 +320,15 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
             <div className="min-w-0">
               <p className="font-poppins text-sm font-semibold text-amber-800">
-                You can file one complaint every 3 days
+                You can file one complaint every 72 hours
               </p>
               <p className="mt-0.5 font-poppins text-xs leading-relaxed text-amber-700">
-                Your last complaint was filed recently. You can submit another one on{" "}
-                <span className="font-semibold">{formatDateTime(cooldownUntil)}</span>
-                {cooldownEnd > now && ` (about ${formatRemaining(cooldownEnd - now)} from now)`}.
+                Your last complaint was filed recently. You can submit again in{" "}
+                <span className="font-semibold tabular-nums">
+                  {formatRemaining(cooldownEnd - now)}
+                </span>{" "}
+                — on{" "}
+                <span className="font-semibold">{formatDateTime(cooldownUntil)}</span>.
               </p>
             </div>
           </div>
@@ -354,7 +353,7 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                     className="mt-0.5 font-poppins text-[11px] leading-relaxed text-cpc-heading-soft"
                   >
                     {values.anonymous
-                      ? "Anonymous mode is on — your name and contact details are hidden from this complaint."
+                      ? "Anonymous mode is on — your name, student ID, and contact details are hidden from everyone."
                       : "Hide your name, student ID, and contact details. The Student Support Office will still review your complaint."}
                   </p>
                 </div>
@@ -402,14 +401,19 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
               </div>
             ) : (
               <>
-                <Field id={FIELD_IDS.fullName} label="Full Name" error={errors.fullName}>
+                <Field
+                  id={FIELD_IDS.fullName}
+                  label="Full Name"
+                  error={errors.fullName}
+                  required={false}
+                >
                   <input
                     id={FIELD_IDS.fullName}
                     type="text"
                     autoComplete="name"
+                    placeholder=" "
                     value={values.fullName}
                     onChange={(event) => update("fullName", event.target.value)}
-                    placeholder="Juan Dela Cruz"
                     className={cn("enroll-form-input", errors.fullName && "error")}
                     aria-invalid={Boolean(errors.fullName)}
                     aria-describedby={
@@ -418,13 +422,18 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   />
                 </Field>
 
-                <Field id={FIELD_IDS.studentId} label="Student ID" error={errors.studentId}>
+                <Field
+                  id={FIELD_IDS.studentId}
+                  label="Student ID"
+                  error={errors.studentId}
+                  required={false}
+                >
                   <input
                     id={FIELD_IDS.studentId}
                     type="text"
+                    placeholder=" "
                     value={values.studentId}
                     onChange={(event) => update("studentId", event.target.value)}
-                    placeholder="CPC-2026-00123"
                     className={cn("enroll-form-input", errors.studentId && "error")}
                     aria-invalid={Boolean(errors.studentId)}
                     aria-describedby={
@@ -437,13 +446,14 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   id={FIELD_IDS.courseYearLevel}
                   label="Course / Year Level"
                   error={errors.courseYearLevel}
+                  required={false}
                 >
                   <input
                     id={FIELD_IDS.courseYearLevel}
                     type="text"
+                    placeholder=" "
                     value={values.courseYearLevel}
                     onChange={(event) => update("courseYearLevel", event.target.value)}
-                    placeholder="BS Information Technology – 2nd Year"
                     className={cn("enroll-form-input", errors.courseYearLevel && "error")}
                     aria-invalid={Boolean(errors.courseYearLevel)}
                     aria-describedby={
@@ -454,14 +464,19 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   />
                 </Field>
 
-                <Field id={FIELD_IDS.email} label="Email" error={errors.email}>
+                <Field
+                  id={FIELD_IDS.email}
+                  label="Email"
+                  error={errors.email}
+                  required={false}
+                >
                   <input
                     id={FIELD_IDS.email}
                     type="email"
                     autoComplete="email"
+                    placeholder=" "
                     value={values.email}
                     onChange={(event) => update("email", event.target.value)}
-                    placeholder="juan.delacruz@example.com"
                     className={cn("enroll-form-input", errors.email && "error")}
                     aria-invalid={Boolean(errors.email)}
                     aria-describedby={errors.email ? `${FIELD_IDS.email}-error` : undefined}
@@ -472,14 +487,15 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   id={FIELD_IDS.contactNumber}
                   label="Contact Number"
                   error={errors.contactNumber}
+                  required={false}
                 >
                   <input
                     id={FIELD_IDS.contactNumber}
                     type="tel"
                     autoComplete="tel"
+                    placeholder=" "
                     value={values.contactNumber}
                     onChange={(event) => update("contactNumber", event.target.value)}
-                    placeholder="+63 912 345 6789"
                     className={cn("enroll-form-input", errors.contactNumber && "error")}
                     aria-invalid={Boolean(errors.contactNumber)}
                     aria-describedby={
@@ -494,6 +510,7 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
               <select
                 id={FIELD_IDS.category}
                 value={values.category}
+                data-filled={values.category ? "true" : "false"}
                 onChange={(event) => update("category", event.target.value)}
                 className={cn("enroll-form-select", errors.category && "error")}
                 aria-invalid={Boolean(errors.category)}
@@ -501,7 +518,7 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   errors.category ? `${FIELD_IDS.category}-error` : undefined
                 }
               >
-                <option value="">Select a category</option>
+                <option value=""></option>
                 {COMPLAINT_CATEGORIES.map((category) => (
                   <option key={category} value={category}>
                     {category}
@@ -519,9 +536,9 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
               <input
                 id={FIELD_IDS.subject}
                 type="text"
+                placeholder=" "
                 value={values.subject}
                 onChange={(event) => update("subject", event.target.value)}
-                placeholder="Briefly summarize your complaint"
                 className={cn("enroll-form-input", errors.subject && "error")}
                 aria-invalid={Boolean(errors.subject)}
                 aria-describedby={
@@ -540,9 +557,9 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                 id={FIELD_IDS.description}
                 rows={5}
                 maxLength={2000}
+                placeholder=" "
                 value={values.description}
                 onChange={(event) => update("description", event.target.value)}
-                placeholder="Describe what happened, when and where it happened, and who was involved."
                 className={cn(
                   "enroll-form-textarea resize-y",
                   errors.description && "error",
@@ -552,36 +569,123 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                   errors.description ? `${FIELD_IDS.description}-error` : undefined
                 }
               />
-              <div className="mt-1 text-right font-poppins text-[10px] text-cpc-heading-soft">
-                {values.description.length}/2000
+              <div className="mt-1 flex items-start justify-between gap-3 font-poppins text-[10px] text-cpc-heading-soft">
+                <span className="leading-relaxed">
+                  Describe what happened, when and where it happened, and who was involved.
+                </span>
+                <span className="shrink-0 tabular-nums">
+                  {values.description.length}/2000
+                </span>
               </div>
             </Field>
 
             <div className="sm:col-span-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="enroll-form-label">
-                  Supporting Attachment{" "}
-                  <span className="font-normal text-cpc-heading-soft">(optional)</span>
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setCameraOpen(true)}
-                  className="cpc-btn cpc-btn-secondary cpc-btn-sm"
-                >
-                  <Camera className="h-3.5 w-3.5 text-cpc-blue-accent" aria-hidden />
-                  Take Photo
-                </button>
-              </div>
+              <p className="enroll-form-label">
+                Supporting Attachment{" "}
+                <span className="font-normal text-cpc-heading-soft">(optional)</span>
+              </p>
               <p className="mb-2 font-poppins text-[11px] leading-relaxed text-cpc-heading-soft">
                 Upload a PDF, PNG, or JPG up to 5 MB, or capture a photo with your camera.
               </p>
-              <DocumentUpload
-                file={values.attachment}
-                savedDocument={null}
-                progress={null}
-                onSelect={handleAttachment}
-                onRemove={() => update("attachment", null)}
-              />
+
+              {values.attachment ? (
+                <div className="flex flex-wrap items-center gap-3 rounded-[10px] border border-cpc-input-border bg-white px-3 py-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cpc-section-light text-cpc-blue-accent">
+                    <Paperclip className="h-[18px] w-[18px]" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-poppins text-[13px] font-medium text-cpc-navy-text">
+                      {values.attachment.name}
+                    </p>
+                    <p className="font-poppins text-[11px] text-cpc-heading-soft">
+                      {formatFileSize(values.attachment.size)} · Ready to attach
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      update("attachment", null);
+                      setErrors((current) => ({ ...current, attachment: undefined }));
+                    }}
+                    aria-label="Remove attachment"
+                    title="Remove attachment"
+                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-cpc-input-border bg-white text-cpc-heading-soft transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onDragEnter={(event) => {
+                    event.preventDefault();
+                    setAttachmentDrag(true);
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setAttachmentDrag(true);
+                  }}
+                  onDragLeave={(event) => {
+                    event.preventDefault();
+                    setAttachmentDrag(false);
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    setAttachmentDrag(false);
+                    const file = event.dataTransfer.files?.[0];
+                    if (file) handleAttachment(file);
+                  }}
+                  className={cn(
+                    "rounded-[10px] border-2 border-dashed px-3 py-5 text-center transition-colors",
+                    attachmentDrag
+                      ? "border-cpc-blue-accent bg-cpc-section-light"
+                      : "border-cpc-input-border bg-[#F8FAFF]",
+                  )}
+                >
+                  <ImagePlus className="mx-auto h-7 w-7 text-cpc-blue-accent" aria-hidden />
+                  <p className="mt-2 font-poppins text-[13px] font-semibold text-cpc-navy-text">
+                    Add a supporting attachment
+                  </p>
+                  <p className="mt-0.5 font-poppins text-[11px] text-cpc-heading-soft">
+                    PDF, PNG, or JPG up to 5 MB
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => attachmentInputRef.current?.click()}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-cpc-input-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-cpc-blue-accent transition-colors hover:border-cpc-blue-accent/40 hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                    >
+                      <ImagePlus className="h-3.5 w-3.5" aria-hidden />
+                      Upload file
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCameraOpen(true)}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-cpc-navy-top px-3 py-1.5 font-poppins text-[11px] font-semibold text-white shadow-[0_4px_12px_rgba(27,47,158,0.22)] transition-colors hover:bg-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                    >
+                      <Camera className="h-3.5 w-3.5" aria-hidden />
+                      Use camera
+                    </button>
+                  </div>
+
+                  <p className="mt-2 font-poppins text-[10px] text-cpc-heading-soft">
+                    You can also drag and drop the file here.
+                  </p>
+
+                  <input
+                    ref={attachmentInputRef}
+                    type="file"
+                    className="hidden"
+                    accept={ACCEPTED_DOCUMENT_TYPES.join(",")}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (file) handleAttachment(file);
+                    }}
+                  />
+                </div>
+              )}
+
               {errors.attachment && (
                 <span id="complaint-attachment-error" className="enroll-form-error" role="alert">
                   {errors.attachment}
@@ -594,21 +698,21 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
             <p className="flex items-start gap-2 font-poppins text-[11px] leading-relaxed text-cpc-heading-soft">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cpc-blue-accent" aria-hidden />
               {values.anonymous
-                ? "Anonymous complaints are visible only to the Student Support Office."
-                : "Your details are shared only with the Student Support Office."}
+                ? "Anonymous complaints hide your identity from everyone, including the Student Support Office."
+                : "Your complaint is shared only with the Student Support Office."}
             </p>
             <button
               type="submit"
-              disabled={cooldownActive}
+              disabled={cooldownActive || submitting}
               title={
                 cooldownActive
-                  ? "You can file one complaint every 3 days."
+                  ? "You can file one complaint every 72 hours."
                   : undefined
               }
               className="cpc-btn cpc-btn-primary w-full sm:w-auto"
             >
               <Send className="h-4 w-4" aria-hidden />
-              Submit Complaint
+              {submitting ? "Submitting…" : "Submit Complaint"}
             </button>
           </div>
         </form>

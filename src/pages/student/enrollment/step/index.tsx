@@ -29,7 +29,7 @@ export default function EnrollmentStepPage() {
   const config = stepConfig[step] || stepConfig[1];
 
   return (
-    <div className="w-full overflow-x-hidden bg-white font-poppins">
+    <div className="w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <EnrollmentHero title={config.title} subtitle={config.subtitle} />

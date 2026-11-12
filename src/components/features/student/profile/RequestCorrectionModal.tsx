@@ -104,42 +104,40 @@ export function RequestCorrectionModal({ open, onClose, fieldLabel }: RequestCor
           <p className="font-poppins text-sm font-semibold text-cpc-navy-text">{fieldLabel}</p>
         </div>
 
-        <div className="mt-4 space-y-1.5">
-          <label
-            htmlFor="correction-value"
-            className="block font-poppins text-[13px] font-semibold text-cpc-navy-text"
-          >
-            Correct value <span className="text-rose-600">*</span>
-          </label>
-          <input
-            id="correction-value"
-            value={correctValue}
-            onChange={(event) => setCorrectValue(event.target.value)}
-            autoComplete="off"
-            className="w-full rounded-lg border border-cpc-input-border bg-white px-3 py-2 font-poppins text-sm text-cpc-navy-text focus:border-cpc-blue-accent focus:ring-2 focus:ring-cpc-blue-accent/25 focus:outline-none"
-          />
+        <div className="mt-4">
+          <div className="enroll-float-field">
+            <input
+              id="correction-value"
+              value={correctValue}
+              onChange={(event) => setCorrectValue(event.target.value)}
+              autoComplete="off"
+              placeholder=" "
+              className="enroll-form-input"
+            />
+            <label htmlFor="correction-value" className="enroll-float-label">
+              Correct value <span className="text-rose-600">*</span>
+            </label>
+          </div>
         </div>
 
-        <div className="mt-4 space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <label
-              htmlFor="correction-reason"
-              className="block font-poppins text-[13px] font-semibold text-cpc-navy-text"
-            >
+        <div className="mt-4">
+          <div className="enroll-float-field">
+            <textarea
+              id="correction-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value.slice(0, REASON_LIMIT))}
+              rows={3}
+              maxLength={REASON_LIMIT}
+              placeholder=" "
+              className="enroll-form-textarea resize-y"
+            />
+            <label htmlFor="correction-reason" className="enroll-float-label">
               Reason <span className="text-rose-600">*</span>
             </label>
-            <span className="font-poppins text-[11px] text-cpc-heading-soft">
-              {reason.length}/{REASON_LIMIT}
-            </span>
           </div>
-          <textarea
-            id="correction-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value.slice(0, REASON_LIMIT))}
-            rows={3}
-            maxLength={REASON_LIMIT}
-            className="w-full resize-y rounded-lg border border-cpc-input-border bg-white px-3 py-2 font-poppins text-sm text-cpc-navy-text focus:border-cpc-blue-accent focus:ring-2 focus:ring-cpc-blue-accent/25 focus:outline-none"
-          />
+          <div className="mt-1 text-right font-poppins text-[11px] text-cpc-heading-soft">
+            {reason.length}/{REASON_LIMIT}
+          </div>
         </div>
 
         <div className="mt-4">

@@ -78,7 +78,7 @@ const navItems: NavItem[] = [
       { label: "Student Profile", to: "/my-account/profile" },
       { label: "Enrollment Status", to: "/online-enrollment/status" },
       { label: "Clearance Status", to: "/student-services/online-clearance" },
-      { label: "Violations", to: "#" },
+      { label: "Complaint Status", to: "/student/complaint-status" },
       { label: "Request Status", to: "/student/request-status" },
     ],
   },

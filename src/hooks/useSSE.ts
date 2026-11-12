@@ -8,9 +8,13 @@ type SseEventHandler = (type: string, data: unknown) => void;
  * student. The browser's `EventSource` API handles reconnection automatically.
  *
  * The backend sends:
- *   - `ping`                   every 25 s (heartbeat, no action needed)
- *   - `profile_updated`        when profile data changes
+ *   - `connected`               on every (re)connect — refetch missed events
+ *   - `ping`                    every 25 s (heartbeat, no action needed)
+ *   - `profile_updated`         when profile data changes
  *   - `service_request_updated` when a request's status changes
+ *   - `notification_updated`    when the notification feed changes
+ *   - `notification_created`    when a new notification is delivered
+ *   - `complaint_updated`       when a complaint's status changes
  *
  * @param onEvent  Stable callback — wrap in useCallback to prevent reconnects.
  * @param enabled  Pass `false` to skip connecting (e.g. user is not logged in).
@@ -30,21 +34,24 @@ export function useSSE(onEvent: SseEventHandler, enabled = true) {
     function connect() {
       es = new EventSource(`${API_BASE_URL}/sse/v1/student`, { withCredentials: true });
 
-      es.addEventListener("profile_updated", (event) => {
-        try {
-          handlerRef.current("profile_updated", JSON.parse((event as MessageEvent).data));
-        } catch {
-          handlerRef.current("profile_updated", {});
-        }
-      });
+      const eventTypes = [
+        "connected",
+        "profile_updated",
+        "service_request_updated",
+        "notification_updated",
+        "notification_created",
+        "complaint_updated",
+      ] as const;
 
-      es.addEventListener("service_request_updated", (event) => {
-        try {
-          handlerRef.current("service_request_updated", JSON.parse((event as MessageEvent).data));
-        } catch {
-          handlerRef.current("service_request_updated", {});
-        }
-      });
+      for (const type of eventTypes) {
+        es.addEventListener(type, (event) => {
+          try {
+            handlerRef.current(type, JSON.parse((event as MessageEvent).data));
+          } catch {
+            handlerRef.current(type, {});
+          }
+        });
+      }
 
       // Ping events are intentionally ignored — they just keep the connection alive.
 

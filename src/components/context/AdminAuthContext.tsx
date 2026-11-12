@@ -3,12 +3,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ADMIN_USERS } from "@/lib/navigation";
+import { ensureAdminSession } from "@/services/complaints/admin-session";
 import type { AdminRole, AdminUser } from "@/types/admin";
 
 const SESSION_KEY = "cpc.admin.session.v1";
@@ -36,6 +38,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     (role: AdminRole) => {
       setUser(ADMIN_USERS[role]);
+      // Bridge the demo role to a real backend session for protected APIs.
+      void ensureAdminSession(role).catch(() => undefined);
       navigate("/admin/dashboard", { replace: true });
     },
     [navigate, setUser],
@@ -49,9 +53,14 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const switchRole = useCallback(
     (role: AdminRole) => {
       setUser(ADMIN_USERS[role]);
+      void ensureAdminSession(role).catch(() => undefined);
     },
     [setUser],
   );
+
+  useEffect(() => {
+    if (user) void ensureAdminSession(user.role).catch(() => undefined);
+  }, [user]);
 
   const toggleDemoMode = useCallback(() => {
     setDemoMode((current) => !current);

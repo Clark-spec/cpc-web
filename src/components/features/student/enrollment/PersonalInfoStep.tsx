@@ -23,17 +23,19 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <label htmlFor={id} className="enroll-form-label">
-        {label}
-        {required && (
-          <span className="text-sr-danger" aria-hidden>
-            {" "}
-            *
-          </span>
-        )}
-      </label>
-      {children}
+    <div>
+      <div className="enroll-float-field">
+        {children}
+        <label htmlFor={id} className="enroll-float-label">
+          {label}
+          {required && (
+            <span className="text-sr-danger" aria-hidden>
+              {" "}
+              *
+            </span>
+          )}
+        </label>
+      </div>
       {error && (
         <span id={`${id}-error`} className="enroll-form-error" role="alert">
           {error}
@@ -92,7 +94,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("firstName", e.target.value)}
               onBlur={handleBlur("firstName")}
               className={inputClass("firstName")}
-              placeholder="Enter first name"
+              placeholder=" "
               aria-invalid={errorFor("firstName") ? true : undefined}
               aria-describedby={describedBy("firstName")}
               required
@@ -107,7 +109,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("middleName", e.target.value)}
               onBlur={handleBlur("middleName")}
               className={inputClass("middleName")}
-              placeholder="Enter middle name"
+              placeholder=" "
               aria-invalid={errorFor("middleName") ? true : undefined}
               aria-describedby={describedBy("middleName")}
             />
@@ -121,7 +123,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("lastName", e.target.value)}
               onBlur={handleBlur("lastName")}
               className={inputClass("lastName")}
-              placeholder="Enter last name"
+              placeholder=" "
               aria-invalid={errorFor("lastName") ? true : undefined}
               aria-describedby={describedBy("lastName")}
               required
@@ -132,6 +134,7 @@ export function PersonalInfoStep() {
             <input
               id="birthDate"
               type="date"
+              data-filled="true"
               value={state.personalInfo.birthDate || ""}
               onChange={(e) => handleInputChange("birthDate", e.target.value)}
               onBlur={handleBlur("birthDate")}
@@ -146,6 +149,7 @@ export function PersonalInfoStep() {
             <select
               id="gender"
               value={state.personalInfo.gender || ""}
+              data-filled={state.personalInfo.gender ? "true" : "false"}
               onChange={(e) => handleInputChange("gender", e.target.value)}
               onBlur={handleBlur("gender")}
               className={inputClass("gender")}
@@ -153,7 +157,7 @@ export function PersonalInfoStep() {
               aria-describedby={describedBy("gender")}
               required
             >
-              <option value="">Select gender</option>
+              <option value=""></option>
               {GENDER_OPTIONS.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -164,6 +168,7 @@ export function PersonalInfoStep() {
             <select
               id="civilStatus"
               value={state.personalInfo.civilStatus || ""}
+              data-filled={state.personalInfo.civilStatus ? "true" : "false"}
               onChange={(e) => handleInputChange("civilStatus", e.target.value)}
               onBlur={handleBlur("civilStatus")}
               className={inputClass("civilStatus")}
@@ -171,7 +176,7 @@ export function PersonalInfoStep() {
               aria-describedby={describedBy("civilStatus")}
               required
             >
-              <option value="">Select status</option>
+              <option value=""></option>
               {CIVIL_STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -186,7 +191,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("placeOfBirth", e.target.value)}
               onBlur={handleBlur("placeOfBirth")}
               className={inputClass("placeOfBirth")}
-              placeholder="Enter place of birth"
+              placeholder=" "
               aria-invalid={errorFor("placeOfBirth") ? true : undefined}
               aria-describedby={describedBy("placeOfBirth")}
               required
@@ -201,7 +206,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("nationality", e.target.value)}
               onBlur={handleBlur("nationality")}
               className={inputClass("nationality")}
-              placeholder="Enter nationality"
+              placeholder=" "
               aria-invalid={errorFor("nationality") ? true : undefined}
               aria-describedby={describedBy("nationality")}
               required
@@ -212,6 +217,7 @@ export function PersonalInfoStep() {
             <select
               id="religion"
               value={state.personalInfo.religion || ""}
+              data-filled={state.personalInfo.religion ? "true" : "false"}
               onChange={(e) => handleInputChange("religion", e.target.value)}
               onBlur={handleBlur("religion")}
               className={cn(
@@ -219,7 +225,7 @@ export function PersonalInfoStep() {
                 touched.religion && state.personalInfo.religion && "valid",
               )}
             >
-              <option value="">Select religion</option>
+              <option value=""></option>
               <option value="Roman Catholic">Roman Catholic</option>
               <option value="Islam">Islam</option>
               <option value="Protestant">Protestant</option>
@@ -243,7 +249,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("email", e.target.value)}
               onBlur={handleBlur("email")}
               className={inputClass("email")}
-              placeholder="your.email@example.com"
+              placeholder=" "
               aria-invalid={errorFor("email") ? true : undefined}
               aria-describedby={describedBy("email")}
               required
@@ -258,7 +264,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("contactNumber", e.target.value)}
               onBlur={handleBlur("contactNumber")}
               className={inputClass("contactNumber")}
-              placeholder="09xxxxxxxxx"
+              placeholder=" "
               aria-invalid={errorFor("contactNumber") ? true : undefined}
               aria-describedby={describedBy("contactNumber")}
               required
@@ -273,7 +279,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("homeAddress", e.target.value)}
               onBlur={handleBlur("homeAddress")}
               className={inputClass("homeAddress")}
-              placeholder="Enter home address"
+              placeholder=" "
               aria-invalid={errorFor("homeAddress") ? true : undefined}
               aria-describedby={describedBy("homeAddress")}
               required
@@ -295,7 +301,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("contactPerson", e.target.value)}
               onBlur={handleBlur("contactPerson")}
               className={inputClass("contactPerson")}
-              placeholder="Enter contact person's name"
+              placeholder=" "
               aria-invalid={errorFor("contactPerson") ? true : undefined}
               aria-describedby={describedBy("contactPerson")}
               required
@@ -306,6 +312,7 @@ export function PersonalInfoStep() {
             <select
               id="relationship"
               value={state.personalInfo.relationship || ""}
+              data-filled={state.personalInfo.relationship ? "true" : "false"}
               onChange={(e) => handleInputChange("relationship", e.target.value)}
               onBlur={handleBlur("relationship")}
               className={inputClass("relationship")}
@@ -313,7 +320,7 @@ export function PersonalInfoStep() {
               aria-describedby={describedBy("relationship")}
               required
             >
-              <option value="">Select relationship</option>
+              <option value=""></option>
               <option value="Father">Father</option>
               <option value="Mother">Mother</option>
               <option value="Father/Mother">Father/Mother</option>
@@ -332,7 +339,7 @@ export function PersonalInfoStep() {
               onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
               onBlur={handleBlur("emergencyContact")}
               className={inputClass("emergencyContact")}
-              placeholder="09xxxxxxxxx"
+              placeholder=" "
               aria-invalid={errorFor("emergencyContact") ? true : undefined}
               aria-describedby={describedBy("emergencyContact")}
               required

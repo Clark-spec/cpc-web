@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Camera, X } from "lucide-react";
+import { Camera, ImagePlus, X } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
 import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
 import { validateRequirementFile } from "@/components/features/student/enrollment/validation";
@@ -122,44 +123,61 @@ export function RequirementsStep() {
               <label className="block text-sm font-semibold text-enroll-heading">
                 {requirement.name} *
               </label>
-              <button
-                type="button"
-                onClick={() => setCameraTarget(requirement)}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-enroll-border bg-enroll-card px-3 py-1.5 font-poppins text-xs font-semibold text-enroll-primary transition-colors hover:bg-enroll-hero-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
-              >
-                <Camera className="h-3.5 w-3.5" aria-hidden />
-                {requirement.status === "pending" ? "Take Photo" : "Retake Photo"}
-              </button>
+              {requirement.status !== "pending" && (
+                <button
+                  type="button"
+                  onClick={() => setCameraTarget(requirement)}
+                  className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-enroll-border bg-enroll-card px-3 py-1.5 font-poppins text-xs font-semibold text-enroll-primary transition-colors hover:bg-enroll-hero-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
+                >
+                  <Camera className="h-3.5 w-3.5" aria-hidden />
+                  Retake Photo
+                </button>
+              )}
             </div>
 
             {requirement.status === "pending" ? (
               <div
-                className={`enroll-upload-box ${dragTarget === requirement.id ? "drag-active" : ""}`}
+                className={cn(
+                  "rounded-[14px] border-2 border-dashed px-3 py-5 text-center transition-colors",
+                  dragTarget === requirement.id
+                    ? "border-enroll-primary bg-[#E8ECF8]"
+                    : "border-enroll-border bg-enroll-hero-bg",
+                )}
                 onDragEnter={(e) => handleDrag(e, requirement.id, true)}
                 onDragLeave={(e) => handleDrag(e, requirement.id, false)}
                 onDragOver={(e) => handleDrag(e, requirement.id, true)}
                 onDrop={(e) => handleDrop(e, requirement)}
-                onClick={() => fileInputs.current[requirement.id]?.click()}
               >
-                <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="enroll-upload-icon"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-                <div className="enroll-upload-title">Click to upload or drag and drop</div>
-                <div className="enroll-upload-hint">
+                <ImagePlus className="mx-auto h-7 w-7 text-enroll-primary" aria-hidden />
+                <p className="mt-2 font-poppins text-[13px] font-semibold text-enroll-heading">
+                  Add your {requirement.name}
+                </p>
+                <p className="mt-0.5 font-poppins text-[11px] text-enroll-muted">
                   {requirement.type === "ID Photo" ? "JPG, PNG max 2MB" : "PDF, DOC, JPG max 5MB"}
+                </p>
+
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputs.current[requirement.id]?.click()}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-enroll-border bg-white px-3 py-1.5 font-poppins text-[11px] font-semibold text-enroll-primary transition-colors hover:border-enroll-primary/40 hover:bg-enroll-hero-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
+                  >
+                    <ImagePlus className="h-3.5 w-3.5" aria-hidden />
+                    {requirement.type === "ID Photo" ? "Upload photo" : "Upload file"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCameraTarget(requirement)}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-enroll-primary-hover px-3 py-1.5 font-poppins text-[11px] font-semibold text-white shadow-[0_4px_12px_rgba(11,44,140,0.22)] transition-colors hover:bg-enroll-heading focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-enroll-primary"
+                  >
+                    <Camera className="h-3.5 w-3.5" aria-hidden />
+                    Use camera
+                  </button>
                 </div>
+
+                <p className="mt-2 font-poppins text-[10px] text-enroll-muted">
+                  You can also drag and drop the file here.
+                </p>
 
                 <input
                   ref={(el) => {

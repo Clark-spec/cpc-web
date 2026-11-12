@@ -17,7 +17,7 @@ type StudentLayoutProps = {
  */
 export function StudentLayout({ children, showFooter = true, bell }: StudentLayoutProps) {
   return (
-    <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-white font-poppins">
+    <div className="flex min-h-screen w-full flex-col overflow-x-clip bg-white font-poppins">
       <PortalHeader bell={bell} />
       <main className="flex-1">{children}</main>
       {showFooter && <PortalFooter />}

@@ -21,11 +21,13 @@ export type AdminComplaintRow = {
   description: string;
   filedAt: string;
   status: ComplaintStatus;
-  /** Student asked to hide their name from classmates; staff still see it. */
+  /** Anonymous records arrive without identity; the UI shows placeholders. */
   anonymous: boolean;
   attachmentName: string | null;
   adminRemarks: string;
   updatedAt: string | null;
+  /** Staff member who last changed the status or remarks. */
+  updatedByName?: string | null;
 };
 
 export type ComplaintStatusFilter = ComplaintStatus | "all";

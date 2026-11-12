@@ -8,7 +8,7 @@ import { EnrollmentStatusInfoCards } from "@/components/features/student/enrollm
 /** Route: /online-enrollment/status */
 export default function EnrollmentStatusPage() {
   return (
-    <div className="w-full overflow-x-hidden bg-white font-poppins">
+    <div className="w-full overflow-x-clip bg-white font-poppins">
       <PortalHeader />
 
       <EnrollmentHero

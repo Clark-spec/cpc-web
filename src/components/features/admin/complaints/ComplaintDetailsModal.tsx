@@ -24,7 +24,7 @@ const BTN = "cpc-btn cpc-btn-sm";
 type ComplaintDetailsModalProps = {
   row: AdminComplaintRow;
   onClose: () => void;
-  onSave: (id: string, update: ComplaintUpdate) => void;
+  onSave: (id: string, update: ComplaintUpdate) => Promise<void>;
 };
 
 /**
@@ -40,12 +40,24 @@ export function ComplaintDetailsModal({
   const headingId = useId();
   const [status, setStatus] = useState(row.status);
   const [remarks, setRemarks] = useState(row.adminRemarks);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const dirty = status !== row.status || remarks.trim() !== row.adminRemarks;
 
-  function handleSave() {
-    if (!dirty) return;
-    onSave(row.id, { status, adminRemarks: remarks.trim() });
+  async function handleSave() {
+    if (!dirty || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await onSave(row.id, { status, adminRemarks: remarks.trim() });
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Could not save these changes.",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -94,20 +106,26 @@ export function ComplaintDetailsModal({
                 Program / Year level
               </dt>
               <dd className="truncate font-poppins text-xs text-cpc-navy-text">
-                {row.program} · {row.yearLevel}
+                {row.anonymous
+                  ? "Hidden"
+                  : [row.program, row.yearLevel].filter(Boolean).join(" · ") || "—"}
               </dd>
             </div>
             <div className="min-w-0">
               <dt className="font-poppins text-[10px] text-cpc-heading-soft">Email</dt>
-              <dd className="truncate font-poppins text-xs text-cpc-navy-text" title={row.email}>
-                {row.email}
+              <dd
+                className="truncate font-poppins text-xs text-cpc-navy-text"
+                title={row.anonymous ? undefined : row.email}
+              >
+                {row.anonymous ? "Hidden" : row.email || "—"}
               </dd>
             </div>
           </dl>
           {row.anonymous && (
             <p className="mt-3 flex items-start gap-1.5 border-t border-cpc-tile-border/60 pt-2.5 font-poppins text-[11px] leading-relaxed text-cpc-heading-soft">
               <EyeOff className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
-              Submitted anonymously. Identity is visible to complaint desk staff only.
+              Submitted anonymously. The student&apos;s identity is not part of this
+              record and is not available to any administrator.
             </p>
           )}
         </section>
@@ -218,9 +236,19 @@ export function ComplaintDetailsModal({
             </p>
           </div>
 
+          {saveError && (
+            <p
+              role="alert"
+              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 font-poppins text-[11px] leading-relaxed text-rose-700"
+            >
+              {saveError}
+            </p>
+          )}
+
           {row.updatedAt && (
             <p className="font-poppins text-[10px] text-cpc-heading-soft">
               Last updated {formatDateTime(row.updatedAt)}
+              {row.updatedByName ? ` by ${row.updatedByName}` : ""}
             </p>
           )}
         </section>
@@ -236,13 +264,13 @@ export function ComplaintDetailsModal({
         </button>
         <button
           type="button"
-          onClick={handleSave}
-          disabled={!dirty}
+          onClick={() => void handleSave()}
+          disabled={!dirty || saving}
           title={dirty ? undefined : "Change the status or remarks to save"}
           className={cn(BTN, "cpc-btn-primary")}
         >
           <Check className="h-4 w-4 shrink-0" aria-hidden />
-          Save changes
+          {saving ? "Saving…" : "Save changes"}
         </button>
       </footer>
     </Modal>
