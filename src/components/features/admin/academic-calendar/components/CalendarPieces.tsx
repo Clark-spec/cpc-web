@@ -2,6 +2,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { CalendarHeart } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { Badge, type BadgeSize, type BadgeTone } from "@/components/ui/badge";
 import {
   CATEGORY_META,
   STATUS_META,
@@ -59,41 +60,45 @@ export function CategoryBadge({
   className?: string;
 }) {
   const meta = CATEGORY_META[category];
-  const Icon = meta.icon;
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-poppins text-[11px] leading-none font-semibold whitespace-nowrap",
-        meta.badgeClass,
-        className,
-      )}
+    <Badge
+      tone="plain"
+      size="sm"
+      dotColor={meta.hex}
+      className={cn(meta.badgeClass, className)}
     >
-      <Icon className="h-3 w-3 shrink-0" aria-hidden />
       {compact ? meta.shortLabel : meta.label}
-    </span>
+    </Badge>
   );
 }
 
+const STATUS_TONES: Record<EventStatus, BadgeTone> = {
+  draft: "neutral",
+  pending: "warning",
+  published: "success",
+  archived: "neutral",
+  cancelled: "danger",
+};
+
 export function StatusBadge({
   status,
+  size,
   className,
 }: {
   status: EventStatus;
+  size?: BadgeSize;
   className?: string;
 }) {
   const meta = STATUS_META[status];
-  const Icon = meta.icon;
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-poppins text-[11px] leading-none font-semibold whitespace-nowrap",
-        meta.badgeClass,
-        className,
-      )}
+    <Badge
+      tone={STATUS_TONES[status]}
+      size={size}
+      pulse={status === "pending"}
+      className={className}
     >
-      <Icon className="h-3 w-3 shrink-0" aria-hidden />
       {meta.label}
-    </span>
+    </Badge>
   );
 }
 

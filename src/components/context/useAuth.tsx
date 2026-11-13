@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { navigate } from "@/lib/router";
+import { showInfo, showSuccess } from "@/lib/feedback";
 import { loginApi, logoutApi, getSessionApi, type AuthUser } from "@/services/auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -108,6 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.setItem("cpc_refresh_token", result.refreshToken);
 
         setUser(authUser);
+        showSuccess(
+          "Welcome back",
+          `You are signed in as ${authUser.name || authUser.id}.`,
+        );
         navigate(redirectPath(role), { replace: true });
         return true;
       } catch (err: unknown) {
@@ -135,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.removeItem("cpc_refresh_token");
       setIsLoading(false);
       navigate("/login/student", { replace: true });
+      showInfo("Signed out", "You have been safely signed out of the portal.");
     }
   }, []);
 

@@ -1,5 +1,3 @@
-import type { RequestStatus } from "@/services/serviceRequests/student";
-
 const dateTimeFormatter = new Intl.DateTimeFormat("en-PH", {
   month: "short",
   day: "numeric",
@@ -49,11 +47,3 @@ export function formatRelativeTime(value: string): string {
   return formatDate(value);
 }
 
-export const STATUS_BADGE_CLASSES: Record<RequestStatus, string> = {
-  submitted: "border-[#F6DEB4] bg-[#FEF4E2] text-[#B7791F]",
-  under_review: "border-[#CFE0FF] bg-[#E8F1FF] text-[#2F5FD0]",
-  processing: "border-[#CFE0FF] bg-[#E8F1FF] text-[#3976D9]",
-  ready_for_release: "border-[#E0D4FB] bg-[#F1EBFE] text-[#6B46C1]",
-  released: "border-[#C4EBD9] bg-[#E3F7EE] text-[#1E8A57]",
-  rejected: "border-[#F8CBCB] bg-[#FDECEC] text-[#C53030]",
-};

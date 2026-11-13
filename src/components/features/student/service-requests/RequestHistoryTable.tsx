@@ -1,6 +1,7 @@
 import type { RequestId, ServiceRequest } from "@/services/serviceRequests/student";
 import { StatusBadge } from "@/components/features/student/service-requests/StatusBadge";
 import { formatDate } from "@/components/features/student/service-requests/format";
+import { cn } from "@/lib/cn";
 
 type RequestHistoryTableProps = {
   requests: ServiceRequest[];
@@ -8,6 +9,8 @@ type RequestHistoryTableProps = {
   error: string | null;
   onRetry: () => void;
   onView: (id: RequestId) => void;
+  /** Row that just changed over SSE; flashes briefly. */
+  highlightId?: string | null;
 };
 
 function HistoryIcon({ className }: { className?: string }) {
@@ -34,6 +37,7 @@ export function RequestHistoryTable({
   error,
   onRetry,
   onView,
+  highlightId,
 }: RequestHistoryTableProps) {
   return (
     <section className="sr-card p-5 sm:p-6" aria-labelledby="request-history-title">
@@ -90,7 +94,10 @@ export function RequestHistoryTable({
             {requests.map((request) => (
               <li
                 key={request.id}
-                className="rounded-lg border border-sr-border bg-white px-3.5 py-3"
+                className={cn(
+                  "rounded-lg border border-sr-border bg-white px-3.5 py-3",
+                  highlightId === request.id && "profile-highlight",
+                )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -142,7 +149,10 @@ export function RequestHistoryTable({
               {requests.map((request) => (
                 <tr
                   key={request.id}
-                  className="border-t border-sr-border bg-white transition-colors hover:bg-[#FAFCFF]"
+                  className={cn(
+                    "border-t border-sr-border bg-white transition-colors hover:bg-[#FAFCFF]",
+                    highlightId === request.id && "profile-highlight",
+                  )}
                 >
                   <td className="px-4 py-3 font-poppins text-[12px] font-semibold whitespace-nowrap text-sr-text">
                     {request.referenceNumber}

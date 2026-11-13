@@ -21,14 +21,12 @@ import {
   type RequestDocument,
   type RequestFormValues,
   type RequestId,
-  type RequestStatus,
   type ServiceOption,
   type ServiceRequest,
   type ServiceRequestDraft,
   type ServiceRequestNotification,
-  type TimelineStage,
 } from "./types";
-import { STAGE_ORDER, buildTimeline, type StageKey } from "./shared";
+import { buildTimeline, normalizeHistoryEntry, normalizeStatus, normalizeTimelineStage } from "./shared";
 
 type Json = Record<string, unknown>;
 
@@ -68,26 +66,6 @@ function readBoolean(...values: unknown[]): boolean | undefined {
     if (value === 0 || value === "0") return false;
   }
   return undefined;
-}
-
-function normalizeStatus(value: unknown): RequestStatus {
-  if (typeof value === "number") {
-    return (["submitted", "under_review", "processing", "ready_for_release", "released", "rejected"][
-      value - 1
-    ] ?? "submitted") as RequestStatus;
-  }
-  const key = String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, "_");
-  if (key === "under_review" || key === "review" || key === "reviewing") return "under_review";
-  if (key === "processing" || key === "in_progress") return "processing";
-  if (key === "ready_for_release" || key === "ready" || key === "for_release") {
-    return "ready_for_release";
-  }
-  if (key === "released" || key === "completed" || key === "done") return "released";
-  if (key === "rejected" || key === "denied") return "rejected";
-  return "submitted";
 }
 
 function normalizeService(value: unknown): ServiceRequest["service"] {
@@ -137,39 +115,6 @@ function normalizeDocument(value: unknown): RequestDocument {
   };
 }
 
-function normalizeTimelineStage(value: unknown, index: number): TimelineStage {
-  const raw = asRecord(value);
-  const fallbackKey = STAGE_ORDER[index] ?? "submitted";
-  const rawKey = String(readString(raw.key, raw.stage, raw.code) ?? fallbackKey)
-    .trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, "_");
-  const key = (STAGE_ORDER as readonly string[]).includes(rawKey)
-    ? (rawKey as StageKey)
-    : fallbackKey;
-
-  const stateText = String(readString(raw.state, raw.status) ?? "").toLowerCase();
-  const state =
-    stateText.includes("complete") || stateText.includes("done")
-      ? "completed"
-      : stateText.includes("active") || stateText.includes("progress") || stateText.includes("current")
-        ? "active"
-        : stateText.includes("pending") || stateText.includes("wait")
-          ? "pending"
-          : "pending";
-
-  return {
-    key,
-    label:
-      readString(raw.label, raw.title, raw.name) ??
-      STAGE_ORDER[index] ??
-      key,
-    description: readString(raw.description, raw.detail, raw.message) ?? "",
-    state,
-    timestamp: readString(raw.timestamp, raw.occurred_at, raw.created_at, raw.updated_at) ?? null,
-  };
-}
-
 function normalizeRequest(value: unknown): ServiceRequest {
   const raw = asRecord(value);
   const status = normalizeStatus(raw.status ?? raw.status_label ?? raw.statusLabel);
@@ -203,6 +148,14 @@ function normalizeRequest(value: unknown): ServiceRequest {
         released: readString(raw.released_at, raw.releasedAt),
       });
 
+  const history = Array.isArray(raw.history)
+    ? raw.history.map(normalizeHistoryEntry)
+    : undefined;
+
+  const documentValue = raw.document ?? raw.student_id ?? raw.attachment;
+  const documentRaw = asRecord(documentValue);
+  const hasDocument = Boolean(readString(documentRaw.name, documentRaw.file_name, documentRaw.filename));
+
   return {
     id: readId(raw.id, raw.request_id),
     referenceNumber:
@@ -216,8 +169,9 @@ function normalizeRequest(value: unknown): ServiceRequest {
     statusLabel,
     submittedAt,
     updatedAt,
-    document: normalizeDocument(raw.document ?? raw.student_id ?? raw.attachment),
+    document: hasDocument ? normalizeDocument(documentValue) : null,
     timeline,
+    history,
   };
 }
 
@@ -261,16 +215,6 @@ function normalizeDraft(value: unknown): ServiceRequestDraft | null {
     updatedAt:
       readString(raw.updated_at, raw.updatedAt) ?? new Date().toISOString(),
   };
-}
-
-function buildFormData(values: RequestFormValues): FormData {
-  const form = new FormData();
-  if (values.serviceId !== null) form.append("service_id", String(values.serviceId));
-  form.append("copies", String(values.copies));
-  form.append("purpose", values.purpose);
-  form.append("notes", values.notes);
-  for (const document of values.documents) form.append("student_id", document);
-  return form;
 }
 
 function progressHandler(onProgress?: (percent: number) => void) {
@@ -340,11 +284,30 @@ export async function getServiceRequest(id: RequestId): Promise<ServiceRequest> 
   return normalizeRequest(requestBody);
 }
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new ApiError("Could not read the uploaded document."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function createServiceRequest(
   values: RequestFormValues,
   onProgress?: (percent: number) => void,
 ): Promise<ServiceRequest> {
   const csrf = await getCsrfToken();
+  const document = values.documents[0];
+  const attachment = document
+    ? {
+        name: document.name,
+        type: document.type,
+        size: document.size,
+        data: await fileToDataUrl(document),
+      }
+    : null;
+
   const body = unwrap<unknown>(
     (
       await apiClient.post(
@@ -354,6 +317,7 @@ export async function createServiceRequest(
           copies: values.copies,
           purpose: values.purpose,
           notes: values.notes,
+          attachment,
         },
         {
           headers: { "x-csrf-token": csrf },
@@ -369,7 +333,9 @@ export async function createServiceRequest(
 export async function getCurrentDraft(): Promise<ServiceRequestDraft | null> {
   try {
     const body = unwrap<unknown>((await apiClient.get("/service-requests/v1/drafts/current")).data);
-    return normalizeDraft(asRecord(body).draft ?? body);
+    const raw = asRecord(body);
+    // `draft: null` means the student has no saved draft.
+    return normalizeDraft("draft" in raw ? raw.draft : body);
   } catch (error) {
     if (isNotFound(error)) return null;
     throw error;
@@ -381,12 +347,33 @@ export async function saveDraft(
   onProgress?: (percent: number) => void,
 ): Promise<ServiceRequestDraft> {
   const csrf = await getCsrfToken();
+  const document = values.documents[0];
+  const attachment = document
+    ? {
+        name: document.name,
+        type: document.type,
+        size: document.size,
+        data: await fileToDataUrl(document),
+      }
+    : null;
+
   const body = unwrap<unknown>(
     (
-      await apiClient.put("/service-requests/v1/drafts", buildFormData(values), {
-        headers: { "x-csrf-token": csrf },
-        onUploadProgress: progressHandler(onProgress),
-      })
+      await apiClient.put(
+        "/service-requests/v1/drafts",
+        {
+          serviceId: values.serviceId,
+          copies: values.copies,
+          purpose: values.purpose,
+          notes: values.notes,
+          attachment,
+          removeAttachment: !attachment && Boolean(values.removeDraftDocument),
+        },
+        {
+          headers: { "x-csrf-token": csrf },
+          onUploadProgress: progressHandler(onProgress),
+        },
+      )
     ).data,
   );
   const draft = normalizeDraft(asRecord(body).draft ?? body);

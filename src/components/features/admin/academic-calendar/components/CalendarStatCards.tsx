@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { Badge } from "@/components/ui/badge";
 import { useCountUp } from "@/hooks/useCountUp";
 import type { CalendarStats } from "../data/academicCalendar";
 
@@ -124,14 +125,20 @@ function StatTile({ config, stats, index }: { config: CardConfig; stats: Calenda
         >
           <Icon className="h-5 w-5" />
         </span>
-        <span
-          className={cn(
-            "rounded-full px-2.5 py-0.5 font-poppins text-[10px] font-bold uppercase tracking-wider",
-            needsAttention ? "bg-amber-100/90 text-amber-800" : config.tagClass,
-          )}
-        >
-          {needsAttention ? "Needs Action" : config.tag}
-        </span>
+        {needsAttention ? (
+          <Badge tone="warning" size="sm" pulse className="uppercase tracking-[0.06em]">
+            Needs Action
+          </Badge>
+        ) : (
+          <Badge
+            tone="plain"
+            size="sm"
+            dot={false}
+            className={cn("uppercase tracking-[0.06em]", config.tagClass)}
+          >
+            {config.tag}
+          </Badge>
+        )}
       </div>
 
       {/* Middle: Label + Prominent Value */}
@@ -152,26 +159,15 @@ function StatTile({ config, stats, index }: { config: CardConfig; stats: Calenda
 
       {/* Bottom: Dedicated full-width supporting badge (prevents horizontal clipping/overflow) */}
       <div className="relative z-10 mt-3.5 flex items-center">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-poppins text-[11px] font-semibold leading-tight max-w-full",
-            needsAttention
-              ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200/80"
-              : config.key === "published"
-                ? "bg-emerald-50 text-emerald-700"
-                : config.key === "upcoming"
-                  ? "bg-purple-50 text-purple-700"
-                  : "bg-cpc-section-light/80 text-cpc-heading-soft",
-          )}
+        <Badge
+          tone={needsAttention ? "warning" : config.key === "published" ? "success" : "neutral"}
+          size="sm"
+          pulse={needsAttention}
+          dot={needsAttention || config.key === "published"}
+          className="max-w-full"
         >
-          {needsAttention && (
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" aria-hidden />
-          )}
-          {config.key === "published" && (
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden />
-          )}
           <span className="truncate">{config.supporting(stats)}</span>
-        </span>
+        </Badge>
       </div>
     </button>
   );

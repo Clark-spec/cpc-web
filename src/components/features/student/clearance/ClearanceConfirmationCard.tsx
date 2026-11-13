@@ -1,5 +1,7 @@
 import { Download, Lock, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { Badge } from "@/components/ui/badge";
+import { showError, showSuccess } from "@/lib/feedback";
 import { useClearance } from "@/components/features/student/clearance/ClearanceContext";
 import { useClearanceProgress } from "@/components/features/student/clearance/useClearanceProgress";
 import { downloadClearanceSlip } from "@/components/features/student/clearance/clearancePdf";
@@ -11,12 +13,23 @@ export function ClearanceConfirmationCard() {
 
   function handleDownload() {
     if (!isCleared || !dateCleared) return;
-    downloadClearanceSlip({
-      student,
-      offices,
-      referenceNumber,
-      dateCleared,
-    });
+    try {
+      downloadClearanceSlip({
+        student,
+        offices,
+        referenceNumber,
+        dateCleared,
+      });
+      showSuccess(
+        "Clearance slip downloaded",
+        `Reference ${referenceNumber} was saved to your downloads.`,
+      );
+    } catch {
+      showError(
+        "Download failed",
+        "We could not create the file. Please try again.",
+      );
+    }
   }
 
   return (
@@ -46,16 +59,19 @@ export function ClearanceConfirmationCard() {
               <Lock className="h-5 w-5" aria-hidden />
             )}
           </div>
-          <span
+          <Badge
+            tone="plain"
+            size="sm"
+            dot={false}
             className={cn(
-              "rounded-full border px-2.5 py-0.5 font-poppins text-[10px] font-semibold backdrop-blur-xs",
+              "backdrop-blur-xs",
               isCleared
                 ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
                 : "border-white/20 bg-white/10 text-white/80",
             )}
           >
             {isCleared ? "Unlocked" : `${signed}/${total} Cleared`}
-          </span>
+          </Badge>
         </div>
 
         <h2

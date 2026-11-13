@@ -24,6 +24,30 @@ export type RequestDocument = {
   mime: string;
 };
 
+/** One office action from the request's status history. */
+export type RequestHistoryEntry = {
+  id: RequestId;
+  oldStatus: RequestStatus | null;
+  status: RequestStatus;
+  statusLabel: string;
+  remarks: string;
+  changedByName: string | null;
+  changedByRole: string | null;
+  changedAt: string;
+};
+
+/** Owner-only `service_request_updated` payload pushed over SSE. */
+export type ServiceRequestUpdate = {
+  requestId: string;
+  referenceNumber: string;
+  status: RequestStatus;
+  statusLabel: string;
+  updatedAt: string;
+  remarks: string;
+  timeline: TimelineStage[];
+  historyEntry: RequestHistoryEntry | null;
+};
+
 /** The API uses UUID strings; the local demo adapter uses numbers. */
 export type RequestId = string | number;
 
@@ -45,8 +69,11 @@ export type ServiceRequest = {
   statusLabel: string;
   submittedAt: string;
   updatedAt: string;
-  document: RequestDocument;
+  /** Null when the student submitted without an attachment. */
+  document: RequestDocument | null;
   timeline: TimelineStage[];
+  /** Present on detail responses and appended to live updates. */
+  history?: RequestHistoryEntry[];
 };
 
 export type ServiceOption = {
@@ -89,6 +116,8 @@ export type RequestFormValues = {
   purpose: string;
   notes: string;
   documents: File[];
+  /** Draft saves only: drop the attachment already stored with the draft. */
+  removeDraftDocument?: boolean;
 };
 
 export const MIN_DOCUMENT_PHOTOS = 1;

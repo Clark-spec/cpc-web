@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { CalendarOff, Loader2, Send } from "lucide-react";
-import { Modal } from "@/components/ui/modal";
+import { CalendarOff, Send } from "lucide-react";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
+import { useActionStatus } from "@/components/ui/action-button";
+import { showError } from "@/lib/feedback";
 import { OfficeSignatureCard } from "@/components/features/student/clearance/OfficeSignatureCard";
 import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "@/components/features/student/clearance/ClearanceContext";
 
@@ -8,19 +10,24 @@ import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "@/components/features/st
 export function OfficeSignatureGrid() {
   const { offices, requestAll, periodOpen } = useClearance();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const requestAllAction = useActionStatus(700);
 
   const notRequested = offices.filter((office) => office.status === "not_requested");
   const signed = offices.filter((office) => office.status === "signed").length;
 
   async function handleRequestAll() {
-    if (busy || notRequested.length === 0) return;
-    setBusy(true);
+    if (requestAllAction.status === "loading" || notRequested.length === 0) return;
+    requestAllAction.start();
     try {
       await requestAll(notRequested.map((office) => office.office));
-      setConfirmOpen(false);
-    } finally {
-      setBusy(false);
+      requestAllAction.succeed();
+      window.setTimeout(() => setConfirmOpen(false), 650);
+    } catch {
+      requestAllAction.fail();
+      showError(
+        "Could not send requests",
+        "Nothing was changed. Please try again in a moment.",
+      );
     }
   }
 
@@ -65,58 +72,38 @@ export function OfficeSignatureGrid() {
         ))}
       </div>
 
-      <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} labelledBy="request-all-title">
-        <div className="p-5 sm:p-6">
-          <h2
-            id="request-all-title"
-            className="pr-8 font-poppins text-lg font-semibold text-cpc-navy-text"
-          >
-            Request all signatures?
-          </h2>
-          <p className="mt-2 font-poppins text-sm leading-relaxed text-cpc-heading-soft">
-            This sends a signature request to the{" "}
-            <span className="font-semibold text-cpc-navy-text">
-              {notRequested.length} {notRequested.length === 1 ? "office" : "offices"}
-            </span>{" "}
-            that {notRequested.length === 1 ? "has" : "have"} not been requested yet.
-          </p>
-
-          <ul className="mt-3 flex flex-wrap gap-1.5">
-            {notRequested.map((office) => (
-              <li
-                key={office.office}
-                className="rounded-full border border-cpc-tile-border bg-cpc-section-light px-2.5 py-1 font-poppins text-[11px] font-medium text-cpc-label"
-              >
-                {office.label}
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={() => setConfirmOpen(false)}
-              disabled={busy}
-              className="cpc-btn cpc-btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleRequestAll}
-              disabled={busy || notRequested.length === 0}
-              className="cpc-btn cpc-btn-primary"
-            >
-              {busy ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              ) : (
-                <Send className="h-4 w-4" aria-hidden />
-              )}
-              {busy ? "Sending…" : "Send Requests"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleRequestAll}
+        title="Request all signatures?"
+        confirmLabel="Send Requests"
+        loadingLabel="Sending…"
+        successLabel="Sent"
+        confirmStatus={requestAllAction.status}
+        id="request-all-title"
+        description={
+          <>
+            <p>
+              This sends a signature request to the{" "}
+              <span className="font-semibold text-cpc-navy-text">
+                {notRequested.length} {notRequested.length === 1 ? "office" : "offices"}
+              </span>{" "}
+              that {notRequested.length === 1 ? "has" : "have"} not been requested yet.
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-1.5">
+              {notRequested.map((office) => (
+                <li
+                  key={office.office}
+                  className="rounded-full border border-cpc-tile-border bg-cpc-section-light px-2.5 py-1 font-poppins text-[11px] font-medium text-cpc-label"
+                >
+                  {office.label}
+                </li>
+              ))}
+            </ul>
+          </>
+        }
+      />
     </section>
   );
 }

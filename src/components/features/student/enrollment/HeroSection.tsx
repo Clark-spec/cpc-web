@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import { Badge } from "@/components/ui/badge";
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export function HeroSection() {
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
             <span>Enrollment for 1st Semester, A.Y. 2026-2027 is now open</span>
-            <span className="enroll-status-badge">Open</span>
+            <Badge tone="success" size="sm">Open</Badge>
           </div>
         </div>
 

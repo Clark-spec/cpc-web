@@ -1,47 +1,53 @@
-import { LoaderCircle, Save, X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { ActionButton, type ActionStatus } from "@/components/ui/action-button";
 
 type EditActionBarProps = {
   /** id of the <form> the Save button submits. */
   formId: string;
   saving: boolean;
   canSave: boolean;
+  /** Optional animated state; falls back to `saving`. */
+  status?: ActionStatus;
   onCancel: () => void;
   className?: string;
 };
 
 /** Save / Cancel controls, reused inside the hero and in the mobile sticky bar. */
-export function EditActionBar({ formId, saving, canSave, onCancel, className }: EditActionBarProps) {
+export function EditActionBar({
+  formId,
+  saving,
+  canSave,
+  status,
+  onCancel,
+  className,
+}: EditActionBarProps) {
+  const saveStatus: ActionStatus = status ?? (saving ? "loading" : "idle");
+
   return (
     <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:items-center", className)}>
       <button
         type="button"
         onClick={onCancel}
-        disabled={saving}
+        disabled={saving || saveStatus === "loading" || saveStatus === "success"}
         className="cpc-btn cpc-btn-secondary"
       >
         <X className="h-4 w-4" aria-hidden />
         Cancel
       </button>
 
-      <button
+      <ActionButton
         type="submit"
         form={formId}
-        disabled={!canSave || saving}
-        className="cpc-btn cpc-btn-primary"
+        status={saveStatus}
+        loadingLabel="Saving…"
+        successLabel="Saved"
+        errorLabel="Not saved"
+        disabled={!canSave}
       >
-        {saving ? (
-          <>
-            <LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />
-            Saving…
-          </>
-        ) : (
-          <>
-            <Save className="h-4 w-4" aria-hidden />
-            Save Changes
-          </>
-        )}
-      </button>
+        <Save className="h-4 w-4" aria-hidden />
+        Save Changes
+      </ActionButton>
     </div>
   );
 }

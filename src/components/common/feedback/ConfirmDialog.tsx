@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { ActionButton, type ActionStatus } from "@/components/ui/action-button";
 import { cn } from "@/lib/cn";
 
 type ConfirmDialogProps = {
@@ -13,6 +14,10 @@ type ConfirmDialogProps = {
   cancelLabel?: string;
   danger?: boolean;
   busy?: boolean;
+  /** Drives the confirm button's idle → loading → success/error animation. */
+  confirmStatus?: ActionStatus;
+  loadingLabel?: string;
+  successLabel?: string;
   /** id used by the dialog's aria-labelledby. */
   id?: string;
 };
@@ -28,8 +33,14 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   danger = false,
   busy = false,
+  confirmStatus,
+  loadingLabel = "Working…",
+  successLabel = "Done",
   id = "admin-confirm-title",
 }: ConfirmDialogProps) {
+  const status: ActionStatus = confirmStatus ?? (busy ? "loading" : "idle");
+  const locked = status === "loading" || status === "success";
+
   return (
     <Modal open={open} onClose={onClose} labelledBy={id} className="sm:max-w-md">
       <div className="p-6">
@@ -57,25 +68,26 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onClose}
-            disabled={busy}
+            disabled={locked}
             className="cpc-btn cpc-btn-secondary cpc-btn-sm"
           >
             {cancelLabel}
           </button>
-          <button
-            type="button"
+          <ActionButton
+            status={status}
             onClick={onConfirm}
             disabled={busy}
+            loadingLabel={loadingLabel}
+            successLabel={successLabel}
+            errorLabel="Try again"
             className={cn(
-              "cpc-btn cpc-btn-sm",
-              danger
-                ? "bg-rose-600 text-white hover:bg-rose-700 focus-visible:outline-rose-600"
-                : "cpc-btn-primary",
+              "cpc-btn-sm",
+              danger &&
+                "bg-rose-600! text-white! shadow-[0_8px_20px_rgba(225,29,72,0.22)] hover:bg-rose-700! focus-visible:outline-rose-500",
             )}
           >
-            {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             {confirmLabel}
-          </button>
+          </ActionButton>
         </div>
       </div>
     </Modal>

@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useClearance } from "@/components/features/student/clearance/ClearanceContext";
+import { showError } from "@/lib/feedback";
 import { officeSignerNames } from "@/services/clearanceStudent/mock";
 import type { OfficeId } from "@/types/clearance";
 
@@ -37,6 +38,8 @@ export function DemoStaffPanel() {
     setBusyOffice(officeId);
     try {
       await demoApprove(officeId);
+    } catch {
+      showError("Could not sign", "The demo signature was not saved. Please try again.");
     } finally {
       setBusyOffice(null);
     }
@@ -49,6 +52,8 @@ export function DemoStaffPanel() {
       await demoReject(officeId, remarks);
       setRejecting(null);
       setRemarks("");
+    } catch {
+      showError("Could not send remarks", "Your remarks were not saved. Please try again.");
     } finally {
       setBusyOffice(null);
     }
@@ -58,6 +63,8 @@ export function DemoStaffPanel() {
     setResetting(true);
     try {
       await resetDemo();
+    } catch {
+      showError("Could not reset", "The demo data was not reset. Please try again.");
     } finally {
       setResetting(false);
     }

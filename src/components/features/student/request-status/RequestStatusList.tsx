@@ -24,6 +24,8 @@ type RequestStatusListProps = {
   onClearFilters: () => void;
   onRetry: () => void;
   onView: (id: RequestId) => void;
+  /** Row that just changed over SSE; flashes briefly. */
+  highlightId?: string | null;
 };
 
 const CONTROL_CLASSES =
@@ -43,6 +45,7 @@ export function RequestStatusList({
   onClearFilters,
   onRetry,
   onView,
+  highlightId,
 }: RequestStatusListProps) {
   return (
     <section className="sr-card p-5 sm:p-6" aria-labelledby="my-requests-title">
@@ -190,7 +193,10 @@ export function RequestStatusList({
             {filteredRequests.map((request) => (
               <li
                 key={request.id}
-                className="rounded-lg border border-sr-border bg-white px-3.5 py-3 transition-colors hover:border-[#C3D4EF]"
+                className={cn(
+                  "rounded-lg border border-sr-border bg-white px-3.5 py-3 transition-colors hover:border-[#C3D4EF]",
+                  highlightId === request.id && "profile-highlight",
+                )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -248,7 +254,10 @@ export function RequestStatusList({
                 {filteredRequests.map((request) => (
                   <tr
                     key={request.id}
-                    className="border-t border-sr-border bg-white transition-colors hover:bg-[#FAFCFF]"
+                    className={cn(
+                      "border-t border-sr-border bg-white transition-colors hover:bg-[#FAFCFF]",
+                      highlightId === request.id && "profile-highlight",
+                    )}
                   >
                     <td className="px-4 py-3 font-poppins text-[12px] font-semibold whitespace-nowrap text-sr-text">
                       {request.referenceNumber}

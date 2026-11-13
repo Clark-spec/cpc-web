@@ -277,9 +277,11 @@ export async function saveDraft(
   await simulateUpload(onProgress);
 
   const existing = getDraftState();
-  const document = values.documents[0]
-    ? documentFromFile(values.documents[0])
-    : (existing?.document ?? null);
+  const document = values.removeDraftDocument
+    ? null
+    : values.documents[0]
+      ? documentFromFile(values.documents[0])
+      : (existing?.document ?? null);
 
   const draft: ServiceRequestDraft = {
     serviceId: values.serviceId,

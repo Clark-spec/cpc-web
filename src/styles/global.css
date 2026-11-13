@@ -99,6 +99,32 @@
   --color-ac-event-soft: #F4EDFD;
   --color-ac-activity-soft: #EAF1FD;
   --color-ac-holiday-soft: #F0F2F6;
+
+  /* Status badge palette: tinted fill, matching border, AA-contrast text. */
+  --color-cpc-badge-success-bg: #E3F7EE;
+  --color-cpc-badge-success-border: #B7E3CF;
+  --color-cpc-badge-success-text: #146B44;
+  --color-cpc-badge-success-dot: #1F9D63;
+
+  --color-cpc-badge-warning-bg: #FEF4E2;
+  --color-cpc-badge-warning-border: #F0D5A2;
+  --color-cpc-badge-warning-text: #94631A;
+  --color-cpc-badge-warning-dot: #E09A2D;
+
+  --color-cpc-badge-info-bg: #E8F1FF;
+  --color-cpc-badge-info-border: #C3D7F7;
+  --color-cpc-badge-info-text: #2F5FD0;
+  --color-cpc-badge-info-dot: #3F70E3;
+
+  --color-cpc-badge-danger-bg: #FDECEC;
+  --color-cpc-badge-danger-border: #F3C6C6;
+  --color-cpc-badge-danger-text: #B92B2B;
+  --color-cpc-badge-danger-dot: #D94848;
+
+  --color-cpc-badge-neutral-bg: #F3F5F9;
+  --color-cpc-badge-neutral-border: #E1E6EF;
+  --color-cpc-badge-neutral-text: #5A6479;
+  --color-cpc-badge-neutral-dot: #7C879E;
 }
 
 body {
@@ -231,21 +257,6 @@ body {
   font-family: var(--font-plus-jakarta);
   font-size: 0.875rem;
   color: var(--color-enroll-text);
-}
-
-.enroll-status-badge {
-  background: var(--color-enroll-success);
-  color: white;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
-  animation: enroll-pulse 2s ease-in-out infinite;
-}
-
-@keyframes enroll-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
 }
 
 .enroll-card {
@@ -1211,4 +1222,257 @@ body {
 
 .cpc-btn-block {
   width: 100%;
+}
+
+/* ── Shared feedback animations (toasts, modals, action buttons) ─────────── */
+@keyframes cpcToastIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.98);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(2px) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cpcToastOut {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+}
+
+@keyframes cpcToastProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.cpc-toast {
+  animation: cpcToastIn 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cpc-toast-leaving {
+  animation: cpcToastOut 200ms ease-in forwards;
+}
+
+.cpc-toast-progress {
+  animation-name: cpcToastProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-duration: 4600ms;
+}
+
+@keyframes cpcModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cpcBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cpcCheckDraw {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cpcRingPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cpcShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes cpcPulseSoft {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(183, 121, 31, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(183, 121, 31, 0.14);
+  }
+}
+
+@keyframes cpcSparkle {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.6) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(1) rotate(45deg);
+  }
+}
+
+.cpc-modal-card {
+  animation: cpcModalIn 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cpc-modal-backdrop {
+  animation: cpcBackdropIn 160ms ease-out;
+}
+
+.cpc-check-draw {
+  stroke-dasharray: 48;
+  animation: cpcCheckDraw 420ms 120ms ease-out forwards;
+}
+
+.cpc-check-ring {
+  animation: cpcRingPop 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cpc-shake {
+  animation: cpcShake 360ms ease-in-out;
+}
+
+.cpc-pulse-soft {
+  animation: cpcPulseSoft 1600ms ease-in-out infinite;
+}
+
+.cpc-sparkle {
+  animation: cpcSparkle 900ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cpc-toast,
+  .cpc-toast-leaving,
+  .cpc-modal-card,
+  .cpc-modal-backdrop,
+  .cpc-check-draw,
+  .cpc-check-ring,
+  .cpc-shake,
+  .cpc-pulse-soft,
+  .cpc-sparkle {
+    animation: none !important;
+  }
+
+  .cpc-toast-progress {
+    display: none;
+  }
+}
+
+@keyframes cpcModalOut {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+@keyframes cpcBackdropOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.cpc-modal-card-leaving {
+  animation: cpcModalOut 170ms ease-in forwards;
+}
+
+.cpc-modal-backdrop-leaving {
+  animation: cpcBackdropOut 170ms ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cpc-modal-card-leaving,
+  .cpc-modal-backdrop-leaving {
+    animation-duration: 1ms !important;
+  }
+}
+
+/* ── Action buttons: idle lift, press, success/error states ──────────────── */
+.cpc-action-btn {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 140ms ease;
+}
+
+.cpc-action-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(-1px);
+}
+
+.cpc-action-btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+
+.cpc-action-btn[data-status="loading"] {
+  cursor: progress;
+}
+
+.cpc-action-btn[data-status="success"],
+.cpc-action-btn[data-status="success"]:hover:not(:disabled),
+.cpc-action-btn[data-status="success"]:active:not(:disabled) {
+  background: #1e8a57 !important;
+  border-color: #1e8a57 !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(30, 138, 87, 0.24) !important;
+  transform: none;
+}
+
+.cpc-action-btn[data-status="error"],
+.cpc-action-btn[data-status="error"]:hover:not(:disabled),
+.cpc-action-btn[data-status="error"]:active:not(:disabled) {
+  background: #c53030 !important;
+  border-color: #c53030 !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(197, 48, 48, 0.22) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cpc-action-btn:hover:not(:disabled),
+  .cpc-action-btn:active:not(:disabled) {
+    transform: none;
+  }
 }

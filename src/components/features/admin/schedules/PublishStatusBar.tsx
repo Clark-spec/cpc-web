@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { History, RotateCcw, UploadCloud } from "lucide-react";
+import { RotateCcw, UploadCloud } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { cn } from "@/lib/cn";
@@ -67,7 +67,6 @@ export function PublishStatusBar() {
               </p>
               {dirtyCount === 0 ? (
                 <Badge tone="success" className="shadow-xs">
-                  <History className="h-3 w-3 shrink-0" aria-hidden />
                   Live synced with v{published.version}
                 </Badge>
               ) : (

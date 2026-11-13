@@ -1,9 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { LoaderCircle, Paperclip, Send } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { Paperclip, Send } from "lucide-react";
+import { showError, showSuccess } from "@/lib/feedback";
 import { useNotifications } from "@/components/context/NotificationContext";
 import { useProfile } from "@/components/features/student/profile/ProfileContext";
 import { Modal } from "@/components/ui/modal";
+import { ActionButton, useActionStatus } from "@/components/ui/action-button";
 
 const REASON_LIMIT = 200;
 
@@ -20,21 +21,20 @@ type RequestCorrectionModalProps = {
  */
 export function RequestCorrectionModal({ open, onClose, fieldLabel }: RequestCorrectionModalProps) {
   const { requestCorrection } = useProfile();
-  const { toast } = useToast();
   const { notify } = useNotifications();
 
   const [correctValue, setCorrectValue] = useState("");
   const [reason, setReason] = useState("");
   const [attachmentName, setAttachmentName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
+  const sendAction = useActionStatus(800);
 
   function resetAndClose() {
     setCorrectValue("");
     setReason("");
     setAttachmentName("");
     setError(null);
-    setSending(false);
+    sendAction.reset();
     onClose();
   }
 
@@ -58,7 +58,7 @@ export function RequestCorrectionModal({ open, onClose, fieldLabel }: RequestCor
     }
 
     setError(null);
-    setSending(true);
+    sendAction.start();
     try {
       await requestCorrection({
         field: fieldLabel,
@@ -66,20 +66,25 @@ export function RequestCorrectionModal({ open, onClose, fieldLabel }: RequestCor
         reason: reason.trim(),
         attachmentName: attachmentName || undefined,
       });
-      toast("Correction request sent to the Registrar", "success");
+      sendAction.succeed();
+      showSuccess(
+        "Correction request saved",
+        `Your request for ${fieldLabel} was recorded for the Registrar's review.`,
+      );
       notify({
         message: "Correction request sent to the Registrar",
         type: "info",
         silent: true,
       });
-      resetAndClose();
+      window.setTimeout(resetAndClose, 650);
     } catch (submitError) {
-      setError(
+      sendAction.fail();
+      const message =
         submitError instanceof Error
           ? submitError.message
-          : "We couldn't send your request. Please try again.",
-      );
-      setSending(false);
+          : "We couldn't send your request. Please try again.";
+      setError(message);
+      showError("Could not send request", message);
     }
   }
 
@@ -169,28 +174,21 @@ export function RequestCorrectionModal({ open, onClose, fieldLabel }: RequestCor
           <button
             type="button"
             onClick={resetAndClose}
-            disabled={sending}
+            disabled={sendAction.status === "loading"}
             className="cpc-btn cpc-btn-secondary"
           >
             Cancel
           </button>
-          <button
+          <ActionButton
             type="submit"
-            disabled={sending}
-            className="cpc-btn cpc-btn-primary"
+            status={sendAction.status}
+            loadingLabel="Sending…"
+            successLabel="Sent"
+            errorLabel="Try again"
           >
-            {sending ? (
-              <>
-                <LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />
-                Sending…
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4" aria-hidden />
-                Send request
-              </>
-            )}
-          </button>
+            <Send className="h-4 w-4" aria-hidden />
+            Send request
+          </ActionButton>
         </div>
       </form>
     </Modal>

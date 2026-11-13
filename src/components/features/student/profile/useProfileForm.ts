@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/components/ui/toast";
+import { useActionStatus } from "@/components/ui/action-button";
+import { showApiError, showSuccess } from "@/lib/feedback";
 import { useNotifications } from "@/components/context/NotificationContext";
 import { useProfile } from "@/components/features/student/profile/ProfileContext";
 import { mockProfile } from "@/components/features/student/profile/mockProfile";
@@ -63,9 +64,9 @@ function toFormValues(profile: StudentProfile): ProfileFormValues {
  */
 export function useProfileForm() {
   const { profile, isEditing, beginEdit, endEdit, save, highlight } = useProfile();
-  const { toast } = useToast();
   const { notify } = useNotifications();
   const [saving, setSaving] = useState(false);
+  const saveAction = useActionStatus(1200);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [announcement, setAnnouncement] = useState("");
 
@@ -149,13 +150,19 @@ export function useProfileForm() {
   const submit = handleSubmit(
     async (values) => {
       setSaving(true);
+      saveAction.start();
       try {
         const result = await save(values);
         reset(values);
-        endEdit();
         highlight(result.changed);
 
-        toast("Profile updated successfully", "success");
+        saveAction.succeed();
+        showSuccess(
+          "Profile updated",
+          result.changed.length > 0
+            ? `Saved ${result.changed.map((field) => FIELD_LABELS[field]).join(", ")}.`
+            : "Your profile details are up to date.",
+        );
         notify({
           message:
             result.changed.length > 0
@@ -168,13 +175,15 @@ export function useProfileForm() {
         });
 
         setAnnouncement("Profile updated successfully.");
-        focusEditButton();
+        // Let the Save button show its check before the form closes.
+        window.setTimeout(() => {
+          endEdit();
+          focusEditButton();
+        }, 700);
       } catch (saveError) {
         // Keep edit mode open and preserve every input value.
-        toast(
-          saveError instanceof Error ? saveError.message : "We couldn't save your changes.",
-          "error",
-        );
+        saveAction.fail();
+        showApiError(saveError, "Could not save your profile");
         setAnnouncement("Your changes could not be saved. Please try again.");
         focusField("phone");
       } finally {
@@ -209,6 +218,7 @@ export function useProfileForm() {
     isDirty,
     canSave: isDirty && isValid && !saving,
     saving,
+    saveStatus: saveAction.status,
     confirmOpen,
     setConfirmOpen,
     startEditing,

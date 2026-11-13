@@ -9,7 +9,6 @@ import {
   GraduationCap,
   ShieldCheck,
   Users,
-  XCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import cpcLogo from "@/assets/cpc-logo.jpg";
@@ -123,23 +122,19 @@ function FormOfficeSignatureSlot({
 
         <div className="shrink-0">
           {isSigned ? (
-            <Badge tone="success" className="gap-1 px-2 py-0.5 text-[9.5px] shadow-2xs">
-              <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden />
+            <Badge tone="success" size="sm" className="shadow-2xs">
               CLEARED
             </Badge>
           ) : isRequested ? (
-            <Badge tone="warning" className="gap-1 px-2 py-0.5 text-[9.5px] shadow-2xs">
-              <Clock3 className="h-3 w-3 shrink-0 animate-pulse" aria-hidden />
+            <Badge tone="warning" size="sm" pulse className="shadow-2xs">
               AWAITING
             </Badge>
           ) : isRejected ? (
-            <Badge tone="danger" className="gap-1 px-2 py-0.5 text-[9.5px] shadow-2xs">
-              <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
+            <Badge tone="danger" size="sm" className="shadow-2xs">
               ACTION REQ.
             </Badge>
           ) : (
-            <Badge tone="neutral" className="gap-1 px-2 py-0.5 text-[9.5px] shadow-2xs">
-              <XCircle className="h-3 w-3 shrink-0" aria-hidden />
+            <Badge tone="neutral" size="sm" className="shadow-2xs">
               NOT SENT
             </Badge>
           )}
@@ -324,16 +319,13 @@ export function ClearanceForm() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "rounded-full px-3 py-1 font-poppins text-xs font-semibold shadow-2xs",
-                isCleared
-                  ? "border border-emerald-300 bg-emerald-100 text-emerald-800"
-                  : "border border-cpc-tile-border/80 bg-cpc-section-light text-cpc-navy-text",
-              )}
+            <Badge
+              tone={isCleared ? "success" : "neutral"}
+              dot={false}
+              className="shadow-2xs"
             >
               {signedCount} of {offices.length} Endorsed
-            </span>
+            </Badge>
           </div>
         </div>
 

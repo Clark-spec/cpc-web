@@ -1,4 +1,5 @@
 import { CalendarRange, Layers3, RotateCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   ACADEMIC_YEARS,
   SEMESTERS,
@@ -49,10 +50,9 @@ export function AcademicPeriodBar({
               >
                 Academic Period
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-poppins text-[10px] font-bold text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+              <Badge tone="success" size="sm">
                 Active A.Y.
-              </span>
+              </Badge>
             </div>
           </div>
 

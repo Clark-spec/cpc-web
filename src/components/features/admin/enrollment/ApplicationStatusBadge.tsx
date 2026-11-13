@@ -1,13 +1,4 @@
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock3,
-  Eye,
-  XCircle,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Badge, type BadgeTone } from "@/components/ui/badge";
-import { cn } from "@/lib/cn";
+import { Badge, type BadgeSize, type BadgeTone } from "@/components/ui/badge";
 import {
   ENROLLMENT_STATUS_LABELS,
   type EnrollmentApplicationStatus,
@@ -15,29 +6,29 @@ import {
 
 const CONFIG: Record<
   EnrollmentApplicationStatus,
-  { tone: BadgeTone; icon: LucideIcon }
+  { tone: BadgeTone; pulse?: boolean }
 > = {
-  pending: { tone: "info", icon: Clock3 },
-  "for-review": { tone: "warning", icon: Eye },
-  approved: { tone: "success", icon: CheckCircle2 },
-  "needs-requirements": { tone: "danger", icon: AlertCircle },
-  rejected: { tone: "neutral", icon: XCircle },
+  pending: { tone: "warning", pulse: true },
+  "for-review": { tone: "info", pulse: true },
+  approved: { tone: "success" },
+  "needs-requirements": { tone: "warning" },
+  rejected: { tone: "danger" },
 };
 
-/** Enrollment-specific status pill: icon plus label, never colour alone. */
+/** Enrollment-specific status pill: dot plus label, never colour alone. */
 export function ApplicationStatusBadge({
   status,
+  size,
   className,
 }: {
   status: EnrollmentApplicationStatus;
+  size?: BadgeSize;
   className?: string;
 }) {
   const config = CONFIG[status];
-  const Icon = config.icon;
 
   return (
-    <Badge tone={config.tone} className={cn("gap-1 px-2 py-0.5 text-[10px]", className)}>
-      <Icon className="h-3 w-3 shrink-0" aria-hidden />
+    <Badge tone={config.tone} size={size} pulse={config.pulse} className={className}>
       {ENROLLMENT_STATUS_LABELS[status]}
     </Badge>
   );

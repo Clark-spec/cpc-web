@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/cn";
 import { DAY_END_MIN, formatTimeRange } from "@/lib/scheduleTime";
@@ -485,11 +484,13 @@ export function EntryFormModal({
           />
 
           {loadNotice && (
-            <Badge tone="warning">
-              <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
-              {loadNotice.teacher} reaches {loadNotice.projected} units, above their{" "}
-              {loadNotice.ceiling}-unit ceiling. Saving is allowed; the load card will show it.
-            </Badge>
+            <div className="flex items-start gap-2 rounded-xl border border-cpc-badge-warning-border bg-cpc-badge-warning-bg px-3 py-2 font-poppins text-xs leading-relaxed font-medium text-cpc-badge-warning-text">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+              <p>
+                {loadNotice.teacher} reaches {loadNotice.projected} units, above their{" "}
+                {loadNotice.ceiling}-unit ceiling. Saving is allowed; the load card will show it.
+              </p>
+            </div>
           )}
         </div>
 

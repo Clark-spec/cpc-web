@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useSearchParams } from "react-router";
 import { cn } from "@/lib/cn";
 import cpcBg from "@/assets/cpc-bg2.png";
 import { PageHeroBanner } from "@/components/common/display/PageHeroBanner";
@@ -13,8 +14,24 @@ import type { RequestId } from "@/services/serviceRequests/types";
 
 export default function RequestStatusPage() {
   const status = useRequestStatus();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewRequestId, setViewRequestId] = useState<RequestId | null>(null);
   const busy = status.loading || status.refreshing;
+  const linkedRequestId = searchParams.get("request");
+
+  // Notification clicks deep-link here with ?request=<id>.
+  useEffect(() => {
+    if (linkedRequestId) setViewRequestId(linkedRequestId);
+  }, [linkedRequestId]);
+
+  function closeDetails() {
+    setViewRequestId(null);
+    if (searchParams.has("request")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("request");
+      setSearchParams(next, { replace: true });
+    }
+  }
 
   return (
     <div className="w-full overflow-x-clip bg-white font-poppins">
@@ -81,6 +98,7 @@ export default function RequestStatusPage() {
               onClearFilters={status.clearFilters}
               onRetry={status.reload}
               onView={(id) => setViewRequestId(id)}
+              highlightId={status.highlightId}
             />
           </div>
         </div>
@@ -89,7 +107,11 @@ export default function RequestStatusPage() {
       <PortalFooter />
 
       {viewRequestId !== null && (
-        <RequestDetailsModal requestId={viewRequestId} onClose={() => setViewRequestId(null)} />
+        <RequestDetailsModal
+          requestId={viewRequestId}
+          liveUpdate={status.liveUpdate}
+          onClose={closeDetails}
+        />
       )}
     </div>
   );

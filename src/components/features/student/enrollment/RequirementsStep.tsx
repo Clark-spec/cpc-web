@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Camera, ImagePlus, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { showError, showInfo, showSuccess } from "@/lib/feedback";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
 import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
 import { validateRequirementFile } from "@/components/features/student/enrollment/validation";
@@ -23,7 +24,15 @@ export function RequirementsStep() {
       return next;
     });
 
-    if (!error) updateRequirementFile(requirement.id, file);
+    if (!error) {
+      updateRequirementFile(requirement.id, file);
+      showSuccess(
+        "Document added",
+        `${requirement.name} · ${file.name} is saved on this device.`,
+      );
+    } else {
+      showError("File not accepted", error);
+    }
   };
 
   const handleRemoveFile = (requirement: RequirementDocument) => {
@@ -47,6 +56,8 @@ export function RequirementsStep() {
       delete next[requirement.id];
       return next;
     });
+
+    showInfo("Document removed", `${requirement.name} is back to pending.`);
   };
 
   const handleDrag = (event: React.DragEvent, id: string, active: boolean) => {

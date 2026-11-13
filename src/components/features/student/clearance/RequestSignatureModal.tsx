@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { ActionButton, useActionStatus } from "@/components/ui/action-button";
+import { showError } from "@/lib/feedback";
 import { officeSignerNames } from "@/services/clearanceStudent/mock";
 import type { OfficeSignature } from "@/types/clearance";
 
@@ -25,20 +27,25 @@ export function RequestSignatureModal({
   onSend,
 }: RequestSignatureModalProps) {
   const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
+  const sendAction = useActionStatus(600);
 
   // The card mounts this dialog only while it is open, so state starts clean.
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (sendAction.status === "loading") return;
 
-    setBusy(true);
+    sendAction.start();
     try {
       await onSend(note);
+      sendAction.succeed();
       onClose();
-    } finally {
-      setBusy(false);
+    } catch {
+      sendAction.fail();
+      showError(
+        "Could not send request",
+        "Your note is still here. Please try again in a moment.",
+      );
     }
   }
 
@@ -92,23 +99,21 @@ export function RequestSignatureModal({
           <button
             type="button"
             onClick={onClose}
-            disabled={busy}
+            disabled={sendAction.status === "loading"}
             className="cpc-btn cpc-btn-secondary"
           >
             Cancel
           </button>
-          <button
+          <ActionButton
             type="submit"
-            disabled={busy}
-            className="cpc-btn cpc-btn-primary"
+            status={sendAction.status}
+            loadingLabel="Sending…"
+            successLabel="Sent"
+            errorLabel="Try again"
           >
-            {busy ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Send className="h-4 w-4" aria-hidden />
-            )}
-            {busy ? "Sending…" : "Send Request"}
-          </button>
+            <Send className="h-4 w-4" aria-hidden />
+            Send Request
+          </ActionButton>
         </div>
       </form>
     </Modal>

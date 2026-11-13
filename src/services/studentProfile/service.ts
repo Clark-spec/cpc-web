@@ -68,23 +68,33 @@ export async function getProfile(): Promise<StudentProfile> {
 export async function updateProfile(patch: ProfileUpdateInput): Promise<StudentProfile> {
   const csrf = await getCsrfToken();
 
-  // Normalise phone numbers before sending.
-  const body: ProfileUpdateInput = {
-    ...patch,
-    phone: patch.phone !== undefined ? normalizePhone(patch.phone) : undefined,
-    alternateContact:
-      patch.alternateContact !== undefined
-        ? patch.alternateContact
-          ? normalizePhone(patch.alternateContact)
-          : ""
-        : undefined,
-    guardianContact:
-      patch.guardianContact !== undefined
-        ? patch.guardianContact
-          ? normalizePhone(patch.guardianContact)
-          : ""
-        : undefined,
+  // The form groups street/barangay/city/province under `address`; the API
+  // stores them as flat columns.
+  const { address, ...rest } = patch;
+  const body: Record<string, unknown> = {
+    ...rest,
+    ...(address
+      ? {
+          street: address.street,
+          barangay: address.barangay,
+          city: address.city,
+          province: address.province,
+        }
+      : {}),
   };
+
+  // Normalise phone numbers before sending.
+  if (patch.phone !== undefined) body.phone = normalizePhone(patch.phone);
+  if (patch.alternateContact !== undefined) {
+    body.alternateContact = patch.alternateContact
+      ? normalizePhone(patch.alternateContact)
+      : "";
+  }
+  if (patch.guardianContact !== undefined) {
+    body.guardianContact = patch.guardianContact
+      ? normalizePhone(patch.guardianContact)
+      : "";
+  }
 
   const response = await apiClient.patch("/students/v1/profile", body, {
     headers: { "x-csrf-token": csrf },

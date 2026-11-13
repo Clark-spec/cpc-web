@@ -1,6 +1,6 @@
 import type { ProfileFormState } from "@/components/features/student/profile/useProfileForm";
 import type { useUnsavedChangesGuard } from "@/components/features/student/profile/useUnsavedChangesGuard";
-import { ConfirmDialog } from "@/components/features/student/profile/ConfirmDialog";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { RequestCorrectionModal } from "@/components/features/student/profile/RequestCorrectionModal";
 
 type ProfileDialogsProps = {
@@ -26,6 +26,10 @@ export function ProfileDialogs({
         onConfirm={form.confirmDiscard}
         title="Discard your changes?"
         description="Your edits haven't been saved yet. Discard them and return to view mode?"
+        confirmLabel="Discard changes"
+        cancelLabel="Keep editing"
+        danger
+        id="profile-confirm-title"
       />
 
       {/* In-app navigation guard (React Router blocker). */}
@@ -37,6 +41,8 @@ export function ProfileDialogs({
         description="You have unsaved profile changes. If you leave this page now, your edits will be lost."
         confirmLabel="Leave page"
         cancelLabel="Stay on page"
+        danger
+        id="profile-leave-title"
       />
 
       <RequestCorrectionModal

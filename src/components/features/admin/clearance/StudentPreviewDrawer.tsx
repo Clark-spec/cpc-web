@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, CheckCircle2, Clock3, Eye, X, XCircle } from "lucide-react";
+import { AlertTriangle, Eye, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format";
@@ -155,25 +155,15 @@ function PreviewOfficeCard({ office }: { office: OfficeSignature }) {
   const rejected = office.status === "rejected";
 
   const badge = signed ? (
-    <Badge tone="success">
-      <CheckCircle2 className="h-3 w-3" aria-hidden />
-      Signed
-    </Badge>
+    <Badge tone="success">Signed</Badge>
   ) : requested ? (
-    <Badge tone="warning">
-      <Clock3 className="h-3 w-3" aria-hidden />
+    <Badge tone="warning" pulse>
       Awaiting Signature
     </Badge>
   ) : rejected ? (
-    <Badge tone="danger">
-      <AlertTriangle className="h-3 w-3" aria-hidden />
-      Needs Action
-    </Badge>
+    <Badge tone="danger">Needs Action</Badge>
   ) : (
-    <Badge tone="neutral">
-      <XCircle className="h-3 w-3" aria-hidden />
-      Not Requested
-    </Badge>
+    <Badge tone="neutral">Not Requested</Badge>
   );
 
   return (

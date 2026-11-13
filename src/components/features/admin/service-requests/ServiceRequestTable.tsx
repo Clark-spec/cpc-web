@@ -1,42 +1,42 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   Eye,
   FilterX,
   ListFilter,
+  Loader2,
   Search,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
 import { EmptyState } from "@/components/common/display/EmptyState";
+import { ServiceRequestStatusBadge } from "@/components/features/admin/service-requests/ServiceRequestStatusBadge";
 import {
-  ServicePaymentBadge,
-  ServiceRequestStatusBadge,
-} from "@/components/features/admin/service-requests/ServiceRequestStatusBadge";
-import {
-  SERVICE_CATEGORY_FILTERS,
-  SERVICE_PAYMENT_LABELS,
   SERVICE_STATUS_LABELS,
   SERVICE_STATUS_ORDER,
-  type AdminServiceRequest,
+  type AdminServiceRequestFilters,
+  type AdminServiceRequestPagination,
+  type AdminServiceRequestRow,
   type AdminServiceRequestStatus,
-  type ServiceCategory,
-  type ServicePaymentStatus,
 } from "@/services/serviceRequests/admin";
-
-const PAGE_SIZE = 8;
-
-type CategoryFilter = "all" | ServiceCategory;
-type StatusFilter = "all" | AdminServiceRequestStatus;
-type PaymentFilter = "all" | ServicePaymentStatus;
+import type { ServiceOption } from "@/services/serviceRequests/types";
 
 type ServiceRequestTableProps = {
-  requests: AdminServiceRequest[];
-  onView: (request: AdminServiceRequest) => void;
-  onChangeStatus: (request: AdminServiceRequest, status: AdminServiceRequestStatus) => void;
+  requests: AdminServiceRequestRow[];
+  pagination: AdminServiceRequestPagination;
+  filters: AdminServiceRequestFilters;
+  services: ServiceOption[];
+  loading: boolean;
+  onFilterChange: <K extends keyof AdminServiceRequestFilters>(
+    key: K,
+    value: AdminServiceRequestFilters[K],
+  ) => void;
+  onResetFilters: () => void;
+  onPageChange: (page: number) => void;
+  onView: (request: AdminServiceRequestRow) => void;
+  onChangeStatus: (request: AdminServiceRequestRow, status: AdminServiceRequestStatus) => void;
   onBulkStatus: (ids: string[], status: AdminServiceRequestStatus) => void;
 };
 
@@ -84,70 +84,101 @@ function FilterSelect({
   );
 }
 
+function FilterDate({
+  id,
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  className,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  min?: string;
+  max?: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("min-w-0", className)}>
+      <label
+        htmlFor={id}
+        className="mb-1 block font-poppins text-[9px] font-bold tracking-[0.1em] text-admin-muted uppercase"
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        type="date"
+        value={value}
+        min={min}
+        max={max}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-8 w-full rounded-lg border border-white/80 bg-white/90 px-2.5 font-poppins text-[11px] font-medium text-admin-text shadow-xs outline-none transition-all hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
+      />
+    </div>
+  );
+}
+
 /**
- * Compact, filterable service-request queue. All filtering, selection and
- * paging happen in local state over the sample dataset; status changes are
- * handed back to the page so the statistics stay in sync.
+ * Server-driven service-request queue. Search, status, service and date filters
+ * run against the shared admin API; the page owns fetching so the summary cards
+ * and this table always show the same snapshot.
  */
 export function ServiceRequestTable({
   requests,
+  pagination,
+  filters,
+  services,
+  loading,
+  onFilterChange,
+  onResetFilters,
+  onPageChange,
   onView,
   onChangeStatus,
   onBulkStatus,
 }: ServiceRequestTableProps) {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<CategoryFilter>("all");
-  const [status, setStatus] = useState<StatusFilter>("all");
-  const [payment, setPayment] = useState<PaymentFilter>("all");
-  const [page, setPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // Selections belong to the current query; a filter or page change drops them.
+  const selectionKey = `${filters.page}|${filters.search}|${filters.status}|${filters.serviceId ?? "all"}|${filters.from}|${filters.to}`;
+  const [selection, setSelection] = useState<{ key: string; ids: string[] }>({
+    key: selectionKey,
+    ids: [],
+  });
+  const selectedIds = selection.key === selectionKey ? selection.ids : [];
 
-  const filtered = useMemo(() => {
-    const term = query.trim().toLowerCase();
-
-    return requests
-      .filter((request) => category === "all" || request.category === category)
-      .filter((request) => status === "all" || request.status === status)
-      .filter((request) => payment === "all" || request.paymentStatus === payment)
-      .filter((request) => {
-        if (!term) return true;
-        const haystack =
-          `${request.id} ${request.studentName} ${request.studentNumber} ${request.service} ${request.category} ${request.kioskTicket ?? ""}`.toLowerCase();
-        return haystack.includes(term);
-      })
-      .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-  }, [requests, category, status, payment, query]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, pageCount);
-  const rows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
-
-  const resetPage = () => setPage(1);
-
-  const clearFilters = () => {
-    setQuery("");
-    setCategory("all");
-    setStatus("all");
-    setPayment("all");
-    setPage(1);
+  const updateSelection = (updater: (current: string[]) => string[]) => {
+    setSelection((current) => ({
+      key: selectionKey,
+      ids: updater(current.key === selectionKey ? current.ids : []),
+    }));
   };
 
   const hasFilters =
-    query.trim().length > 0 || category !== "all" || status !== "all" || payment !== "all";
+    filters.search.trim().length > 0 ||
+    filters.status !== "all" ||
+    filters.serviceId !== null ||
+    filters.from !== "" ||
+    filters.to !== "";
 
-  const visibleIds = rows.map((request) => request.id);
+  const safePage = Math.min(filters.page, pagination.totalPages);
+  const start = pagination.total === 0 ? 0 : (safePage - 1) * pagination.pageSize + 1;
+  const end = Math.min(safePage * pagination.pageSize, pagination.total);
+
+  const visibleIds = requests.map((request) => request.id);
   const selectedOnPage = visibleIds.filter((id) => selectedIds.includes(id));
   const allOnPageSelected = visibleIds.length > 0 && selectedOnPage.length === visibleIds.length;
   const someOnPageSelected = selectedOnPage.length > 0 && !allOnPageSelected;
 
   const toggleRow = (id: string) => {
-    setSelectedIds((current) =>
+    updateSelection((current) =>
       current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id],
     );
   };
 
   const togglePage = () => {
-    setSelectedIds((current) =>
+    updateSelection((current) =>
       allOnPageSelected
         ? current.filter((id) => !visibleIds.includes(id))
         : Array.from(new Set([...current, ...visibleIds])),
@@ -190,21 +221,15 @@ export function ServiceRequestTable({
             />
             <input
               type="search"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                resetPage();
-              }}
-              placeholder="Search by Request ID, Student, or Service..."
+              value={filters.search}
+              onChange={(event) => onFilterChange("search", event.target.value)}
+              placeholder="Search reference, student, or service..."
               className="h-9 w-full rounded-xl border border-white/80 bg-white/90 pr-8 pl-8 font-poppins text-[11px] text-admin-text shadow-xs outline-none placeholder:text-admin-muted/70 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
             />
-            {query && (
+            {filters.search && (
               <button
                 type="button"
-                onClick={() => {
-                  setQuery("");
-                  resetPage();
-                }}
+                onClick={() => onFilterChange("search", "")}
                 aria-label="Clear search"
                 className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer rounded p-0.5 text-admin-muted transition-colors hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
               >
@@ -217,19 +242,18 @@ export function ServiceRequestTable({
         {/* Filter row */}
         <div className="mt-3.5 flex flex-wrap items-end gap-2.5">
           <FilterSelect
-            id="service-category-filter"
-            label="Category"
-            value={category}
-            onChange={(value) => {
-              setCategory(value as CategoryFilter);
-              resetPage();
-            }}
-            className="w-full sm:w-44"
+            id="service-type-filter"
+            label="Service Type"
+            value={filters.serviceId === null ? "all" : String(filters.serviceId)}
+            onChange={(value) =>
+              onFilterChange("serviceId", value === "all" ? null : Number(value))
+            }
+            className="w-full sm:w-48"
           >
-            <option value="all">All Categories</option>
-            {SERVICE_CATEGORY_FILTERS.map((option) => (
-              <option key={option} value={option}>
-                {option}
+            <option value="all">All Services</option>
+            {services.map((service) => (
+              <option key={service.id} value={service.id}>
+                {service.name}
               </option>
             ))}
           </FilterSelect>
@@ -237,11 +261,10 @@ export function ServiceRequestTable({
           <FilterSelect
             id="service-status-filter"
             label="Status"
-            value={status}
-            onChange={(value) => {
-              setStatus(value as StatusFilter);
-              resetPage();
-            }}
+            value={filters.status}
+            onChange={(value) =>
+              onFilterChange("status", value as AdminServiceRequestFilters["status"])
+            }
             className="w-full sm:w-40"
           >
             <option value="all">All Statuses</option>
@@ -252,28 +275,28 @@ export function ServiceRequestTable({
             ))}
           </FilterSelect>
 
-          <FilterSelect
-            id="service-payment-filter"
-            label="Fee Status"
-            value={payment}
-            onChange={(value) => {
-              setPayment(value as PaymentFilter);
-              resetPage();
-            }}
-            className="w-full sm:w-40"
-          >
-            <option value="all">All Payments</option>
-            {(Object.keys(SERVICE_PAYMENT_LABELS) as ServicePaymentStatus[]).map((option) => (
-              <option key={option} value={option}>
-                {SERVICE_PAYMENT_LABELS[option]}
-              </option>
-            ))}
-          </FilterSelect>
+          <FilterDate
+            id="service-date-from"
+            label="Filed From"
+            value={filters.from}
+            max={filters.to || undefined}
+            onChange={(value) => onFilterChange("from", value)}
+            className="w-full sm:w-36"
+          />
+
+          <FilterDate
+            id="service-date-to"
+            label="Filed To"
+            value={filters.to}
+            min={filters.from || undefined}
+            onChange={(value) => onFilterChange("to", value)}
+            className="w-full sm:w-36"
+          />
 
           {hasFilters && (
             <button
               type="button"
-              onClick={clearFilters}
+              onClick={onResetFilters}
               className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-admin-border/60 bg-white px-3 font-poppins text-[10.5px] font-semibold text-admin-muted shadow-xs transition-all hover:border-admin-secondary/40 hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
             >
               <FilterX className="h-3.5 w-3.5" aria-hidden />
@@ -283,8 +306,9 @@ export function ServiceRequestTable({
 
           {/* Results count chip */}
           <div className="ml-auto flex items-end">
-            <span className="inline-flex items-center rounded-full border border-admin-border/60 bg-admin-page/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-admin-muted">
-              {filtered.length} {filtered.length === 1 ? "result" : "results"}
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-admin-border/60 bg-admin-page/80 px-2.5 py-1 font-poppins text-[10px] font-semibold text-admin-muted">
+              {loading && <Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
+              {pagination.total} {pagination.total === 1 ? "result" : "results"}
             </span>
           </div>
         </div>
@@ -302,7 +326,7 @@ export function ServiceRequestTable({
               type="button"
               onClick={() => {
                 onBulkStatus(selectedIds, "processing");
-                setSelectedIds([]);
+                updateSelection(() => []);
               }}
               className="cursor-pointer rounded-lg border border-admin-secondary/30 bg-white px-3 py-1 font-poppins text-[10px] font-semibold text-admin-secondary shadow-xs transition-all hover:bg-admin-secondary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
             >
@@ -310,7 +334,7 @@ export function ServiceRequestTable({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedIds([])}
+              onClick={() => updateSelection(() => [])}
               className="cursor-pointer rounded-lg px-3 py-1 font-poppins text-[10px] font-semibold text-admin-muted transition-colors hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
             >
               Clear selection
@@ -320,20 +344,26 @@ export function ServiceRequestTable({
       )}
 
       {/* Table or empty */}
-      {rows.length === 0 ? (
-        <EmptyState
-          icon={Search}
-          title="No service requests match"
-          description={
-            hasFilters
-              ? "Try a different request ID, student name, service, or reset the filters."
-              : "There are no service requests in this queue right now."
-          }
-          action={
-            hasFilters ? (
-              <button
-                type="button"
-                onClick={clearFilters}
+      {requests.length === 0 ? (
+        loading ? (
+          <div className="flex items-center justify-center gap-2 px-5 py-14 font-poppins text-[11.5px] text-admin-muted">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            Loading service requests…
+          </div>
+        ) : (
+          <EmptyState
+            icon={Search}
+            title="No service requests match"
+            description={
+              hasFilters
+                ? "Try a different reference number, student name, service, or reset the filters."
+                : "There are no service requests in this queue right now."
+            }
+            action={
+              hasFilters ? (
+                <button
+                  type="button"
+                  onClick={onResetFilters}
                 className="mt-1 cursor-pointer rounded-xl border border-admin-border bg-white px-4 py-2 font-poppins text-[11px] font-semibold text-admin-secondary shadow-xs transition-all hover:bg-admin-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info"
               >
                 Reset filters
@@ -341,12 +371,13 @@ export function ServiceRequestTable({
             ) : undefined
           }
         />
+        )
       ) : (
         <>
-          <div className="relative overflow-x-auto">
+          <div className={cn("relative overflow-x-auto transition-opacity", loading && "opacity-60")}>
             <table className="w-full min-w-[1000px] border-collapse font-poppins">
               <caption className="sr-only">
-                Student service requests. {filtered.length} results.
+                Student service requests. {pagination.total} results.
               </caption>
               <thead>
                 <tr className="border-b border-admin-border/50 bg-gradient-to-r from-admin-header/80 to-admin-page/60">
@@ -363,10 +394,10 @@ export function ServiceRequestTable({
                     />
                   </th>
                   {[
-                    "Request ID",
+                    "Reference No.",
                     "Student Name & No.",
                     "Service Item",
-                    "Date & Payment",
+                    "Submitted / Updated",
                     "Status",
                     "Actions",
                   ].map((label) => (
@@ -384,7 +415,7 @@ export function ServiceRequestTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-admin-border/40">
-                {rows.map((request) => (
+                {requests.map((request) => (
                   <tr
                     key={request.id}
                     className={cn(
@@ -402,24 +433,16 @@ export function ServiceRequestTable({
                       />
                     </td>
 
-                    {/* Request ID */}
+                    {/* Reference */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className="block font-poppins text-[11.5px] font-bold text-admin-secondary">
-                        {request.id}
+                        {request.referenceNumber}
                       </span>
-                      <span className="mt-0.5 flex flex-wrap items-center gap-1">
-                        {request.overdue && (
-                          <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-1.5 py-0.5 font-poppins text-[9px] font-bold text-rose-600 ring-1 ring-rose-200/80">
-                            <AlertTriangle className="h-2.5 w-2.5" aria-hidden />
-                            Overdue
-                          </span>
-                        )}
-                        {request.kioskTicket && (
-                          <span className="rounded-full bg-violet-50 px-1.5 py-0.5 font-poppins text-[9px] font-semibold text-violet-600 ring-1 ring-violet-200/80">
-                            Ticket {request.kioskTicket}
-                          </span>
-                        )}
-                      </span>
+                      {request.copies > 1 && (
+                        <span className="mt-0.5 inline-flex rounded-full bg-admin-page px-1.5 py-0.5 font-poppins text-[9px] font-semibold text-admin-muted ring-1 ring-admin-border/60">
+                          {request.copies} copies
+                        </span>
+                      )}
                     </td>
 
                     {/* Student */}
@@ -429,14 +452,14 @@ export function ServiceRequestTable({
                           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cpc-blue-accent/20 to-cpc-navy-text/15 font-poppins text-[9.5px] font-bold text-admin-secondary"
                           aria-hidden
                         >
-                          {initials(request.studentName)}
+                          {initials(request.student.name)}
                         </span>
                         <span className="min-w-0">
                           <span className="block max-w-[160px] truncate font-poppins text-[11.5px] font-semibold text-admin-text">
-                            {request.studentName}
+                            {request.student.name || "—"}
                           </span>
                           <span className="block font-poppins text-[10px] text-admin-muted">
-                            {request.studentNumber}
+                            {request.student.studentNumber || "—"}
                           </span>
                         </span>
                       </div>
@@ -445,20 +468,23 @@ export function ServiceRequestTable({
                     {/* Service */}
                     <td className="px-4 py-3">
                       <span className="block max-w-[200px] truncate font-poppins text-[11.5px] font-semibold text-admin-text">
-                        {request.service}
+                        {request.service.name}
                       </span>
-                      <span className="block max-w-[200px] truncate font-poppins text-[10px] text-admin-muted">
-                        {request.pickupMethod}
+                      <span
+                        className="block max-w-[200px] truncate font-poppins text-[10px] text-admin-muted"
+                        title={request.purpose}
+                      >
+                        {request.purpose || "No purpose stated"}
                       </span>
                     </td>
 
-                    {/* Date & Payment */}
+                    {/* Dates */}
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="block font-poppins text-[10.5px] text-admin-muted">
+                      <span className="block font-poppins text-[10.5px] text-admin-text">
                         {formatDateTime(request.submittedAt)}
                       </span>
-                      <span className="mt-1 inline-flex">
-                        <ServicePaymentBadge status={request.paymentStatus} />
+                      <span className="block font-poppins text-[10px] text-admin-muted">
+                        Updated {formatDateTime(request.updatedAt)}
                       </span>
                     </td>
 
@@ -510,35 +536,34 @@ export function ServiceRequestTable({
             <p className="font-poppins text-[10px] text-admin-muted">
               Showing{" "}
               <span className="font-semibold text-admin-text tabular-nums">
-                {(safePage - 1) * PAGE_SIZE + 1}–
-                {Math.min(safePage * PAGE_SIZE, filtered.length)}
+                {start}–{end}
               </span>{" "}
               of{" "}
               <span className="font-semibold text-admin-text tabular-nums">
-                {filtered.length}
+                {pagination.total}
               </span>{" "}
               service requests
               <span className="mx-1.5 text-admin-border">|</span>
-              Sample data for interface review — changes stay in this browser session.
+              Shared queue — updates sync with the student portal.
             </p>
 
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => setPage(Math.max(1, safePage - 1))}
-                disabled={safePage <= 1}
+                onClick={() => onPageChange(Math.max(1, safePage - 1))}
+                disabled={safePage <= 1 || loading}
                 aria-label="Previous page"
                 className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-admin-border/60 bg-white/80 text-admin-muted shadow-xs transition-all hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
               </button>
               <span className="px-1.5 font-poppins text-[10px] font-semibold text-admin-text tabular-nums">
-                {safePage} / {pageCount}
+                {safePage} / {pagination.totalPages}
               </span>
               <button
                 type="button"
-                onClick={() => setPage(Math.min(pageCount, safePage + 1))}
-                disabled={safePage >= pageCount}
+                onClick={() => onPageChange(Math.min(pagination.totalPages, safePage + 1))}
+                disabled={safePage >= pagination.totalPages || loading}
                 aria-label="Next page"
                 className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-admin-border/60 bg-white/80 text-admin-muted shadow-xs transition-all hover:bg-admin-page hover:text-admin-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-admin-info disabled:cursor-not-allowed disabled:opacity-40"
               >

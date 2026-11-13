@@ -140,7 +140,7 @@ export function ComplaintDetailsModal({
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <div>
               <p className="font-poppins text-[10px] text-cpc-heading-soft">Category</p>
-              <Badge tone="neutral" className="mt-1">
+              <Badge tone="neutral" size="sm" dot={false} className="mt-1">
                 {row.category}
               </Badge>
             </div>

@@ -1,6 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
+import { ActionButton, useActionStatus } from "@/components/ui/action-button";
+import { showInfo, showSuccess, showSuccessModal } from "@/lib/feedback";
 import { useEnrollment } from "@/components/features/student/enrollment/useEnrollment";
+import {
+  readEnrollmentSubmission,
+  saveEnrollmentSubmission,
+} from "@/components/features/student/enrollment/submission";
 import { Stepper } from "@/components/features/student/enrollment/Stepper";
 import { PersonalInfoStep } from "@/components/features/student/enrollment/PersonalInfoStep";
 import { SubjectsStep } from "@/components/features/student/enrollment/SubjectsStep";
@@ -18,6 +24,7 @@ export function EnrollmentFlow() {
   const params = useParams();
   const stepParam = params.step || "1";
   const urlStep = useMemo(() => parseInt(stepParam, 10), [stepParam]);
+  const submitAction = useActionStatus(1500);
 
   const {
     state,
@@ -52,8 +59,43 @@ export function EnrollmentFlow() {
       const nextStep = step + 1;
       goToStep(nextStep);
       navigate(`/online-enrollment/step/${nextStep}`);
+      showSuccess(
+        `Step ${step} saved`,
+        `Your ${steps[currentStepIndex].title.toLowerCase()} answers are saved on this device.`,
+      );
     }
   };
+
+  function handleSubmitEnrollment() {
+    if (submitAction.status === "loading") return;
+
+    const existing = readEnrollmentSubmission();
+    if (existing) {
+      showInfo(
+        "Enrollment already submitted",
+        `Reference ${existing.referenceNumber} is on file. You can view its status anytime.`,
+      );
+      navigate("/online-enrollment/confirmation");
+      return;
+    }
+
+    submitAction.start();
+    const submission = saveEnrollmentSubmission();
+    submitAction.succeed();
+    showSuccessModal({
+      title: "Enrollment submitted",
+      message:
+        "Your answers and requirements are saved on this device and ready for the registrar to review.",
+      reference: submission.referenceNumber,
+      meta: "Status: Submitted · Keep your reference number",
+      primaryAction: {
+        label: "View receipt",
+        onClick: () => navigate("/online-enrollment/confirmation"),
+      },
+      secondaryLabel: "Stay here",
+      celebrate: true,
+    });
+  }
 
   const handlePrev = () => {
     if (step > 1) {
@@ -132,12 +174,15 @@ export function EnrollmentFlow() {
                   Next
                 </button>
               ) : (
-                <button
-                  onClick={() => navigate("/online-enrollment/confirmation")}
-                  className="cpc-btn cpc-btn-primary"
+                <ActionButton
+                  status={submitAction.status}
+                  loadingLabel="Submitting…"
+                  successLabel="Submitted"
+                  errorLabel="Try again"
+                  onClick={handleSubmitEnrollment}
                 >
                   Submit Enrollment
-                </button>
+                </ActionButton>
               )}
             </div>
           </div>

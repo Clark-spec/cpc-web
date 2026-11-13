@@ -13,10 +13,10 @@ import {
   RotateCcw,
   Send,
   Users,
-  XCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { showError } from "@/lib/feedback";
 import { Badge } from "@/components/ui/badge";
 import { RequestSignatureModal } from "@/components/features/student/clearance/RequestSignatureModal";
 import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "@/components/features/student/clearance/ClearanceContext";
@@ -106,29 +106,30 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     setCancelling(true);
     try {
       await cancelRequest(office.office);
+    } catch {
+      showError(
+        "Could not cancel request",
+        `${office.label} still has this request. Please try again in a moment.`,
+      );
     } finally {
       setCancelling(false);
     }
   }
 
   const badge = signed ? (
-    <Badge tone="success" className="gap-1 px-2.5 py-0.5 text-[10px] shadow-2xs">
-      <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden />
+    <Badge tone="success" size="sm" className="shadow-2xs">
       Signed
     </Badge>
   ) : requested ? (
-    <Badge tone="warning" className="gap-1 px-2.5 py-0.5 text-[10px] shadow-2xs">
-      <Clock3 className="h-3 w-3 shrink-0" aria-hidden />
+    <Badge tone="warning" size="sm" pulse className="shadow-2xs">
       Awaiting
     </Badge>
   ) : rejected ? (
-    <Badge tone="danger" className="gap-1 px-2.5 py-0.5 text-[10px] shadow-2xs">
-      <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
+    <Badge tone="danger" size="sm" className="shadow-2xs">
       Needs Action
     </Badge>
   ) : (
-    <Badge tone="neutral" className="gap-1 px-2.5 py-0.5 text-[10px] shadow-2xs">
-      <XCircle className="h-3 w-3 shrink-0" aria-hidden />
+    <Badge tone="neutral" size="sm" className="shadow-2xs">
       Not Sent
     </Badge>
   );

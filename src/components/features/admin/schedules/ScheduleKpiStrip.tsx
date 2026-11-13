@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { AlertTriangle, Building2, CalendarDays, Layers } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { StatCardSkeleton } from "@/components/common/display/Skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useCountUp } from "@/hooks/useCountUp";
 import { cn } from "@/lib/cn";
 import { ACADEMIC_YEAR, SEMESTER } from "@/services/scheduleStudent/mockSchedules";
@@ -185,13 +186,13 @@ function KpiCardButton({
           {card.alert ? <AlertTriangle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
         </span>
         {card.alert ? (
-          <span className="rounded-full bg-rose-100/90 px-2.5 py-0.5 font-poppins text-[10px] font-bold text-rose-700 uppercase tracking-wider">
+          <Badge tone="danger" size="sm" className="uppercase tracking-[0.06em]">
             Needs Action
-          </span>
+          </Badge>
         ) : (
-          <span className="rounded-full bg-cpc-section-light/80 px-2.5 py-0.5 font-poppins text-[10px] font-semibold text-cpc-heading-soft uppercase tracking-wider">
+          <Badge tone="neutral" size="sm" dot={false} className="uppercase tracking-[0.06em]">
             {card.id}
-          </span>
+          </Badge>
         )}
       </div>
 

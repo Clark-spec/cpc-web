@@ -11,6 +11,8 @@ import {
   type ServiceRequestDraft,
 } from "@/services/serviceRequests/student";
 import { StudentIdUpload } from "@/components/features/student/service-requests/StudentIdUpload";
+import { ActionButton, useActionStatus } from "@/components/ui/action-button";
+import { showError } from "@/lib/feedback";
 
 type NewRequestFormProps = {
   services: ServiceOption[];
@@ -78,6 +80,8 @@ export function NewRequestForm({
   const [savedDocument, setSavedDocument] = useState(draft?.document ?? null);
   const [errors, setErrors] = useState<FormErrors>({});
   const appliedDraft = useRef<string | null>(null);
+  const submitAction = useActionStatus();
+  const draftAction = useActionStatus(1200);
 
   const busy = submitting || savingDraft;
 
@@ -129,20 +133,32 @@ export function NewRequestForm({
       purpose,
       notes,
       documents: files,
+      // The student removed the stored photo, so the draft should not keep it.
+      removeDraftDocument: files.length === 0 && !savedDocument,
     };
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitAction.status === "loading" || submitAction.status === "success") return;
+
     const nextErrors = validate(true);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    submitAction.start();
     const request = await onSubmit(buildValues());
-    if (request) resetForm();
+    if (request) {
+      submitAction.succeed();
+      resetForm();
+    } else {
+      submitAction.fail();
+    }
   }
 
   async function handleSaveDraft() {
+    if (draftAction.status === "loading" || draftAction.status === "success") return;
+
     const nextErrors: FormErrors = {};
     const copiesValue = Number(copies);
     if (copies !== "" && (!Number.isInteger(copiesValue) || copiesValue < 1 || copiesValue > 10)) {
@@ -151,14 +167,18 @@ export function NewRequestForm({
     setErrors((current) => ({ ...current, copies: nextErrors.copies }));
     if (nextErrors.copies) return;
 
+    draftAction.start();
     const saved = await onSaveDraft(buildValues());
     if (saved) {
+      draftAction.succeed();
       setErrors({});
       // A newly uploaded photo now lives in the draft; the text fields stay as typed.
       if (files[0]) {
         setSavedDocument({ name: files[0].name, size: files[0].size, mime: files[0].type });
         setFiles([]);
       }
+    } else {
+      draftAction.fail();
     }
   }
 
@@ -172,10 +192,9 @@ export function NewRequestForm({
 
     const slots = MAX_DOCUMENT_PHOTOS - files.length - (savedDocument ? 1 : 0);
     if (slots <= 0) {
-      setErrors((current) => ({
-        ...current,
-        document: `You can upload up to ${MAX_DOCUMENT_PHOTOS} photos. Remove one before adding another.`,
-      }));
+      const message = `You can upload up to ${MAX_DOCUMENT_PHOTOS} photos. Remove one before adding another.`;
+      setErrors((current) => ({ ...current, document: message }));
+      showError("Too many photos", message);
       return;
     }
 
@@ -201,6 +220,7 @@ export function NewRequestForm({
     const room = accepted.slice(0, slots);
     if (room.length > 0) setFiles((current) => [...current, ...room]);
     setErrors((current) => ({ ...current, document: error }));
+    if (error) showError("File not accepted", error);
   }
 
   function handleRemoveDocument(index: number) {
@@ -219,7 +239,11 @@ export function NewRequestForm({
   const fieldDisabled = busy || catalogLoading || Boolean(catalogError) || services.length === 0;
 
   return (
-    <section className="sr-card min-w-0 p-5 sm:p-6" aria-labelledby="new-request-title">
+    <section
+      id="new-request-form"
+      className="sr-card min-w-0 scroll-mt-24 p-5 sm:p-6"
+      aria-labelledby="new-request-title"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="new-request-title" className="font-poppins text-[15px] font-semibold text-sr-text">
@@ -416,17 +440,27 @@ export function NewRequestForm({
         </div>
 
         <div className="flex flex-col gap-2.5 pt-1 sm:flex-row sm:items-center">
-          <button type="submit" className="cpc-btn cpc-btn-primary" disabled={busy || fieldDisabled}>
-            {submitting ? "Submitting…" : "Submit Request"}
-          </button>
-          <button
-            type="button"
-            className="cpc-btn cpc-btn-secondary"
-            onClick={handleSaveDraft}
-            disabled={busy || fieldDisabled}
+          <ActionButton
+            type="submit"
+            status={submitAction.status}
+            loadingLabel="Submitting…"
+            successLabel="Submitted"
+            errorLabel="Try again"
+            disabled={fieldDisabled}
           >
-            {savingDraft ? "Saving…" : "Save Draft"}
-          </button>
+            Submit Request
+          </ActionButton>
+          <ActionButton
+            className="cpc-btn-secondary"
+            status={draftAction.status}
+            loadingLabel="Saving…"
+            successLabel="Draft saved"
+            errorLabel="Not saved"
+            onClick={handleSaveDraft}
+            disabled={fieldDisabled}
+          >
+            Save Draft
+          </ActionButton>
 
           {progress !== null && (
             <span className="font-poppins text-[11px] text-sr-muted">Uploading {progress}%</span>

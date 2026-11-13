@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
+import { showError, showInfo } from "@/lib/feedback";
 import { StudentLayout } from "@/components/common/layout/StudentLayout";
 import { useNotifications } from "@/components/context/NotificationContext";
 import { useProfile } from "@/components/features/student/profile/ProfileContext";
@@ -56,6 +57,9 @@ export function StudentProfileView() {
       await resetDemo();
       resetNotifications();
       setAnnouncement("Demo data reset. The original profile has been restored.");
+      showInfo("Demo data reset", "The original profile has been restored.");
+    } catch {
+      showError("Could not reset", "Your profile was not changed. Please try again.");
     } finally {
       setResetting(false);
     }
@@ -116,6 +120,7 @@ export function StudentProfileView() {
         formId={PROFILE_FORM_ID}
         saving={form.saving}
         canSave={form.canSave}
+        status={form.saveStatus}
         onCancel={form.requestCancel}
       />
 

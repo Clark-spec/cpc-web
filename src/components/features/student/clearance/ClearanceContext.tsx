@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useToast } from "@/components/ui/toast";
+import { showInfo, showSuccess, showWarning } from "@/lib/feedback";
 import { useAuth } from "@/components/context/useAuth";
 import {
   CLEARANCE_CHANNEL_NAME,
@@ -77,7 +77,6 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const [demoMode, setDemoMode] = useLocalStorage<boolean>(DEMO_MODE_KEY, false);
   const [highlightedOffice, setHighlightedOffice] = useState<OfficeId | null>(null);
   const highlightTimer = useRef<number | null>(null);
-  const { toast } = useToast();
   const { notify, resetNotifications } = useNotifications();
 
   const student = useMemo<StudentProfile>(() => {
@@ -176,7 +175,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const requestSignature = useCallback(
     async (officeId: OfficeId, note?: string) => {
       if (!state.periodOpen) {
-        toast(CLEARANCE_CLOSED_MESSAGE, "warning");
+        showWarning(
+          "Clearance period is closed",
+          "Signature requests reopen when the next clearance window opens.",
+        );
         return;
       }
       const next = await requestSignatureService(officeId, note);
@@ -187,10 +189,15 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           message: `Request sent to ${office.label}`,
           type: "info",
           officeId,
+          silent: true,
         });
+        showSuccess(
+          "Signature request sent",
+          `${office.label} will review your clearance and sign it digitally.`,
+        );
       }
     },
-    [notify, state.periodOpen, toast],
+    [notify, state.periodOpen],
   );
 
   /** "Request All": one service call, one summary toast, one notification each. */
@@ -198,7 +205,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     async (officeIds: OfficeId[]) => {
       if (officeIds.length === 0) return;
       if (!state.periodOpen) {
-        toast(CLEARANCE_CLOSED_MESSAGE, "warning");
+        showWarning(
+          "Clearance period is closed",
+          "Signature requests reopen when the next clearance window opens.",
+        );
         return;
       }
       const next = await requestSignaturesService(officeIds);
@@ -213,14 +223,15 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           silent: true,
         });
       });
-      toast(
-        officeIds.length === 1
-          ? "1 signature request sent."
-          : `${officeIds.length} signature requests sent.`,
-        "success",
+      const sent = officeIds.length;
+      showSuccess(
+        sent === 1 ? "Signature request sent" : "Signature requests sent",
+        sent === 1
+          ? "1 office will review your clearance and sign it digitally."
+          : `${sent} offices will review your clearance and sign it digitally.`,
       );
     },
-    [notify, state.periodOpen, toast],
+    [notify, state.periodOpen],
   );
 
   const cancelRequest = useCallback(
@@ -233,11 +244,15 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           message: `${office.label} request cancelled.`,
           type: "warning",
           officeId,
+          silent: true,
         });
-        toast(`${office.label} request cancelled.`, "info");
+        showInfo(
+          "Request cancelled",
+          `${office.label} will no longer review this request. You can send it again anytime.`,
+        );
       }
     },
-    [notify, toast],
+    [notify],
   );
 
   /**
@@ -289,16 +304,21 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     setState(next);
     resetNotifications();
     setDemoMode(false);
-    toast("Demo data reset. Everything is back to the initial state.", "info");
-  }, [resetNotifications, setDemoMode, toast]);
+    showInfo("Demo data reset", "Everything is back to the initial clearance state.");
+  }, [resetNotifications, setDemoMode]);
 
   const toggleDemoMode = useCallback(() => {
     // Compute the next value before updating so the toast is not dispatched
     // from inside a state updater (React warns about that).
     const next = !demoMode;
     setDemoMode(next);
-    toast(next ? "Demo mode on — staff actions are now available." : "Demo mode off.", "info");
-  }, [demoMode, setDemoMode, toast]);
+    showInfo(
+      next ? "Demo mode on" : "Demo mode off",
+      next
+        ? "Staff actions are now available so you can test the signature flow."
+        : "The staff demo panel is hidden.",
+    );
+  }, [demoMode, setDemoMode]);
 
   const focusOffice = useCallback((officeId: OfficeId) => {
     setHighlightedOffice(officeId);

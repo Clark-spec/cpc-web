@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useToast } from "@/components/ui/toast";
+import { showError, showInfo, showSuccess, showWarning } from "@/lib/feedback";
 import {
   fetchNotificationsApi,
   markNotificationReadApi,
@@ -37,6 +37,8 @@ export interface AppNotification {
   read: boolean;
   officeId?: string;
   href?: string;
+  /** Created by this tab, so the bell must not re-announce it. */
+  local?: boolean;
 }
 
 export type NotifyInput = {
@@ -112,7 +114,6 @@ export function NotificationProvider({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(false);
-  const { toast } = useToast();
   const skipPersist = useRef(false);
   const notificationsRef = useRef(notifications);
 
@@ -231,12 +232,17 @@ export function NotificationProvider({
         read: false,
         officeId,
         href,
+        local: true,
       };
       setNotifications((previous) => [notification, ...previous].slice(0, MAX_NOTIFICATIONS));
       setUnreadCount((previous) => previous + 1);
-      if (!silent) toast(message, type);
+      if (!silent) {
+        if (type === "success") showSuccess("Update", message);
+        else if (type === "warning") showWarning("Heads up", message);
+        else showInfo("Notification", message);
+      }
     },
-    [toast],
+    [],
   );
 
   const loadMore = useCallback(async () => {
@@ -297,17 +303,20 @@ export function NotificationProvider({
       }
       try {
         await deleteNotificationApi(id);
-        toast("Notification deleted", "info");
+        showInfo("Notification deleted", "The notification was removed from your feed.");
       } catch (err) {
         // Roll back on failure
         setNotifications(previous);
         if (removed && !removed.read) {
           setUnreadCount((current) => current + 1);
         }
-        toast(err instanceof Error ? err.message : "Failed to delete notification", "warning");
+        showError(
+          "Could not delete notification",
+          err instanceof Error ? err.message : "Please try again.",
+        );
       }
     },
-    [toast],
+    [],
   );
 
   const deleteAllNotifications = useCallback(async () => {
@@ -318,13 +327,16 @@ export function NotificationProvider({
     setHasMore(false);
     try {
       await deleteAllNotificationsApi();
-      toast("All notifications deleted", "info");
+      showInfo("Notifications cleared", "Your notification feed is now empty.");
     } catch (err) {
       setNotifications(previous);
       setUnreadCount(previousUnread);
-      toast(err instanceof Error ? err.message : "Failed to clear notifications", "warning");
+      showError(
+        "Could not clear notifications",
+        err instanceof Error ? err.message : "Please try again.",
+      );
     }
-  }, [toast, unreadCount]);
+  }, [unreadCount]);
 
   const resetNotifications = useCallback(() => {
     setNotifications([]);

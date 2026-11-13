@@ -123,8 +123,7 @@ export function ComplaintTable({
                             {complaint.subject}
                           </span>
                           {complaint.anonymous && (
-                            <Badge tone="neutral" className="gap-1 px-2 py-0.5">
-                              <UserRound className="h-3 w-3 shrink-0" aria-hidden />
+                            <Badge tone="neutral" size="sm" icon={UserRound}>
                               Anonymous
                             </Badge>
                           )}
@@ -167,8 +166,7 @@ export function ComplaintTable({
                         {complaint.subject}
                       </p>
                       {complaint.anonymous && (
-                        <Badge tone="neutral" className="mt-1.5 gap-1 px-2 py-0.5">
-                          <UserRound className="h-3 w-3 shrink-0" aria-hidden />
+                        <Badge tone="neutral" size="sm" icon={UserRound} className="mt-1.5">
                           Anonymous
                         </Badge>
                       )}

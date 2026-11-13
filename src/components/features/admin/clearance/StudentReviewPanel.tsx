@@ -1,6 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
@@ -236,8 +235,7 @@ export function StudentReviewPanel({
                 </h2>
                 <StatusBadge status={row.status} />
                 {row.isOverdue && (
-                  <Badge tone="danger">
-                    <AlertTriangle className="h-3 w-3" aria-hidden />
+                  <Badge tone="danger" size="sm">
                     {overdueLabel(row.ageHours)}
                   </Badge>
                 )}

@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleAlert,
   CircleCheck,
+  FileText,
   Info,
   Loader2,
   Trash2,
@@ -13,6 +14,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
 
 export type PanelNotificationType = "info" | "success" | "warning";
 
@@ -44,7 +46,12 @@ const TYPE_ICONS: Record<PanelNotificationType, LucideIcon> = {
 
 function fallbackTitle(notification: PanelNotification): string {
   if (notification.href?.includes("complaint")) return "Complaint Update";
-  if (notification.href?.includes("service-request")) return "Service Request Update";
+  if (
+    notification.href?.includes("service-request") ||
+    notification.href?.includes("request-status")
+  ) {
+    return "Service Request Update";
+  }
   if (notification.type === "success") return "Completed";
   if (notification.type === "warning") return "Needs attention";
   return "Update";
@@ -118,7 +125,12 @@ export function NotificationPanel({
     );
 
   const renderItem = (notification: PanelNotification) => {
-    const Icon = typeIcons[notification.type] ?? Info;
+    // Service-request updates keep the shared info/success styling but use the
+    // document glyph so the feed reads at a glance.
+    const isServiceRequest =
+      notification.href?.includes("request-status") ||
+      notification.href?.includes("service-request");
+    const Icon = isServiceRequest ? FileText : (typeIcons[notification.type] ?? Info);
     const title = notification.title?.trim() || fallbackTitle(notification);
     return (
       <li
@@ -211,9 +223,9 @@ export function NotificationPanel({
           <p className="font-poppins text-sm font-semibold text-cpc-navy-text">
             Notifications
             {unreadCount > 0 && (
-              <span className="ml-2 rounded-full bg-rose-100 px-2 py-0.5 align-middle font-poppins text-[10px] font-bold text-rose-700">
+              <Badge tone="danger" size="sm" dot={false} className="ml-2 align-middle">
                 {unreadCount} unread
-              </span>
+              </Badge>
             )}
           </p>
           <p className="font-poppins text-[10px] text-cpc-heading-soft">

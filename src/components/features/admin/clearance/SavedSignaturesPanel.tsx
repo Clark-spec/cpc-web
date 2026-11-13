@@ -156,7 +156,9 @@ function SavedSignaturesBody({ onClose }: { onClose: () => void }) {
                 )}
 
                 <p className="mt-0.5 flex flex-wrap items-center gap-1.5 font-poppins text-[10px] text-cpc-heading-soft">
-                  <Badge tone="info">{METHOD_LABELS[signature.method]}</Badge>
+                  <Badge tone="info" size="sm" dot={false}>
+                    {METHOD_LABELS[signature.method]}
+                  </Badge>
                   <span>{formatDate(signature.createdAt)}</span>
                   {isDefault && (
                     <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">

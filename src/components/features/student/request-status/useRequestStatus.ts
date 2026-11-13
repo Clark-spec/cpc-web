@@ -1,11 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  applyRequestUpdate,
   getErrorMessage,
   getServiceRequests,
+  parseServiceRequestUpdate,
   STATUS_LABELS,
   type RequestStatus,
   type ServiceRequest,
+  type ServiceRequestUpdate,
 } from "@/services/serviceRequests/student";
+import { useSSE } from "@/hooks/useSSE";
+
+const HIGHLIGHT_MS = 2200;
 
 export type StatusFilter = "all" | RequestStatus;
 
@@ -42,6 +48,27 @@ export function useRequestStatus() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [liveUpdate, setLiveUpdate] = useState<ServiceRequestUpdate | null>(null);
+  const highlightTimer = useRef<number | null>(null);
+  const requestsRef = useRef<ServiceRequest[]>(requests);
+
+  useEffect(() => {
+    requestsRef.current = requests;
+  }, [requests]);
+
+  const flashRow = useCallback((id: string) => {
+    setHighlightId(id);
+    if (highlightTimer.current !== null) window.clearTimeout(highlightTimer.current);
+    highlightTimer.current = window.setTimeout(() => setHighlightId(null), HIGHLIGHT_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (highlightTimer.current !== null) window.clearTimeout(highlightTimer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     let active = true;
@@ -74,6 +101,50 @@ export function useRequestStatus() {
       setRefreshing(false);
     }
   }, []);
+
+  /** Used on reconnect so missed changes are restored without a manual reload. */
+  const refreshSilently = useCallback(async () => {
+    try {
+      setRequests(sortNewestFirst(await getServiceRequests()));
+      setError(null);
+    } catch {
+      // Keep the last known list; the Refresh button surfaces errors.
+    }
+  }, []);
+
+  // Status changes arrive over SSE; patch the affected row in place so search,
+  // filters and scroll are never reset. A reconnect refetches missed changes.
+  useSSE(
+    useCallback(
+      (type, data) => {
+        if (type === "connected") {
+          void refreshSilently();
+          return;
+        }
+        if (type !== "service_request_updated") return;
+
+        const update = parseServiceRequestUpdate(data);
+        if (!update) return;
+
+        const known = requestsRef.current.some(
+          (request) => String(request.id) === update.requestId,
+        );
+        setRequests((current) =>
+          current.map((request) =>
+            String(request.id) === update.requestId
+              ? applyRequestUpdate(request, update)
+              : request,
+          ),
+        );
+        setLiveUpdate(update);
+        flashRow(update.requestId);
+        // A request submitted from another tab has no row yet.
+        if (!known) void refreshSilently();
+      },
+      [flashRow, refreshSilently],
+    ),
+    true,
+  );
 
   const statusCounts = useMemo<StatusCounts>(() => {
     const counts = {
@@ -135,5 +206,7 @@ export function useRequestStatus() {
     hasFilters,
     clearFilters,
     reload,
+    highlightId,
+    liveUpdate,
   };
 }

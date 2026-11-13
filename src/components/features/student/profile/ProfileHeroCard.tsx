@@ -5,12 +5,14 @@ import type { StudentProfile } from "@/components/features/student/profile/types
 import { AvatarUploader } from "@/components/features/student/profile/AvatarUploader";
 import { EnrollmentBadge } from "@/components/features/student/profile/Badge";
 import { EditActionBar } from "@/components/features/student/profile/EditActionBar";
+import type { ActionStatus } from "@/components/ui/action-button";
 
 type ProfileHeroCardProps = {
   profile: StudentProfile;
   editing: boolean;
   saving: boolean;
   canSave: boolean;
+  saveStatus?: ActionStatus;
   formId: string;
   avatarValue?: string;
   onAvatarChange: (value: string) => void;
@@ -31,6 +33,7 @@ export function ProfileHeroCard({
   editing,
   saving,
   canSave,
+  saveStatus,
   formId,
   avatarValue,
   onAvatarChange,
@@ -118,6 +121,7 @@ export function ProfileHeroCard({
               formId={formId}
               saving={saving}
               canSave={canSave}
+              status={saveStatus}
               onCancel={onCancel}
               className="hidden lg:flex"
             />

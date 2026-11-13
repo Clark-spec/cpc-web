@@ -8,7 +8,11 @@ import * as demoSource from "./demo";
 import * as apiSource from "./api";
 
 export * from "./types";
-export { getErrorMessage } from "./shared";
+export {
+  getErrorMessage,
+  applyRequestUpdate,
+  parseServiceRequestUpdate,
+} from "./shared";
 
 const useDemoData = import.meta.env.VITE_USE_DEMO_DATA !== "false";
 

@@ -30,6 +30,7 @@ export function ProfileReadyContent({
         editing={editing}
         saving={form.saving}
         canSave={form.canSave}
+        saveStatus={form.saveStatus}
         formId={PROFILE_FORM_ID}
         avatarValue={editing ? form.watch("avatarUrl") : profile.avatarUrl}
         onAvatarChange={onAvatarChange}

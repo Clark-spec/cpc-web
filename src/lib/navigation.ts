@@ -80,6 +80,14 @@ export const COMPLAINT_ADMIN_ROLES: AdminRole[] = [
   "sao",
 ];
 
+/** Roles that own Student Services > Service Requests (mirrors the backend allow-list). */
+export const SERVICE_REQUEST_ADMIN_ROLES: AdminRole[] = [
+  "admin",
+  "registrar",
+  ...DEAN_ROLES,
+  "sao",
+];
+
 export const ALL_ROLES: AdminRole[] = [
   "admin",
   "registrar",
@@ -280,7 +288,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Service Requests",
             to: "/admin/service-requests",
             icon: Wrench,
-            roles: ["admin", "registrar", "sao", ...DEAN_ROLES],
+            roles: SERVICE_REQUEST_ADMIN_ROLES,
           },
           {
             type: "link",

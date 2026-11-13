@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { PortalFooter } from "@/components/common/layout/PortalFooter";
 import { PortalHeader } from "@/components/common/layout/PortalHeader";
-import { ToastProvider } from "@/components/ui/toast";
 import { ComplaintForm } from "@/components/features/student/complaints/ComplaintForm";
 import { ComplaintHero } from "@/components/features/student/complaints/ComplaintHero";
 import { ComplaintTable } from "@/components/features/student/complaints/ComplaintTable";
@@ -134,44 +133,42 @@ export default function OnlineComplaintPage() {
   }
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen w-full overflow-x-clip bg-white font-poppins">
-        <PortalHeader />
-        <ComplaintHero />
+    <div className="min-h-screen w-full overflow-x-clip bg-white font-poppins">
+      <PortalHeader />
+      <ComplaintHero />
 
-        <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <ComplaintForm onSubmit={handleSubmit} cooldownUntil={cooldownUntil} />
+      <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <ComplaintForm onSubmit={handleSubmit} cooldownUntil={cooldownUntil} />
 
-          {loadError && (
-            <div
-              role="alert"
-              className="mt-6 flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+        {loadError && (
+          <div
+            role="alert"
+            className="mt-6 flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p className="font-poppins text-xs leading-relaxed text-rose-700">
+              {loadError}
+            </p>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="cpc-btn cpc-btn-secondary cpc-btn-sm shrink-0"
             >
-              <p className="font-poppins text-xs leading-relaxed text-rose-700">
-                {loadError}
-              </p>
-              <button
-                type="button"
-                onClick={() => void load()}
-                className="cpc-btn cpc-btn-secondary cpc-btn-sm shrink-0"
-              >
-                <RefreshCw className="h-3.5 w-3.5" aria-hidden />
-                Retry
-              </button>
-            </div>
-          )}
-
-          <div className="mt-6">
-            <ComplaintTable
-              complaints={complaints}
-              loading={loading}
-              highlightId={highlightId}
-            />
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+              Retry
+            </button>
           </div>
-        </main>
+        )}
 
-        <PortalFooter />
-      </div>
-    </ToastProvider>
+        <div className="mt-6">
+          <ComplaintTable
+            complaints={complaints}
+            loading={loading}
+            highlightId={highlightId}
+          />
+        </div>
+      </main>
+
+      <PortalFooter />
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { mockEnrollmentStatus } from "@/components/features/student/enrollment/mockData";
 import { formatEnrollmentDate } from "@/components/features/student/enrollment/format";
 import { EnrollmentTimeline } from "@/components/features/student/enrollment/EnrollmentTimeline";
@@ -14,10 +15,9 @@ export function EnrollmentStatusCard() {
               {mockEnrollmentStatus.referenceNumber}
             </span>
           </div>
-          <div className="inline-flex items-center gap-2">
-            <div className="h-3 w-3 animate-pulse rounded-full bg-enroll-primary" />
-            <span className="text-lg font-semibold text-enroll-primary">Under Review</span>
-          </div>
+          <Badge tone="info" pulse>
+            Under Review
+          </Badge>
         </div>
         <p className="mt-3 text-sm text-enroll-text">
           Submitted on {formatEnrollmentDate(mockEnrollmentStatus.submittedAt)}

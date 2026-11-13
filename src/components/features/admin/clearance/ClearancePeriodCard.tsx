@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellRing, CalendarDays, CircleSlash, Info, Loader2 } from "lucide-react";
+import { BellRing, CalendarDays, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,15 +102,9 @@ export function ClearancePeriodCard() {
             </div>
 
             {accepting ? (
-              <Badge tone="success">
-                <Info className="h-3 w-3 shrink-0" aria-hidden />
-                {pluralDays(remaining)} remaining
-              </Badge>
+              <Badge tone="success">{pluralDays(remaining)} remaining</Badge>
             ) : (
-              <Badge tone="danger">
-                <CircleSlash className="h-3 w-3 shrink-0" aria-hidden />
-                Closed
-              </Badge>
+              <Badge tone="danger">Closed</Badge>
             )}
           </div>
 

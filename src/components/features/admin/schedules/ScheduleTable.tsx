@@ -565,11 +565,22 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
           </span>
         </h2>
         {unitNotice && (
-          <span aria-live="polite">
-            <Badge tone={unitNotice.tone}>
-              {unitNotice.tone !== "info" && <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />}
-              {unitNotice.text}
-            </Badge>
+          <span
+            aria-live="polite"
+            className={cn(
+              "inline-flex max-w-full items-start gap-1.5 rounded-lg border px-2.5 py-1 font-poppins text-[11px] leading-snug font-semibold",
+              unitNotice.tone === "danger" &&
+                "border-cpc-badge-danger-border bg-cpc-badge-danger-bg text-cpc-badge-danger-text",
+              unitNotice.tone === "warning" &&
+                "border-cpc-badge-warning-border bg-cpc-badge-warning-bg text-cpc-badge-warning-text",
+              unitNotice.tone === "info" &&
+                "border-cpc-badge-info-border bg-cpc-badge-info-bg text-cpc-badge-info-text",
+            )}
+          >
+            {unitNotice.tone !== "info" && (
+              <AlertTriangle className="mt-px h-3 w-3 shrink-0" aria-hidden />
+            )}
+            {unitNotice.text}
           </span>
         )}
       </div>
@@ -755,12 +766,11 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
                       row,
                       "status",
                       <span className="inline-flex items-center gap-1.5">
-                        <Badge tone={inactive ? "neutral" : "success"}>
+                        <Badge tone={inactive ? "neutral" : "success"} size="sm">
                           {inactive ? "Not active" : "Active"}
                         </Badge>
                         {conflictCount > 0 && (
-                          <Badge tone="danger">
-                            <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
+                          <Badge tone="danger" size="sm">
                             {conflictCount} clash{conflictCount === 1 ? "" : "es"}
                           </Badge>
                         )}

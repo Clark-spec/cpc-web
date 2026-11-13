@@ -1,27 +1,18 @@
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/cn";
+import { Badge, type BadgeSize } from "@/components/ui/badge";
 import type { EntryStatus } from "@/types/schedule";
 
 type StatusBadgeProps = {
   status: EntryStatus;
+  size?: BadgeSize;
   className?: string;
 };
 
-/**
- * Status is conveyed by icon + text as well as color, so it remains readable
- * for color-blind users and in monochrome prints.
- */
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+/** Dot + text status pill so the state stays readable without colour. */
+export function StatusBadge({ status, size, className }: StatusBadgeProps) {
   const active = status === "active";
-  const Icon = active ? CheckCircle2 : AlertTriangle;
 
   return (
-    <Badge
-      tone={active ? "success" : "danger"}
-      className={cn("gap-1 px-2 py-0.5", className)}
-    >
-      <Icon className="h-3 w-3 shrink-0" aria-hidden />
+    <Badge tone={active ? "success" : "neutral"} size={size} className={className}>
       {active ? "Active" : "Not Active"}
     </Badge>
   );

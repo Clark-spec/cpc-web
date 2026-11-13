@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useSearchParams } from "react-router";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useToast } from "@/components/ui/toast";
+import { showInfo } from "@/lib/feedback";
 import {
   formatPublishedCaption,
   readPublishedSchedule,
@@ -73,7 +73,6 @@ type ScheduleContextValue = {
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [storedSection, setStoredSection] = useLocalStorage<SectionId>(
     SECTION_KEY,
@@ -170,11 +169,11 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
 
     setStoredSection(section);
     setLoading(true);
-    toast(`Showing ${section} schedule`, "info");
+    showInfo("Schedule updated", `Showing the ${section} class schedule.`);
     const timer = window.setTimeout(() => setLoading(false), 320);
 
     return () => window.clearTimeout(timer);
-  }, [section, setStoredSection, toast]);
+  }, [section, setStoredSection]);
 
   useEffect(() => {
     return () => {

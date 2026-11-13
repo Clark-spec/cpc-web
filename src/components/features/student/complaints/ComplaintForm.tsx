@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   Camera,
-  CheckCircle2,
   Clock,
   ImagePlus,
   MessageSquareWarning,
@@ -12,7 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useToast } from "@/components/ui/toast";
+import { ActionButton, useActionStatus } from "@/components/ui/action-button";
+import { showApiError, showError, showSuccessModal } from "@/lib/feedback";
 import {
   ACCEPTED_DOCUMENT_TYPES,
   MAX_DOCUMENT_BYTES,
@@ -136,19 +136,13 @@ function Field({
 
 /** Complaint form styled with the portal's shared card and form tokens. */
 export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
-  const { toast } = useToast();
   const [values, setValues] = useState<ComplaintFormValues>(EMPTY_VALUES);
   const [errors, setErrors] = useState<ComplaintFormErrors>({});
   const [cameraOpen, setCameraOpen] = useState(false);
   const [attachmentDrag, setAttachmentDrag] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const submitAction = useActionStatus();
   const [now, setNow] = useState(() => Date.now());
-  const [submitted, setSubmitted] = useState<{
-    referenceNumber: string;
-    subject: string;
-    anonymous: boolean;
-  } | null>(null);
 
   const cooldownEnd = cooldownUntil ? new Date(cooldownUntil).getTime() : 0;
   const cooldownActive = cooldownEnd > now;
@@ -184,19 +178,19 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
         contactNumber: undefined,
       }));
     }
-    setSubmitted(null);
   }
 
   function handleAttachment(file: File) {
     if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
-      setErrors((current) => ({ ...current, attachment: "Upload a PDF, PNG, or JPG file." }));
+      const message = "Upload a PDF, PNG, or JPG file.";
+      setErrors((current) => ({ ...current, attachment: message }));
+      showError("File not accepted", message);
       return;
     }
     if (file.size > MAX_DOCUMENT_BYTES) {
-      setErrors((current) => ({
-        ...current,
-        attachment: "The file is larger than 5 MB. Please upload a smaller file.",
-      }));
+      const message = "The file is larger than 5 MB. Please upload a smaller file.";
+      setErrors((current) => ({ ...current, attachment: message }));
+      showError("File too large", message);
       return;
     }
     update("attachment", file);
@@ -204,20 +198,21 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (cooldownActive || submitting) return;
+    if (cooldownActive || submitAction.status === "loading" || submitAction.status === "success") {
+      return;
+    }
 
     const nextErrors = validate(values);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      setSubmitted(null);
       const firstInvalid = Object.keys(nextErrors)[0] as FieldName;
       document.getElementById(FIELD_IDS[firstInvalid])?.focus();
       return;
     }
 
-    setSubmitting(true);
-    setSubmitted(null);
+    submitAction.start();
+    const anonymous = values.anonymous;
 
     try {
       const referenceNumber = await onSubmit({
@@ -231,26 +226,20 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
         description: values.description.trim(),
       });
 
-      setSubmitted({
-        referenceNumber,
-        subject: values.subject.trim(),
-        anonymous: values.anonymous,
-      });
+      submitAction.succeed();
       setValues(EMPTY_VALUES);
       setErrors({});
-      toast(
-        `Complaint submitted successfully. Reference No. ${referenceNumber}.`,
-        "success",
-      );
+      showSuccessModal({
+        title: "Complaint submitted",
+        message: anonymous
+          ? "Your anonymous complaint was filed. Your identity stays hidden from everyone."
+          : "The Student Support Office has received your complaint and will review it.",
+        reference: referenceNumber,
+        meta: "Status: Pending · One complaint every 72 hours",
+      });
     } catch (error) {
-      toast(
-        error instanceof Error
-          ? error.message
-          : "Could not submit your complaint. Please try again.",
-        "error",
-      );
-    } finally {
-      setSubmitting(false);
+      submitAction.fail();
+      showApiError(error, "Could not submit your complaint");
     }
   }
 
@@ -284,34 +273,6 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
       </div>
 
       <div className="p-4 sm:p-6">
-        {submitted && (
-          <div
-            role="status"
-            className="mb-5 flex items-start gap-3 rounded-xl border border-[#C4EBD9] bg-[#E3F7EE] px-4 py-3"
-          >
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#1E8A57]" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className="font-poppins text-sm font-semibold text-[#1E8A57]">
-                Complaint submitted successfully
-              </p>
-              <p className="mt-0.5 font-poppins text-xs leading-relaxed text-[#2F6B52]">
-                Reference No.{" "}
-                <span className="font-semibold">{submitted.referenceNumber}</span> for &ldquo;
-                {submitted.subject}&rdquo; is now Pending. You can track it in My Complaints below.
-                {submitted.anonymous && " It was filed anonymously."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSubmitted(null)}
-              aria-label="Dismiss success message"
-              className="cursor-pointer rounded p-1 text-[#1E8A57] transition-colors hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-            >
-              <X className="h-3.5 w-3.5" aria-hidden />
-            </button>
-          </div>
-        )}
-
         {cooldownActive && cooldownUntil && (
           <div
             role="status"
@@ -701,19 +662,23 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                 ? "Anonymous complaints hide your identity from everyone, including the Student Support Office."
                 : "Your complaint is shared only with the Student Support Office."}
             </p>
-            <button
+            <ActionButton
               type="submit"
-              disabled={cooldownActive || submitting}
+              status={submitAction.status}
+              loadingLabel="Submitting…"
+              successLabel="Submitted"
+              errorLabel="Try again"
+              disabled={cooldownActive}
               title={
                 cooldownActive
                   ? "You can file one complaint every 72 hours."
                   : undefined
               }
-              className="cpc-btn cpc-btn-primary w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
               <Send className="h-4 w-4" aria-hidden />
-              {submitting ? "Submitting…" : "Submit Complaint"}
-            </button>
+              Submit Complaint
+            </ActionButton>
           </div>
         </form>
       </div>

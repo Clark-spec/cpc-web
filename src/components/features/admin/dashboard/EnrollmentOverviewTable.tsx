@@ -2,6 +2,7 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "@/lib/cn";
 import { EmptyState } from "@/components/common/display/EmptyState";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
 import type { EnrollmentOverviewRow } from "@/types/admin";
 
 type EnrollmentOverviewTableProps = {
@@ -23,11 +24,11 @@ const STATUS_SHORT_LABELS: Record<EnrollmentOverviewRow["status"], string> = {
   "needs-requirements": "Needs Req.",
 };
 
-const STATUS_BG: Record<EnrollmentOverviewRow["status"], string> = {
-  submitted: "bg-cpc-section-light text-cpc-blue-accent border-cpc-tile-border",
-  "for-review": "bg-amber-50 text-amber-700 border-amber-200",
-  approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "needs-requirements": "bg-rose-50 text-rose-700 border-rose-200",
+const STATUS_TONES: Record<EnrollmentOverviewRow["status"], BadgeTone> = {
+  submitted: "info",
+  "for-review": "warning",
+  approved: "success",
+  "needs-requirements": "danger",
 };
 
 /**
@@ -61,19 +62,9 @@ export function EnrollmentOverviewTable({ rows }: EnrollmentOverviewTableProps) 
           >
             {/* Status label row — uses short label so "Needs Req." never overflows */}
             <div className="flex items-center justify-between gap-1 overflow-hidden">
-              <span
-                className={cn(
-                  "inline-flex min-w-0 shrink items-center gap-1 overflow-hidden rounded-full border px-2 py-0.5 font-poppins text-[10px] font-semibold leading-none",
-                  STATUS_BG[row.status],
-                )}
-              >
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: color }}
-                  aria-hidden
-                />
-                <span className="truncate">{STATUS_SHORT_LABELS[row.status]}</span>
-              </span>
+              <Badge tone={STATUS_TONES[row.status]} size="sm">
+                {STATUS_SHORT_LABELS[row.status]}
+              </Badge>
               <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-cpc-muted-blue/60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-cpc-blue-accent" aria-hidden />
             </div>
 

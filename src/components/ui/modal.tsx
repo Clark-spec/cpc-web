@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -25,6 +25,25 @@ export function Modal({ open, onClose, labelledBy, children, className }: ModalP
   const previouslyFocused = useRef<HTMLElement | null>(null);
   // Keep the latest callback without re-running the effect on every render.
   const onCloseRef = useRef(onClose);
+
+  // Keep the panel mounted for the short exit animation (reverse of entry).
+  const [rendered, setRendered] = useState(open);
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setRendered(true);
+      setClosing(false);
+      return;
+    }
+    if (!rendered) return;
+    setClosing(true);
+    const timer = window.setTimeout(() => {
+      setRendered(false);
+      setClosing(false);
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [open, rendered]);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -86,11 +105,14 @@ export function Modal({ open, onClose, labelledBy, children, className }: ModalP
     };
   }, [open]);
 
-  if (!open) return null;
+  if (!rendered) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-cpc-navy-deep/60 p-0 backdrop-blur-sm print:hidden sm:items-center sm:p-4"
+      className={cn(
+        "cpc-modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-cpc-navy-deep/60 p-0 backdrop-blur-sm print:hidden sm:items-center sm:p-4",
+        closing && "cpc-modal-backdrop-leaving",
+      )}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -102,7 +124,8 @@ export function Modal({ open, onClose, labelledBy, children, className }: ModalP
         aria-labelledby={labelledBy}
         tabIndex={-1}
         className={cn(
-          "relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-[0_24px_80px_rgba(15,36,104,0.35)] outline-none sm:max-w-lg sm:rounded-2xl",
+          "cpc-modal-card relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-[0_24px_80px_rgba(15,36,104,0.35)] outline-none sm:max-w-lg sm:rounded-2xl",
+          closing && "cpc-modal-card-leaving",
           className,
         )}
       >

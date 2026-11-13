@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, CalendarPlus, Clock3, MapPin } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { Badge } from "@/components/ui/badge";
 import {
   CATEGORY_META,
   CATEGORY_ORDER,
@@ -133,16 +134,9 @@ export function UpcomingEventsCard({
                         {event.title}
                       </span>
                       {soon && (
-                        <span
-                          className={cn(
-                            "shrink-0 rounded-full border px-2 py-0.5 font-poppins text-[10px] font-bold",
-                            ongoing
-                              ? "border-[#C4EBDC] bg-[#E9F7F1] text-[#128A59]"
-                              : "border-[#F9DDB4] bg-[#FEF4E7] text-[#B9761B]",
-                          )}
-                        >
+                        <Badge tone={ongoing ? "success" : "warning"} size="sm">
                           {ongoing ? "Ongoing" : relativeDayLabel(event.startDate)}
-                        </span>
+                        </Badge>
                       )}
                     </span>
 
@@ -161,7 +155,7 @@ export function UpcomingEventsCard({
 
                     <span className="mt-1 flex items-center gap-1">
                       <CategoryBadge category={event.category} compact />
-                      <StatusBadge status={event.status} />
+                      <StatusBadge status={event.status} size="sm" />
                     </span>
                   </span>
 

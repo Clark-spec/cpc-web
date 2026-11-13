@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { CalendarRange, Download } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { showError, showSuccess } from "@/lib/feedback";
 import { ACADEMIC_YEAR } from "@/components/features/student/academic-calendar/academicCalendar";
 import { downloadAcademicCalendarPdf } from "@/components/features/student/academic-calendar/calendar";
 import type { AcademicCalendar } from "@/components/features/student/academic-calendar/useAcademicCalendar";
 
 /** Academic year badge plus the full-year and PDF download controls. */
 export function CalendarToolbar({ calendar }: { calendar: AcademicCalendar }) {
-  const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = () => {
@@ -16,9 +15,12 @@ export function CalendarToolbar({ calendar }: { calendar: AcademicCalendar }) {
     window.setTimeout(() => {
       try {
         const fileName = downloadAcademicCalendarPdf(calendar.events, ACADEMIC_YEAR);
-        toast(`Downloaded ${fileName}`, "success");
+        showSuccess("Calendar downloaded", `${fileName} was saved to your downloads.`);
       } catch {
-        toast("The calendar PDF could not be generated. Please try again.", "error");
+        showError(
+          "Download failed",
+          "The calendar PDF could not be generated. Please try again.",
+        );
       } finally {
         setDownloading(false);
       }

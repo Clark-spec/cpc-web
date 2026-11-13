@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { AlarmClock, ArrowRight, Building2 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
 import {
   daysBetween,
   eventEndKey,
@@ -16,6 +17,13 @@ import {
   StatusBadge,
   ghostButtonClass,
 } from "./CalendarPieces";
+
+const DEADLINE_TONES: Record<string, BadgeTone> = {
+  overdue: "danger",
+  today: "danger",
+  soon: "warning",
+  upcoming: "success",
+};
 
 type DeadlinesCardProps = {
   events: AdminCalendarEvent[];
@@ -66,14 +74,12 @@ export function DeadlinesCard({ events, onSelect, onViewAll }: DeadlinesCardProp
       bodyClassName="p-3"
     >
       <div className="mb-1.5 flex flex-wrap items-center gap-1.5 px-1">
-        <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 font-poppins text-[11px] font-semibold text-rose-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden />
+        <Badge tone="danger" size="sm">
           {overdue} overdue
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-poppins text-[11px] font-semibold text-amber-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+        </Badge>
+        <Badge tone="warning" size="sm">
           {dueSoon} due this week
-        </span>
+        </Badge>
       </div>
 
       {deadlines.length === 0 ? (
@@ -129,16 +135,11 @@ export function DeadlinesCard({ events, onSelect, onViewAll }: DeadlinesCardProp
                         </span>
                       )}
                     </span>
-                    <span className="mt-1 flex items-center gap-1">
-                      <span
-                        className={cn(
-                          "rounded-full border px-2 py-0.5 font-poppins text-[10px] font-bold",
-                          state.badgeClass,
-                        )}
-                      >
+                    <span className="mt-1 flex flex-wrap items-center gap-1">
+                      <Badge tone={DEADLINE_TONES[state.tone]} size="sm">
                         {state.label}
-                      </span>
-                      <StatusBadge status={event.status} />
+                      </Badge>
+                      <StatusBadge status={event.status} size="sm" />
                     </span>
                   </span>
                 </button>

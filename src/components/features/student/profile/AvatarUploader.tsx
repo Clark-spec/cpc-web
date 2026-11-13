@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { Camera, LoaderCircle, Trash } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { showError, showInfo, showSuccess } from "@/lib/feedback";
 import { initialsFromName } from "@/components/features/student/profile/format";
 import { uploadAvatar } from "@/services/studentProfile";
 
@@ -31,10 +32,12 @@ export function AvatarUploader({ fullName, value, editing, onChange }: AvatarUpl
     try {
       const dataUrl = await uploadAvatar(file);
       onChange(dataUrl);
+      showSuccess("Profile photo ready", "Save your profile to keep this photo.");
     } catch (uploadError) {
-      setError(
-        uploadError instanceof Error ? uploadError.message : "We couldn't use that image.",
-      );
+      const message =
+        uploadError instanceof Error ? uploadError.message : "We couldn't use that image.";
+      setError(message);
+      showError("Could not use that photo", message);
     } finally {
       setUploading(false);
     }
@@ -100,6 +103,7 @@ export function AvatarUploader({ fullName, value, editing, onChange }: AvatarUpl
           onClick={() => {
             setError(null);
             onChange("");
+            showInfo("Profile photo removed", "Save your profile to keep this change.");
           }}
           className="inline-flex cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 font-poppins text-[11px] font-medium text-cpc-heading-soft transition-colors hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
         >

@@ -25,6 +25,7 @@ export default function ServiceRequestsPage() {
       <ServiceRequestDialog
         requestId={viewRequestId}
         onClose={() => setViewRequestId(null)}
+        liveUpdate={page.liveUpdate}
       />
     </div>
   );

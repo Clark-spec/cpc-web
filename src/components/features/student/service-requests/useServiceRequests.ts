@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSSE } from "@/hooks/useSSE";
+import { showApiError, showSuccess, showSuccessModal } from "@/lib/feedback";
 import {
+  applyRequestUpdate,
   createServiceRequest,
   deleteDraft,
   getCatalog,
@@ -9,6 +11,7 @@ import {
   getNotifications,
   getServiceRequests,
   markNotificationsRead,
+  parseServiceRequestUpdate,
   saveDraft,
   type PurposeOption,
   type RequestFormValues,
@@ -16,12 +19,10 @@ import {
   type ServiceRequest,
   type ServiceRequestDraft,
   type ServiceRequestNotification,
+  type ServiceRequestUpdate,
 } from "@/services/serviceRequests/student";
 
-type Notice = {
-  kind: "success" | "error";
-  message: string;
-};
+const HIGHLIGHT_MS = 2200;
 
 type PageData = {
   services: ServiceOption[];
@@ -64,8 +65,29 @@ export function useServiceRequestsPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [discardingDraft, setDiscardingDraft] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [liveUpdate, setLiveUpdate] = useState<ServiceRequestUpdate | null>(null);
+  const highlightTimer = useRef<number | null>(null);
+  const requestsRef = useRef<ServiceRequest[]>([]);
+
+  useEffect(() => {
+    requestsRef.current = requests;
+  }, [requests]);
+
+  const flashRow = useCallback((id: string) => {
+    setHighlightId(id);
+    if (highlightTimer.current !== null) window.clearTimeout(highlightTimer.current);
+    highlightTimer.current = window.setTimeout(() => setHighlightId(null), HIGHLIGHT_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (highlightTimer.current !== null) window.clearTimeout(highlightTimer.current);
+    },
+    [],
+  );
 
   const applyPageData = useCallback((data: PageData) => {
     setServices(data.services);
@@ -118,13 +140,51 @@ export function useServiceRequestsPage() {
     setUnread(notificationData.unread);
   }, []);
 
-  // Real-time synchronization via Server-Sent Events (SSE)
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data.notifications);
+      setUnread(data.unread);
+    } catch {
+      // Keep the current feed; the bell has its own reconnect handling.
+    }
+  }, []);
+
+  // Real-time synchronization via Server-Sent Events (SSE). Status changes
+  // patch the matching row in place so the table never reloads.
   useSSE(
-    useCallback((type) => {
-      if (type === "service_request_updated") {
-        void refreshRequestsAndNotifications();
-      }
-    }, [refreshRequestsAndNotifications]),
+    useCallback(
+      (type, data) => {
+        if (type === "notification_created" || type === "notification_updated") {
+          void refreshNotifications();
+          return;
+        }
+        if (type === "connected") {
+          void refreshRequestsAndNotifications();
+          return;
+        }
+        if (type !== "service_request_updated") return;
+
+        const update = parseServiceRequestUpdate(data);
+        if (!update) return;
+
+        const known = requestsRef.current.some(
+          (request) => String(request.id) === update.requestId,
+        );
+        setRequests((current) =>
+          current.map((request) =>
+            String(request.id) === update.requestId
+              ? applyRequestUpdate(request, update)
+              : request,
+          ),
+        );
+        flashRow(update.requestId);
+        setLiveUpdate(update);
+        void refreshNotifications();
+        if (!known) void refreshRequestsAndNotifications();
+      },
+      [flashRow, refreshNotifications, refreshRequestsAndNotifications],
+    ),
     !loading,
   );
 
@@ -132,18 +192,25 @@ export function useServiceRequestsPage() {
     async (values: RequestFormValues): Promise<ServiceRequest | null> => {
       setSubmitting(true);
       setProgress(0);
-      setNotice(null);
       try {
         const request = await createServiceRequest(values, setProgress);
         setDraft(null);
         await refreshRequestsAndNotifications().catch(() => {});
-        setNotice({
-          kind: "success",
-          message: `Request ${request.referenceNumber} was submitted. You can track its progress here.`,
+        showSuccessModal({
+          title: "Request submitted",
+          message: "We received your request. You can follow its progress in your request history.",
+          reference: request.referenceNumber,
+          meta: `${request.service.name} · ${request.statusLabel}`,
+          primaryAction: {
+            label: "View status",
+            onClick: () => {
+              document.getElementById("request-history")?.scrollIntoView({ block: "start" });
+            },
+          },
         });
         return request;
       } catch (submitError) {
-        setNotice({ kind: "error", message: getErrorMessage(submitError) });
+        showApiError(submitError, "Could not submit your request");
         return null;
       } finally {
         setSubmitting(false);
@@ -157,14 +224,13 @@ export function useServiceRequestsPage() {
     async (values: RequestFormValues): Promise<boolean> => {
       setSavingDraft(true);
       setProgress(0);
-      setNotice(null);
       try {
         const saved = await saveDraft(values, setProgress);
         setDraft(saved);
-        setNotice({ kind: "success", message: "Draft saved. You can finish this request later." });
+        showSuccess("Draft saved", "You can finish this request any time — it stays saved to your account.");
         return true;
       } catch (saveError) {
-        setNotice({ kind: "error", message: getErrorMessage(saveError) });
+        showApiError(saveError, "Could not save your draft");
         return false;
       } finally {
         setSavingDraft(false);
@@ -175,15 +241,17 @@ export function useServiceRequestsPage() {
   );
 
   const discardDraft = useCallback(async (): Promise<boolean> => {
-    setNotice(null);
+    setDiscardingDraft(true);
     try {
       await deleteDraft();
       setDraft(null);
-      setNotice({ kind: "success", message: "Draft discarded." });
+      showSuccess("Draft discarded", "Your saved answers were removed.");
       return true;
     } catch (discardError) {
-      setNotice({ kind: "error", message: getErrorMessage(discardError) });
+      showApiError(discardError, "Could not discard the draft");
       return false;
+    } finally {
+      setDiscardingDraft(false);
     }
   }, []);
 
@@ -194,11 +262,9 @@ export function useServiceRequestsPage() {
     try {
       await markNotificationsRead();
     } catch (markError) {
-      setNotice({ kind: "error", message: getErrorMessage(markError) });
+      showApiError(markError, "Could not update notifications");
     }
   }, [unread]);
-
-  const clearNotice = useCallback(() => setNotice(null), []);
 
   return {
     services,
@@ -212,14 +278,15 @@ export function useServiceRequestsPage() {
     error,
     submitting,
     savingDraft,
+    discardingDraft,
     progress,
-    notice,
     reload,
     submit,
     save,
     discardDraft,
     markAllRead,
-    clearNotice,
+    highlightId,
+    liveUpdate,
   };
 }
 

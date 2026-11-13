@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import {
+  applyRequestUpdate,
   downloadDocument,
   getErrorMessage,
   getServiceRequest,
   type RequestId,
   type ServiceRequest,
+  type ServiceRequestUpdate,
 } from "@/services/serviceRequests/student";
 import { RequestTimeline } from "@/components/features/student/service-requests/RequestTimeline";
 import { StatusBadge } from "@/components/features/student/service-requests/StatusBadge";
@@ -13,6 +15,8 @@ import { formatDateTime, formatFileSize } from "@/components/features/student/se
 type RequestDetailsModalProps = {
   requestId: RequestId;
   onClose: () => void;
+  /** Latest owner-only SSE patch from the tracking page. */
+  liveUpdate?: ServiceRequestUpdate | null;
 };
 
 function CloseIcon({ className }: { className?: string }) {
@@ -96,12 +100,26 @@ function RequirementRow({ label, detail }: { label: string; detail: string }) {
   );
 }
 
-export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalProps) {
-  const [request, setRequest] = useState<ServiceRequest | null>(null);
+export function RequestDetailsModal({
+  requestId,
+  onClose,
+  liveUpdate,
+}: RequestDetailsModalProps) {
+  const [loaded, setLoaded] = useState<ServiceRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  // Fold in the tracking page's live patch, but never let a stale patch
+  // overwrite data that was fetched after it.
+  const request =
+    loaded &&
+    liveUpdate &&
+    String(loaded.id) === String(liveUpdate.requestId) &&
+    new Date(liveUpdate.updatedAt).getTime() > new Date(loaded.updatedAt).getTime()
+      ? applyRequestUpdate(loaded, liveUpdate)
+      : loaded;
 
   const activeStage = request?.timeline.find((stage) => stage.state === "active") ?? null;
   const officeRemarks =
@@ -114,7 +132,7 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
 
     getServiceRequest(requestId)
       .then((data) => {
-        if (active) setRequest(data);
+        if (active) setLoaded(data);
       })
       .catch((loadError) => {
         if (active) setError(getErrorMessage(loadError));
@@ -144,7 +162,7 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
   }, [onClose]);
 
   async function handleDownload() {
-    if (!request) return;
+    if (!request?.document) return;
     setDownloading(true);
     setDownloadError(null);
     try {
@@ -250,7 +268,7 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
                   <RequirementRow label="Request details" detail="Service, purpose and copies" />
                   <RequirementRow
                     label="Valid student ID"
-                    detail={request.document.name || "Uploaded document"}
+                    detail={request.document?.name || "No document uploaded"}
                   />
                   <RequirementRow label="Contact details" detail="From your student account" />
                   <RequirementRow label="Submission" detail="Received by student services" />
@@ -261,27 +279,33 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
                 <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
                   Uploaded Document
                 </p>
-                <div className="mt-1 flex items-center gap-3 rounded-lg border border-sr-border px-3 py-2.5">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sr-section text-sr-primary">
-                    <FileIcon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-poppins text-[12px] font-medium text-sr-text">
-                      {request.document.name}
-                    </p>
-                    <p className="font-poppins text-[10px] text-sr-muted">
-                      {formatFileSize(request.document.size)}
-                    </p>
+                {request.document ? (
+                  <div className="mt-1 flex items-center gap-3 rounded-lg border border-sr-border px-3 py-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sr-section text-sr-primary">
+                      <FileIcon className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-poppins text-[12px] font-medium text-sr-text">
+                        {request.document.name}
+                      </p>
+                      <p className="font-poppins text-[10px] text-sr-muted">
+                        {formatFileSize(request.document.size)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      className="rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {downloading ? "Preparing…" : "Download"}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleDownload}
-                    disabled={downloading}
-                    className="rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {downloading ? "Preparing…" : "Download"}
-                  </button>
-                </div>
+                ) : (
+                  <p className="mt-1 rounded-lg border border-sr-border bg-[#FBFDFF] px-3 py-2.5 font-poppins text-[11px] text-sr-muted">
+                    No document was uploaded with this request.
+                  </p>
+                )}
                 {downloadError && (
                   <p className="mt-1 font-poppins text-[10px] text-sr-danger">{downloadError}</p>
                 )}
@@ -307,6 +331,39 @@ export function RequestDetailsModal({ requestId, onClose }: RequestDetailsModalP
                   </div>
                 )}
               </div>
+
+              {request.history && request.history.length > 0 && (
+                <div>
+                  <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
+                    Status History
+                  </p>
+                  <ul className="mt-1.5 space-y-1.5">
+                    {[...request.history].reverse().map((entry) => (
+                      <li
+                        key={String(entry.id)}
+                        className="rounded-md border border-sr-border bg-white px-3 py-2"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-1.5">
+                          <span className="font-poppins text-[11px] font-semibold text-sr-text">
+                            {entry.statusLabel}
+                          </span>
+                          <span className="font-poppins text-[10px] text-sr-muted">
+                            {formatDateTime(entry.changedAt)}
+                          </span>
+                        </div>
+                        {entry.remarks && (
+                          <p className="mt-1 font-poppins text-[10.5px] leading-[15px] text-sr-text">
+                            {entry.remarks}
+                          </p>
+                        )}
+                        <p className="mt-0.5 font-poppins text-[10px] text-sr-muted">
+                          By {entry.changedByName || entry.changedByRole || "Student services"}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,83 +1,68 @@
-import {
-  CheckCircle2,
-  Clock3,
-  PackageCheck,
-  RefreshCw,
-  Ticket,
-  TrendingUp,
-} from "lucide-react";
+import { Clock3, FileSearch, PackageCheck, RefreshCw } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
-import type { getServiceRequestCounts } from "@/services/serviceRequests/admin";
-
-type Counts = ReturnType<typeof getServiceRequestCounts>;
+import type { AdminServiceRequestSummary } from "@/services/serviceRequests/admin";
 
 type CardConfig = {
-  key: "pending" | "processing" | "activeKiosk" | "completedToday";
+  key: "submitted" | "under_review" | "processing" | "ready_for_release";
   label: string;
-  supporting: (counts: Counts) => string;
+  supporting: string;
   icon: LucideIcon;
   /** Tailwind top accent bar color (inline style fallback) */
   accent: string;
   iconBg: string;
   iconText: string;
-  trendIcon: LucideIcon;
 };
 
 const CARDS: CardConfig[] = [
   {
-    key: "pending",
-    label: "Pending Requests",
-    supporting: (counts) => `${counts.pendingToday} submitted today`,
+    key: "submitted",
+    label: "New Submissions",
+    supporting: "Awaiting first review",
     icon: Clock3,
     accent: "#F3A43B",
     iconBg: "bg-amber-50",
     iconText: "text-amber-500",
-    trendIcon: TrendingUp,
+  },
+  {
+    key: "under_review",
+    label: "Under Review",
+    supporting: "Being checked by the office",
+    icon: FileSearch,
+    accent: "#38BDF8",
+    iconBg: "bg-sky-50",
+    iconText: "text-sky-500",
   },
   {
     key: "processing",
     label: "Processing / In-Queue",
-    supporting: () => "Across all service windows",
+    supporting: "Across all service windows",
     icon: RefreshCw,
     accent: "#4785F5",
     iconBg: "bg-blue-50",
     iconText: "text-blue-500",
-    trendIcon: TrendingUp,
   },
   {
-    key: "activeKiosk",
-    label: "Active Kiosk Tickets",
-    supporting: (counts) => `${counts.kioskToday} issued at kiosk today`,
-    icon: Ticket,
+    key: "ready_for_release",
+    label: "Ready for Release",
+    supporting: "Waiting for student pickup",
+    icon: PackageCheck,
     accent: "#7C6FE0",
     iconBg: "bg-violet-50",
     iconText: "text-violet-500",
-    trendIcon: TrendingUp,
-  },
-  {
-    key: "completedToday",
-    label: "Completed Today",
-    supporting: () => "Finalized across all windows",
-    icon: CheckCircle2,
-    accent: "#20B77A",
-    iconBg: "bg-emerald-50",
-    iconText: "text-emerald-500",
-    trendIcon: PackageCheck,
   },
 ];
 
 function StatTile({
   config,
-  counts,
+  summary,
   index,
 }: {
   config: CardConfig;
-  counts: Counts;
+  summary: AdminServiceRequestSummary;
   index: number;
 }) {
-  const count = counts[config.key];
-  const value = useCountUp(count, 650 + index * 110);
+  const value = useCountUp(summary[config.key], 650 + index * 110);
   const Icon = config.icon;
 
   return (
@@ -105,7 +90,7 @@ function StatTile({
             {value.toLocaleString()}
           </p>
           <p className="mt-2 font-poppins text-[11px] leading-snug text-admin-muted">
-            {config.supporting(counts)}
+            {config.supporting}
           </p>
         </div>
 
@@ -120,13 +105,13 @@ function StatTile({
   );
 }
 
-/** Four compact KPIs derived from the same local request array as the table. */
-export function ServiceRequestStatCards({ counts }: { counts: Counts }) {
+/** Four compact KPIs derived from the server-side queue summary. */
+export function ServiceRequestStatCards({ summary }: { summary: AdminServiceRequestSummary }) {
   return (
     <section aria-label="Service request statistics">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {CARDS.map((config, index) => (
-          <StatTile key={config.key} config={config} counts={counts} index={index} />
+          <StatTile key={config.key} config={config} summary={summary} index={index} />
         ))}
       </div>
     </section>

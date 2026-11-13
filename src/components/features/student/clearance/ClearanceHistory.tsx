@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Archive, CheckCircle2, ChevronDown, Download } from "lucide-react";
+import { Archive, ChevronDown, Download } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { showError, showSuccess } from "@/lib/feedback";
 import { Badge } from "@/components/ui/badge";
 import { useClearance } from "@/components/features/student/clearance/ClearanceContext";
 import { formatDate } from "@/lib/format";
@@ -24,15 +25,20 @@ export function ClearanceHistory() {
   );
 
   function download(item: ClearanceHistoryItem) {
-    downloadClearanceSlip({
-      student,
-      offices: item.signatures,
-      referenceNumber,
-      dateCleared: item.dateCleared,
-      academicYear: item.academicYear,
-      semester: item.semester,
-      historical: true,
-    });
+    try {
+      downloadClearanceSlip({
+        student,
+        offices: item.signatures,
+        referenceNumber,
+        dateCleared: item.dateCleared,
+        academicYear: item.academicYear,
+        semester: item.semester,
+        historical: true,
+      });
+      showSuccess("Clearance slip downloaded", `${item.semester} · ${item.academicYear}`);
+    } catch {
+      showError("Download failed", "We could not create the file. Please try again.");
+    }
   }
 
   return (
@@ -165,8 +171,7 @@ function HistoryRow({ item, open, panelId, onToggle, onDownload }: HistoryRowPro
           </span>
         </td>
         <td className="px-3 py-3.5 sm:px-5">
-          <Badge tone="success" className="shadow-xs">
-            <CheckCircle2 className="h-3 w-3" aria-hidden />
+          <Badge tone="success" size="sm" className="shadow-xs">
             {item.status}
           </Badge>
         </td>

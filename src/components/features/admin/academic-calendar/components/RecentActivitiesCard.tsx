@@ -2,10 +2,14 @@ import { Eraser, History } from "lucide-react";
 import { cn } from "@/lib/cn";
 import {
   ACTIVITY_META,
-  STATUS_META,
   type CalendarActivity,
 } from "../data/academicCalendar";
-import { CalendarEmptyState, SectionCard, ghostButtonClass } from "./CalendarPieces";
+import {
+  CalendarEmptyState,
+  SectionCard,
+  StatusBadge,
+  ghostButtonClass,
+} from "./CalendarPieces";
 
 type RecentActivitiesCardProps = {
   activities: CalendarActivity[];
@@ -83,14 +87,7 @@ export function RecentActivitiesCard({ activities, onClear }: RecentActivitiesCa
                   </p>
                 </div>
                 {activity.status && (
-                  <span
-                    className={cn(
-                      "mt-0.5 shrink-0 rounded-full border px-2 py-0.5 font-poppins text-[10px] font-bold",
-                      STATUS_META[activity.status].badgeClass,
-                    )}
-                  >
-                    {STATUS_META[activity.status].label}
-                  </span>
+                  <StatusBadge status={activity.status} size="sm" className="mt-0.5" />
                 )}
               </li>
             );

@@ -158,7 +158,7 @@ export function NotificationBell({
     notifications.forEach((notification) => knownIds.current?.add(notification.id));
     if (open || fresh.length === 0) return;
 
-    const newest = fresh.find((notification) => !notification.read);
+    const newest = fresh.find((notification) => !notification.read && !notification.local);
     if (!newest) return;
     if (Date.now() - new Date(newest.createdAt).getTime() > TOAST_FRESHNESS_MS) return;
     toast(newest.message, newest.type);

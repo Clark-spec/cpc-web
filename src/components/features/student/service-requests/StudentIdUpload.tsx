@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import {
   ACCEPTED_DOCUMENT_LABEL,
@@ -125,14 +125,15 @@ function FileCard({
   disabled: boolean;
   onRemove: () => void;
 }) {
-  const [preview, setPreview] = useState<string | null>(null);
+  const preview = useMemo(
+    () => (file.type.startsWith("image/") ? URL.createObjectURL(file) : null),
+    [file],
+  );
 
   useEffect(() => {
-    if (!file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
 
   return (
     <li className="relative overflow-hidden rounded-[10px] border border-sr-border bg-white">

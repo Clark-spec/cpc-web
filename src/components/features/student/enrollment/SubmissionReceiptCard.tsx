@@ -2,11 +2,17 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { formatEnrollmentDateTime } from "@/components/features/student/enrollment/format";
 import { NextStepsList } from "@/components/features/student/enrollment/NextStepsList";
+import { readEnrollmentSubmission } from "@/components/features/student/enrollment/submission";
 
 /** Success receipt: reference number, submission time, next steps, and actions. */
 export function SubmissionReceiptCard() {
-  const [referenceNumber] = useState(() => "ENR2026-" + Math.floor(Math.random() * 90000 + 10000));
-  const [submissionDate] = useState(() => formatEnrollmentDateTime(new Date()));
+  const [submission] = useState(readEnrollmentSubmission);
+  const [referenceNumber] = useState(
+    () => submission?.referenceNumber ?? "ENR2026-" + Math.floor(Math.random() * 90000 + 10000),
+  );
+  const [submissionDate] = useState(() =>
+    formatEnrollmentDateTime(submission ? new Date(submission.submittedAt) : new Date()),
+  );
 
   return (
     <div className="enroll-card p-8 text-center">

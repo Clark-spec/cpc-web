@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "@/components/context/useAuth";
-import { ToastProvider } from "@/components/ui/toast";
 import { NotificationProvider } from "@/components/context/NotificationContext";
 
 /**
@@ -17,11 +16,7 @@ export function RequireStudent({ children }: { children?: ReactNode }) {
 
   const content = children ? <>{children}</> : <Outlet />;
 
-  return (
-    <ToastProvider>
-      <NotificationProvider>{content}</NotificationProvider>
-    </ToastProvider>
-  );
+  return <NotificationProvider>{content}</NotificationProvider>;
 }
 
 

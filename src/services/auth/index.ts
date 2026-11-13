@@ -7,7 +7,8 @@
  *   3. After login, refresh the CSRF token (cookies changed)
  *   4. Logout likewise needs a fresh CSRF token
  */
-import { apiClient, ApiError } from "@/lib/apiClient";
+import { apiClient, ApiError, type NoRefreshConfig } from "@/lib/apiClient";
+import type { AxiosRequestConfig } from "axios";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -78,7 +79,8 @@ export async function loginApi(payload: LoginPayload): Promise<LoginResult> {
   const response = await apiClient.post<ApiEnvelope<LoginResult>>(
     "/auth/v1/login",
     { identifier: payload.identifier, password: payload.password },
-    { headers: { "x-csrf-token": csrf } },
+    { headers: { "x-csrf-token": csrf }, skipAuthRefresh: true } as AxiosRequestConfig &
+      NoRefreshConfig,
   );
 
   const data = response.data?.data;

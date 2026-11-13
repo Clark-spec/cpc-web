@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, Info, X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { SaoEvent } from "@/types/clearance";
 
@@ -112,13 +112,11 @@ export function EventsTable({ events }: EventsTableProps) {
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     {event.attended ? (
-                      <Badge tone="success">
-                        <CheckCircle2 className="h-3 w-3" aria-hidden />
+                      <Badge tone="success" size="sm">
                         Attended
                       </Badge>
                     ) : (
-                      <Badge tone="warning">
-                        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      <Badge tone="warning" size="sm" pulse>
                         Pending
                       </Badge>
                     )}

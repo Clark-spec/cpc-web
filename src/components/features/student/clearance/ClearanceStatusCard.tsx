@@ -1,4 +1,3 @@
-import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useClearance } from "@/components/features/student/clearance/ClearanceContext";
 import { useClearanceProgress } from "@/components/features/student/clearance/useClearanceProgress";
@@ -25,13 +24,11 @@ export function ClearanceStatusCard() {
           </div>
           <div className="shrink-0">
             {isCleared ? (
-              <Badge tone="success" className="gap-1.5 px-3 py-1 text-xs shadow-2xs">
-                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+              <Badge tone="success" size="md" className="shadow-2xs">
                 Cleared
               </Badge>
             ) : (
-              <Badge tone="warning" className="gap-1.5 px-3 py-1 text-xs shadow-2xs">
-                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" aria-hidden />
+              <Badge tone="info" size="md" pulse className="shadow-2xs">
                 In Progress
               </Badge>
             )}

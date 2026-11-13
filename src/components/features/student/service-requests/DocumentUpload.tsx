@@ -1,5 +1,6 @@
 import { useId, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { Badge } from "@/components/ui/badge";
 import {
   ACCEPTED_DOCUMENT_LABEL,
   ACCEPTED_DOCUMENT_TYPES,
@@ -110,16 +111,9 @@ export function DocumentUpload({
               </p>
             </div>
 
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 font-poppins text-[10px] font-semibold",
-                file
-                  ? "border-[#C4EBD9] bg-[#E3F7EE] text-[#1E8A57]"
-                  : "border-[#CFE0FF] bg-[#E8F1FF] text-[#2F5FD0]",
-              )}
-            >
+            <Badge tone={file ? "success" : "info"} size="sm">
               {file ? "Ready" : "Saved draft"}
-            </span>
+            </Badge>
 
             <div className="flex items-center gap-2">
               <button
