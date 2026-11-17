@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/modal";
 import { CATEGORY_META, type AcademicEvent } from "@/components/features/student/academic-calendar/academicCalendar";
 import { formatDayLabel, formatTime, sortEvents } from "@/components/features/student/academic-calendar/calendar";
 import { CategoryBadge } from "@/components/features/student/academic-calendar/CategoryBadge";
+import { CancelledBadge } from "@/components/features/student/academic-calendar/CancelledBadge";
 
 type DayEventsModalProps = {
   date: Date | null;
@@ -67,10 +68,16 @@ export function DayEventsModal({ date, events, onClose, onOpenEvent }: DayEvents
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-poppins text-[11px] leading-tight font-semibold text-ac-text">
+                        <span
+                          className={cn(
+                            "font-poppins text-[11px] leading-tight font-semibold text-ac-text",
+                            event.cancelled && "line-through opacity-80",
+                          )}
+                        >
                           {event.title}
                         </span>
                         <CategoryBadge category={event.category} />
+                        {event.cancelled && <CancelledBadge />}
                       </span>
                       <span className="mt-1 flex items-center gap-1 font-poppins text-[9px] text-ac-muted">
                         <Clock className="h-2.5 w-2.5" aria-hidden />

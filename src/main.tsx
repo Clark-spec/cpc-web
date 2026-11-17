@@ -40,7 +40,11 @@ import { createAppRouter } from "@/lib/router";
 import AuthLayout from "@/pages/auth/layout";
 import StudentLoginPage from "@/pages/auth/student";
 import StaffLoginPage from "@/pages/auth/staff";
-import { AdminLoginRoute, AdminShell } from "@/components/context/AdminShell";
+import {
+  AdminLoginRoute,
+  AdminShell,
+  RequireAdminRole,
+} from "@/components/context/AdminShell";
 import { RequireStudent } from "@/components/context/RequireStudent";
 import { ProtectedEnrollment } from "@/components/context/ProtectedEnrollment";
 import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
@@ -68,6 +72,15 @@ import StudentProfilePage from "@/pages/student/profile";
 import OnlineComplaintPage from "@/pages/student/online-complaint";
 import ComplaintStatusPage from "@/pages/student/complaint-status";
 
+/** Staff roles that can open Academics › Academic Calendar. */
+const ACADEMIC_CALENDAR_ROLES = [
+  "admin",
+  "registrar",
+  "dean_cs",
+  "dean_edu",
+  "dean_hm",
+] as const;
+
 export function AppRoutes() {
   return (
     <Routes>
@@ -93,7 +106,11 @@ export function AppRoutes() {
         />
         <Route
           path="academics/academic-calendar"
-          element={<AcademicCalendarAdminPage />}
+          element={
+            <RequireAdminRole roles={ACADEMIC_CALENDAR_ROLES}>
+              <AcademicCalendarAdminPage />
+            </RequireAdminRole>
+          }
         />
         <Route
           path="enrollment/applications"

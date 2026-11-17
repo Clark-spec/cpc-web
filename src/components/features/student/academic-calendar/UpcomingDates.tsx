@@ -10,6 +10,7 @@ import {
 } from "@/components/features/student/academic-calendar/calendar";
 import { CardListSkeleton } from "@/components/features/student/academic-calendar/CalendarSkeletons";
 import { CategoryBadge } from "@/components/features/student/academic-calendar/CategoryBadge";
+import { CancelledBadge } from "@/components/features/student/academic-calendar/CancelledBadge";
 
 type UpcomingDatesProps = {
   events: AcademicEvent[];
@@ -94,10 +95,16 @@ export function UpcomingDates({
 
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                        <span className="font-poppins text-xs leading-tight font-semibold text-ac-text">
+                        <span
+                          className={cn(
+                            "font-poppins text-xs leading-tight font-semibold text-ac-text",
+                            event.cancelled && "line-through opacity-80",
+                          )}
+                        >
                           {event.title}
                         </span>
                         <CategoryBadge category={event.category} />
+                        {event.cancelled && <CancelledBadge />}
                       </span>
                       <span className="mt-1 block font-poppins text-[10px] text-ac-muted">
                         {formatEventDateShort(event)} · {formatTime(event)}

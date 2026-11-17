@@ -15,6 +15,7 @@ type SseEventHandler = (type: string, data: unknown) => void;
  *   - `notification_updated`    when the notification feed changes
  *   - `notification_created`    when a new notification is delivered
  *   - `complaint_updated`       when a complaint's status changes
+ *   - `academic_calendar_updated` when a published calendar event changes
  *
  * @param onEvent  Stable callback — wrap in useCallback to prevent reconnects.
  * @param enabled  Pass `false` to skip connecting (e.g. user is not logged in).
@@ -41,6 +42,7 @@ export function useSSE(onEvent: SseEventHandler, enabled = true) {
         "notification_updated",
         "notification_created",
         "complaint_updated",
+        "academic_calendar_updated",
       ] as const;
 
       for (const type of eventTypes) {

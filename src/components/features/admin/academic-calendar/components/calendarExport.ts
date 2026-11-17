@@ -159,8 +159,8 @@ export function printEvents(
     <tbody>${rows || '<tr><td colspan="4">No events match the current filters.</td></tr>'}</tbody>
   </table>
   <footer>
-    Frontend demo printout. Publication status and event records live in this browser session only
-    and are not official institutional records.
+    Generated from the CPC academic calendar. Published events are visible to students; drafts and
+    archived records are staff-only.
   </footer>
 </body>
 </html>`;

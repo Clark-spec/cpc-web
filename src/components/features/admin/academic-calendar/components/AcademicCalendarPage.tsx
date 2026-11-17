@@ -1,8 +1,17 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { CalendarPlus, CalendarRange } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { PageBanner } from "@/components/common/display/PageBanner";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
+import { ErrorCard } from "@/components/common/feedback/ErrorCard";
+import { describeApiError } from "@/lib/feedback";
+import {
+  createAdminCalendarEvent,
+  deleteAdminCalendarEvent,
+  listAdminCalendarEvents,
+  setAdminCalendarEventStatus,
+  updateAdminCalendarEvent,
+} from "@/services/academicCalendar/admin";
 import { AcademicPeriodBar } from "./AcademicPeriodBar";
 import { CalendarStatCards } from "./CalendarStatCards";
 import { CalendarQuickActions } from "./CalendarQuickActions";
@@ -26,7 +35,6 @@ import { downloadEventsCsv, printEvents } from "./calendarExport";
 import { primaryButtonClass } from "./CalendarPieces";
 import {
   CATEGORY_META,
-  SAMPLE_EVENTS,
   STATUS_META,
   addDays,
   addMonths,
@@ -71,14 +79,16 @@ function scrollToSection(id: string) {
 }
 
 /**
- * Admin Academic Calendar dashboard. Frontend only: one local event array feeds
- * the statistics, calendar, deadline monitor, publication queue, management
- * table, and activity log; every action mutates that shared state.
+ * Admin Academic Calendar dashboard. One API-backed event array feeds the
+ * statistics, calendar, deadline monitor, publication queue, management table,
+ * and activity log; every action writes through the calendar API.
  */
 export default function AcademicCalendarPage() {
   const { toast } = useToast();
 
-  const [events, setEvents] = useState<AdminCalendarEvent[]>(() => SAMPLE_EVENTS);
+  const [events, setEvents] = useState<AdminCalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activities, setActivities] = useState<CalendarActivity[]>([]);
   const [year, setYear] = useState<AcademicYear>(DEFAULT_YEAR);
   const [semester, setSemester] = useState<Semester | "All Semesters">(DEFAULT_SEMESTER);
@@ -89,6 +99,50 @@ export default function AcademicCalendarPage() {
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [dayOpen, setDayOpen] = useState<Date | null>(null);
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setEvents(await listAdminCalendarEvents());
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error && loadError.message
+          ? loadError.message
+          : "We couldn't load the academic calendar. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadInitialData() {
+      try {
+        const data = await listAdminCalendarEvents();
+        if (!active) return;
+        setEvents(data);
+        setError(null);
+      } catch (loadError) {
+        if (active) {
+          setError(
+            loadError instanceof Error && loadError.message
+              ? loadError.message
+              : "We couldn't load the academic calendar. Please try again.",
+          );
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadInitialData();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const periodEvents = useMemo(
     () =>
@@ -146,110 +200,126 @@ export default function AcademicCalendarPage() {
     setForm({ editing: event, nonce: Date.now() });
   };
 
-  const handleSave = (event: AdminCalendarEvent, mode: SaveMode) => {
+  const handleSave = async (event: AdminCalendarEvent, mode: SaveMode) => {
     const existing = events.find((entry) => entry.id === event.id);
+
+    let saved: AdminCalendarEvent;
+    try {
+      saved = existing
+        ? await updateAdminCalendarEvent(existing.id, event)
+        : await createAdminCalendarEvent(event);
+    } catch (saveError) {
+      toast(describeApiError(saveError).message, "error");
+      return;
+    }
 
     setEvents((current) =>
       existing
-        ? current.map((entry) => (entry.id === event.id ? event : entry))
-        : [...current, event],
+        ? current.map((entry) => (entry.id === saved.id ? saved : entry))
+        : [...current, saved],
     );
 
     if (existing) {
-      if (existing.startDate !== event.startDate) {
+      if (existing.startDate !== saved.startDate) {
         logActivity(
           "moved",
-          event,
+          saved,
           `Moved from ${formatDateShort(parseDateKey(existing.startDate))} to ${formatDateShort(
-            parseDateKey(event.startDate),
+            parseDateKey(saved.startDate),
           )}`,
-          event.status,
+          saved.status,
         );
       } else {
         logActivity(
           "updated",
-          event,
-          `Saved as ${STATUS_META[event.status].label.toLowerCase()}`,
-          event.status,
+          saved,
+          `Saved as ${STATUS_META[saved.status].label.toLowerCase()}`,
+          saved.status,
         );
       }
     } else {
       logActivity(
         "created",
-        event,
-        `${CATEGORY_META[event.category].label} · ${eventDateRange(event)}`,
-        event.status,
+        saved,
+        `${CATEGORY_META[saved.category].label} · ${eventDateRange(saved)}`,
+        saved.status,
       );
     }
 
     setForm(null);
     toast(
       existing
-        ? `"${event.title}" updated.`
-        : `"${event.title}" added to the academic calendar${mode === "draft" ? " as a draft" : ""}.`,
+        ? `"${saved.title}" updated.`
+        : `"${saved.title}" added to the academic calendar${mode === "draft" ? " as a draft" : ""}.`,
       "success",
     );
 
-    if (existing && existing.status !== event.status && event.status === "published") {
-      logActivity("published", event, "Marked visible to students", "published");
+    if (existing && existing.status !== saved.status && saved.status === "published") {
+      logActivity("published", saved, "Marked visible to students", "published");
     }
   };
 
-  const applyStatus = (
+  const applyStatus = async (
     event: AdminCalendarEvent,
     status: AdminCalendarEvent["status"],
     action: CalendarActivityAction,
     detail: string,
-  ) => {
-    setEvents((current) =>
-      current.map((entry) =>
-        entry.id === event.id ? { ...entry, status, updatedAt: new Date().toISOString() } : entry,
-      ),
-    );
-    logActivity(action, event, detail, status);
+  ): Promise<boolean> => {
+    try {
+      const updated = await setAdminCalendarEventStatus(event.id, status);
+      setEvents((current) =>
+        current.map((entry) => (entry.id === updated.id ? updated : entry)),
+      );
+      logActivity(action, updated, detail, status);
+      return true;
+    } catch (statusError) {
+      toast(describeApiError(statusError).message, "error");
+      return false;
+    }
   };
 
-  const publishEvent = (event: AdminCalendarEvent) => {
+  const publishEvent = async (event: AdminCalendarEvent) => {
     if (event.status === "published") return;
-    applyStatus(event, "published", "published", "Marked visible to students");
+    if (!(await applyStatus(event, "published", "published", "Marked visible to students"))) return;
     toast(`"${event.title}" is now published.`, "success");
   };
 
-  const unpublishEvent = (event: AdminCalendarEvent) => {
+  const unpublishEvent = async (event: AdminCalendarEvent) => {
     if (event.status !== "published") return;
-    applyStatus(event, "draft", "unpublished", "Returned to draft");
+    if (!(await applyStatus(event, "draft", "unpublished", "Returned to draft"))) return;
     toast(`"${event.title}" moved back to draft.`, "info");
   };
 
-  const archiveEvent = (event: AdminCalendarEvent) => {
+  const archiveEvent = async (event: AdminCalendarEvent) => {
     if (event.status === "archived") {
-      applyStatus(event, "draft", "restored", "Restored from archive as a draft");
+      if (!(await applyStatus(event, "draft", "restored", "Restored from archive as a draft"))) return;
       toast(`"${event.title}" restored as a draft.`, "success");
       return;
     }
-    applyStatus(event, "archived", "archived", "Removed from the active calendar");
+    if (!(await applyStatus(event, "archived", "archived", "Removed from the active calendar"))) return;
     toast(`"${event.title}" archived.`, "info");
   };
 
   const handleTogglePublish = (event: AdminCalendarEvent) => {
-    if (event.status === "published") unpublishEvent(event);
-    else publishEvent(event);
+    if (event.status === "published") void unpublishEvent(event);
+    else void publishEvent(event);
   };
 
   const handleDetailAction = (action: EventDetailAction, event: AdminCalendarEvent) => {
     switch (action) {
       case "publish":
-        publishEvent(event);
+        void publishEvent(event);
         break;
       case "unpublish":
-        unpublishEvent(event);
+        void unpublishEvent(event);
         break;
       case "archive":
-        archiveEvent(event);
+        void archiveEvent(event);
         break;
       case "restore":
-        applyStatus(event, "draft", "restored", "Restored as a draft");
-        toast(`"${event.title}" restored as a draft.`, "success");
+        void applyStatus(event, "draft", "restored", "Restored as a draft").then((ok) => {
+          if (ok) toast(`"${event.title}" restored as a draft.`, "success");
+        });
         break;
       case "cancel":
         setPendingConfirm({ kind: "cancel", event });
@@ -344,11 +414,18 @@ export default function AcademicCalendarPage() {
     setPendingConfirm({ kind: "publish-all", count: drafts.length });
   };
 
-  const confirmPending = () => {
+  const confirmPending = async () => {
     if (!pendingConfirm) return;
 
     if (pendingConfirm.kind === "delete") {
       const event = pendingConfirm.event;
+      try {
+        await deleteAdminCalendarEvent(event.id);
+      } catch (deleteError) {
+        toast(describeApiError(deleteError).message, "error");
+        setPendingConfirm(null);
+        return;
+      }
       setEvents((current) => current.filter((entry) => entry.id !== event.id));
       setViewingId((current) => (current === event.id ? null : current));
       logActivity("deleted", event, "Removed from the calendar", undefined);
@@ -357,23 +434,29 @@ export default function AcademicCalendarPage() {
 
     if (pendingConfirm.kind === "cancel") {
       const event = pendingConfirm.event;
-      applyStatus(event, "cancelled", "cancelled", "Event will not take place");
-      toast(`"${event.title}" marked as cancelled.`, "warning");
+      if (await applyStatus(event, "cancelled", "cancelled", "Event will not take place")) {
+        toast(`"${event.title}" marked as cancelled.`, "warning");
+      }
     }
 
     if (pendingConfirm.kind === "publish-all") {
       const drafts = periodEvents.filter((event) => event.status === "draft");
-      setEvents((current) =>
-        current.map((entry) =>
-          drafts.some((draft) => draft.id === entry.id)
-            ? { ...entry, status: "published", updatedAt: new Date().toISOString() }
-            : entry,
-        ),
-      );
-      drafts.forEach((event) =>
-        logActivity("published", event, "Published from the bulk publish action", "published"),
-      );
-      toast(`${drafts.length} draft event${drafts.length === 1 ? "" : "s"} published.`, "success");
+      try {
+        await Promise.all(
+          drafts.map((event) => setAdminCalendarEventStatus(event.id, "published")),
+        );
+        drafts.forEach((event) =>
+          logActivity("published", event, "Published from the bulk publish action", "published"),
+        );
+        toast(
+          `${drafts.length} draft event${drafts.length === 1 ? "" : "s"} published.`,
+          "success",
+        );
+        await reload();
+      } catch (publishError) {
+        toast(describeApiError(publishError).message, "error");
+        await reload();
+      }
     }
 
     setPendingConfirm(null);
@@ -389,8 +472,8 @@ export default function AcademicCalendarPage() {
         description: (
           <>
             <span className="font-semibold text-cpc-navy-text">{pendingConfirm.event.title}</span> will
-            be removed from the demo calendar. Statistics, deadlines, and publication counts update
-            immediately. This cannot be undone in this session.
+            be removed from the academic calendar. Statistics, deadlines, and publication counts
+            update immediately. This cannot be undone.
           </>
         ),
         confirmLabel: "Delete Event",
@@ -416,8 +499,8 @@ export default function AcademicCalendarPage() {
       description: (
         <>
           {pendingConfirm.count} draft event{pendingConfirm.count === 1 ? "" : "s"} in A.Y. {year} ·{" "}
-          {semester} will be marked as published for the student calendar preview. Pending-review
-          events are not changed.
+          {semester} will be marked as published for the student calendar. Pending-review events
+          are not changed.
         </>
       ),
       confirmLabel: "Publish Drafts",
@@ -448,6 +531,18 @@ export default function AcademicCalendarPage() {
           </div>
         }
       />
+
+      {error ? <ErrorCard message={error} onRetry={() => void reload()} /> : null}
+
+      {loading ? (
+        <p
+          role="status"
+          className="flex items-center gap-2 rounded-xl border border-cpc-tile-border bg-white/70 px-3.5 py-2.5 font-poppins text-xs text-cpc-heading-soft"
+        >
+          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-cpc-blue-accent/30 border-t-cpc-blue-accent" aria-hidden />
+          Loading calendar events…
+        </p>
+      ) : null}
 
       <AcademicPeriodBar
         year={year}
@@ -572,9 +667,9 @@ export default function AcademicCalendarPage() {
       <RecentActivitiesCard activities={activities} onClear={() => setActivities([])} />
 
       <p className="px-1 pb-1 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
-        Frontend preview for A.Y. {year} · {semester}. All {events.length} records are illustrative
-        sample data. Changes stay in this browser session and are never written to a server,
-        database, or API. Publication status only affects this demo calendar.
+        A.Y. {year} · {semester}. {events.length} events are loaded from the academic calendar API.
+        Publishing an event makes it visible on the student calendar immediately; drafts, archived,
+        and cancelled events stay hidden from students.
       </p>
 
       {form && (

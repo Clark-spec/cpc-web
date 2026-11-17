@@ -75,20 +75,25 @@ export function MonthView({ monthDate, events, onOpenEvent, onOpenDay }: MonthVi
                         key={event.id}
                         type="button"
                         onClick={() => onOpenEvent(event)}
-                        title={`${event.title} · ${meta.label}`}
-                        style={{ borderLeftColor: meta.color }}
+                        title={`${event.title} · ${event.cancelled ? "Cancelled" : meta.label}`}
+                        style={{ borderLeftColor: event.cancelled ? "#E11D48" : meta.color }}
                         className={cn(
                           "flex w-full min-w-0 items-center gap-1 rounded-md border border-l-2 px-1.5 py-1 text-left font-poppins text-[10px] leading-tight font-semibold transition-colors hover:brightness-[0.97] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cpc-blue-accent sm:text-[10.5px]",
-                          meta.softClass,
-                          meta.borderClass,
-                          meta.textClass,
+                          event.cancelled
+                            ? "border-rose-200 bg-rose-50 text-rose-700"
+                            : cn(meta.softClass, meta.borderClass, meta.textClass),
                         )}
                       >
                         <span
-                          className={cn("h-2 w-2 shrink-0 rounded-full", meta.dotClass)}
+                          className={cn(
+                            "h-2 w-2 shrink-0 rounded-full",
+                            event.cancelled ? "bg-rose-500" : meta.dotClass,
+                          )}
                           aria-hidden
                         />
-                        <span className="truncate">{eventShortTitle(event)}</span>
+                        <span className={cn("truncate", event.cancelled && "line-through")}>
+                          {eventShortTitle(event)}
+                        </span>
                       </button>
                     );
                   })}

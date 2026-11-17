@@ -8,6 +8,7 @@ import {
   parseDateKey,
 } from "@/components/features/student/academic-calendar/calendar";
 import { CategoryBadge } from "@/components/features/student/academic-calendar/CategoryBadge";
+import { CancelledBadge } from "@/components/features/student/academic-calendar/CancelledBadge";
 
 type ListViewProps = {
   events: AcademicEvent[];
@@ -86,10 +87,16 @@ export function ListView({ events, monthDate, onOpenEvent }: ListViewProps) {
 
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="font-poppins text-[13px] leading-tight font-semibold text-cpc-navy-text">
+                    <span
+                      className={cn(
+                        "font-poppins text-[13px] leading-tight font-semibold text-cpc-navy-text",
+                        event.cancelled && "line-through opacity-80",
+                      )}
+                    >
                       {event.title}
                     </span>
                     <CategoryBadge category={event.category} />
+                    {event.cancelled && <CancelledBadge />}
                   </span>
                   <span className="mt-0.5 block font-poppins text-[11px] text-cpc-heading-soft">
                     {formatEventDate(event)} · {formatTime(event)}

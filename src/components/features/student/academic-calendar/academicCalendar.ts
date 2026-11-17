@@ -31,6 +31,8 @@ export type AcademicEvent = {
   start: string;
   /** Inclusive end date for multi-day events, `YYYY-MM-DD`. */
   end?: string;
+  /** Cancelled by an administrator; still listed so students can see it. */
+  cancelled?: boolean;
   allDay?: boolean;
   time?: string;
   location?: string;

@@ -1,4 +1,5 @@
 import {
+  Ban,
   BellRing,
   CalendarDays,
   Clock,
@@ -9,6 +10,7 @@ import { cn } from "@/lib/cn";
 import { Modal } from "@/components/ui/modal";
 import { CATEGORY_META, type AcademicEvent } from "@/components/features/student/academic-calendar/academicCalendar";
 import { formatEventDate, formatTime, parseDateKey } from "@/components/features/student/academic-calendar/calendar";
+import { CancelledBadge } from "@/components/features/student/academic-calendar/CancelledBadge";
 
 type EventDetailsModalProps = {
   event: AcademicEvent | null;
@@ -25,19 +27,25 @@ export function EventDetailsModal({ event, onClose, onViewDay }: EventDetailsMod
   return (
     <Modal open onClose={onClose} labelledBy="ac-event-title" className="sm:max-w-md">
       <div className={cn("border-b border-ac-border px-5 py-4 pr-12", meta.softClass)}>
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border bg-white/80 px-2 py-0.5 font-poppins text-[9px] font-semibold",
-            meta.borderClass,
-            meta.textClass,
-          )}
-        >
-          <Icon className="h-3 w-3" aria-hidden />
-          {meta.label}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border bg-white/80 px-2 py-0.5 font-poppins text-[9px] font-semibold",
+              meta.borderClass,
+              meta.textClass,
+            )}
+          >
+            <Icon className="h-3 w-3" aria-hidden />
+            {meta.label}
+          </span>
+          {event.cancelled && <CancelledBadge />}
+        </div>
         <h2
           id="ac-event-title"
-          className="mt-2 font-poppins text-[17px] leading-snug font-bold text-ac-text"
+          className={cn(
+            "mt-2 font-poppins text-[17px] leading-snug font-bold text-ac-text",
+            event.cancelled && "line-through opacity-80",
+          )}
         >
           {event.title}
         </h2>
@@ -87,6 +95,16 @@ export function EventDetailsModal({ event, onClose, onViewDay }: EventDetailsMod
         <p className="font-poppins text-[11px] leading-relaxed text-ac-muted">
           {event.description}
         </p>
+
+        {event.cancelled && (
+          <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-2.5">
+            <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-600" aria-hidden />
+            <p className="font-poppins text-[10px] leading-relaxed font-medium text-rose-700">
+              This event has been cancelled by the administrator. It stays on the calendar for your
+              reference.
+            </p>
+          </div>
+        )}
 
         {event.reminder && event.reminderNote && (
           <div className="flex items-start gap-2 rounded-lg border border-ac-deadline/25 bg-ac-deadline-soft p-2.5">

@@ -230,8 +230,8 @@ export function EventFormModal({
             {editing ? editing.title : "Create a new calendar event"}
           </h2>
           <p className="mt-1 font-poppins text-xs leading-relaxed text-cpc-heading-soft">
-            Changes are saved to the in-browser demo calendar only. Required fields are marked with
-            an asterisk.
+            Changes are saved to the academic calendar. Required fields are marked with an
+            asterisk.
           </p>
         </div>
 
@@ -615,7 +615,7 @@ export function EventFormModal({
 
         <div className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-cpc-tile-border/60 bg-white/95 px-5 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
           <p className="font-poppins text-[11px] text-cpc-heading-soft">
-            Frontend demo only — nothing is sent to a server.
+            Saved to the academic calendar API.
           </p>
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <button type="button" onClick={onClose} className={secondaryButtonClass()}>

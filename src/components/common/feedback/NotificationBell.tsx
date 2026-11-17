@@ -19,6 +19,14 @@ const DEFAULT_TYPE_ICONS: Record<NotificationType, LucideIcon> = {
 const MOBILE_QUERY = "(max-width: 639px)";
 const TOAST_FRESHNESS_MS = 2 * 60_000;
 
+/**
+ * Calendar pushes refresh the calendar in place; a floating toast on top of
+ * the page is noise there, so those only update the badge.
+ */
+function isAmbientNotification(notification: AppNotification): boolean {
+  return notification.href?.startsWith("/academics/academic-calendar") ?? false;
+}
+
 /** The panel becomes a bottom sheet below the `sm` breakpoint. */
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
@@ -158,7 +166,10 @@ export function NotificationBell({
     notifications.forEach((notification) => knownIds.current?.add(notification.id));
     if (open || fresh.length === 0) return;
 
-    const newest = fresh.find((notification) => !notification.read && !notification.local);
+    const newest = fresh.find(
+      (notification) =>
+        !notification.read && !notification.local && !isAmbientNotification(notification),
+    );
     if (!newest) return;
     if (Date.now() - new Date(newest.createdAt).getTime() > TOAST_FRESHNESS_MS) return;
     toast(newest.message, newest.type);

@@ -4,6 +4,7 @@ import { CATEGORY_META, type AcademicEvent } from "@/components/features/student
 import { formatEventDateShort } from "@/components/features/student/academic-calendar/calendar";
 import { CardListSkeleton } from "@/components/features/student/academic-calendar/CalendarSkeletons";
 import { CategoryBadge } from "@/components/features/student/academic-calendar/CategoryBadge";
+import { CancelledBadge } from "@/components/features/student/academic-calendar/CancelledBadge";
 
 type KeyAcademicDatesProps = {
   dates: AcademicEvent[];
@@ -65,7 +66,12 @@ export function KeyAcademicDates({
                       <Icon className={cn("h-3.5 w-3.5", meta.textClass)} aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-poppins text-xs leading-tight font-semibold text-ac-text">
+                      <span
+                        className={cn(
+                          "block font-poppins text-xs leading-tight font-semibold text-ac-text",
+                          event.cancelled && "line-through opacity-80",
+                        )}
+                      >
                         {event.title}
                       </span>
                       <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
@@ -78,6 +84,7 @@ export function KeyAcademicDates({
                           {formatEventDateShort(event)}
                         </span>
                         <CategoryBadge category={event.category} />
+                        {event.cancelled && <CancelledBadge />}
                       </span>
                       <span className="mt-1 line-clamp-2 block font-poppins text-[10px] leading-relaxed text-ac-muted">
                         {event.description}

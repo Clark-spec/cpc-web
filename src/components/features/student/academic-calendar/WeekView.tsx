@@ -70,24 +70,40 @@ export function WeekView({ days, events, onOpenEvent, onOpenDay }: WeekViewProps
                         key={event.id}
                         type="button"
                         onClick={() => onOpenEvent(event)}
-                        title={event.title}
-                        style={{ borderLeftColor: meta.color }}
+                        title={`${event.title}${event.cancelled ? " · Cancelled" : ""}`}
+                        style={{ borderLeftColor: event.cancelled ? "#E11D48" : meta.color }}
                         className={cn(
                           "block w-full rounded-md border border-l-4 p-2 text-left transition-transform hover:-translate-y-px hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-cpc-blue-accent",
-                          meta.softClass,
-                          meta.borderClass,
+                          event.cancelled
+                            ? "border-rose-200 bg-rose-50"
+                            : cn(meta.softClass, meta.borderClass),
                         )}
                       >
                         <span
                           className={cn(
                             "block truncate font-poppins text-[9px] font-bold tracking-[0.06em] uppercase",
-                            meta.textClass,
+                            event.cancelled ? "text-rose-700" : meta.textClass,
                           )}
-                          title={event.allDay ? "All day" : (event.time ?? "TBA")}
+                          title={
+                            event.cancelled
+                              ? "Cancelled"
+                              : event.allDay
+                                ? "All day"
+                                : (event.time ?? "TBA")
+                          }
                         >
-                          {event.allDay ? "All day" : (event.time ?? "TBA")}
+                          {event.cancelled
+                            ? "Cancelled"
+                            : event.allDay
+                              ? "All day"
+                              : (event.time ?? "TBA")}
                         </span>
-                        <span className="mt-1 block font-poppins text-[10.5px] leading-tight font-semibold text-cpc-navy-text">
+                        <span
+                          className={cn(
+                            "mt-1 block font-poppins text-[10.5px] leading-tight font-semibold text-cpc-navy-text",
+                            event.cancelled && "line-through opacity-80",
+                          )}
+                        >
                           {event.title}
                         </span>
                       </button>

@@ -36,7 +36,7 @@ export function PublicationMonitor({
     <SectionCard
       id="publication-monitor"
       title="Publication and Draft Monitoring"
-      description="Visibility is local to this frontend preview, not a live student distribution."
+      description="Publishing an event makes it visible on the student calendar immediately."
       actions={
         <button type="button" onClick={onViewAllPending} className={ghostButtonClass()}>
           Review queue

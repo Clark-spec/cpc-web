@@ -253,7 +253,7 @@ export function EventManagementTable({
           <p className="font-poppins text-[11px] text-cpc-heading-soft">
             {activeFilterCount > 0
               ? `${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"} active`
-              : "Showing every event in the demo calendar."}
+              : "Showing every event in the academic calendar."}
           </p>
           <button
             type="button"

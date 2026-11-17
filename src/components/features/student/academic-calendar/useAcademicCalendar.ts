@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  CALENDAR_EVENTS,
   type AcademicEvent,
+  type CalendarCategory,
 } from "@/components/features/student/academic-calendar/academicCalendar";
 import {
   addDays,
@@ -15,8 +15,11 @@ import {
   startOfDay,
   startOfMonth,
 } from "@/components/features/student/academic-calendar/calendar";
+import { getPublishedCalendarEvents } from "@/services/academicCalendar/api";
+import { useSSE } from "@/hooks/useSSE";
 
 export type CalendarView = "month" | "week" | "list";
+export type CalendarCategoryFilter = CalendarCategory | "all";
 
 /** The single calendar state tree. `useAcademicCalendar` owns it, so it is called once per page. */
 export type AcademicCalendar = ReturnType<typeof useAcademicCalendar>;
@@ -40,18 +43,110 @@ export function useAcademicCalendar() {
   const [view, setView] = useState<CalendarView>("month");
   const [anchor, setAnchor] = useState<Date>(() => startOfDay(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<AcademicEvent | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [fullYearOpen, setFullYearOpen] = useState(false);
   const [fullYear, setFullYear] = useState(() => new Date().getFullYear());
+  const [allEvents, setAllEvents] = useState<AcademicEvent[]>([]);
+  const [category, setCategory] = useState<CalendarCategoryFilter>("all");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const loadedOnceRef = useRef(false);
 
-  /* Short simulated load so the skeleton state is visible on first paint. */
-  useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 420);
-    return () => window.clearTimeout(timer);
+  /** Re-fetches without the loading skeleton so the page never flashes. */
+  const refreshSilently = useCallback(async () => {
+    try {
+      setAllEvents(await getPublishedCalendarEvents());
+      setError(null);
+    } catch {
+      // Keep the current list; the next push or reload retries.
+    }
   }, []);
 
-  const events = CALENDAR_EVENTS;
+  // Admin saves/publishes arrive over SSE; `connected` also fires after a
+  // reconnect, so events missed while offline are pulled in automatically.
+  useSSE(
+    useCallback(
+      (type) => {
+        if (type === "academic_calendar_updated") {
+          void refreshSilently();
+        } else if (type === "connected" && loadedOnceRef.current) {
+          void refreshSilently();
+        }
+      },
+      [refreshSilently],
+    ),
+  );
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setAllEvents(await getPublishedCalendarEvents());
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error && loadError.message
+          ? loadError.message
+          : "We couldn't load the academic calendar. Please try again.",
+      );
+    } finally {
+      loadedOnceRef.current = true;
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadInitialData() {
+      try {
+        const data = await getPublishedCalendarEvents();
+        if (!active) return;
+        setAllEvents(data);
+        setError(null);
+      } catch (loadError) {
+        if (active) {
+          setError(
+            loadError instanceof Error && loadError.message
+              ? loadError.message
+              : "We couldn't load the academic calendar. Please try again.",
+          );
+        }
+      } finally {
+        if (active) {
+          loadedOnceRef.current = true;
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadInitialData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const events = useMemo(
+    () =>
+      category === "all"
+        ? allEvents
+        : allEvents.filter((event) => event.category === category),
+    [allEvents, category],
+  );
+
+  /** Derived so an open details modal reflects live updates (e.g. a cancellation). */
+  const selectedEvent = useMemo(
+    () => (selectedEventId ? (allEvents.find((event) => event.id === selectedEventId) ?? null) : null),
+    [allEvents, selectedEventId],
+  );
+
+  const categoryCounts = useMemo(
+    () =>
+      allEvents.reduce<Partial<Record<CalendarCategory, number>>>((counts, event) => {
+        counts[event.category] = (counts[event.category] ?? 0) + 1;
+        return counts;
+      }, {}),
+    [allEvents],
+  );
 
   const monthEvents = useMemo(() => eventsInMonth(events, anchor), [events, anchor]);
   const weekDays = useMemo(() => getWeekGrid(anchor), [anchor]);
@@ -130,8 +225,8 @@ export function useAcademicCalendar() {
 
   const openDay = (date: Date) => setSelectedDate(startOfDay(date));
   const closeDay = () => setSelectedDate(null);
-  const openEvent = (event: AcademicEvent) => setSelectedEvent(event);
-  const closeEvent = () => setSelectedEvent(null);
+  const openEvent = (event: AcademicEvent) => setSelectedEventId(event.id);
+  const closeEvent = () => setSelectedEventId(null);
 
   const openFullYear = () => {
     setFullYear(anchor.getFullYear());
@@ -145,8 +240,16 @@ export function useAcademicCalendar() {
     setFullYearOpen(false);
   };
 
+  const toggleCategory = (next: CalendarCategory) =>
+    setCategory((current) => (current === next ? "all" : next));
+
   return {
     events,
+    allEvents,
+    categoryCounts,
+    category,
+    setCategory,
+    toggleCategory,
     view,
     setView,
     anchor,
@@ -158,6 +261,8 @@ export function useAcademicCalendar() {
     upcoming,
     reminders,
     loading,
+    error,
+    reload,
     selectedDate,
     selectedEvent,
     fullYearOpen,

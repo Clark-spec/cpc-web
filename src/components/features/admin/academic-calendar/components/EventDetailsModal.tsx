@@ -157,8 +157,8 @@ export function EventDetailsModal({ event, onClose, onEdit, onAction }: EventDet
         </div>
 
         <p className="font-poppins text-[11px] leading-relaxed text-cpc-heading-soft">
-          Publication status is stored in local frontend state for this demo. It does not
-          distribute the event to student accounts through a backend.
+          Publication status is saved to the academic calendar API. Published events appear on the
+          student calendar immediately.
         </p>
       </div>
 
@@ -243,7 +243,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onAction }: EventDet
       {event.status === "draft" && (
         <div className="flex items-center gap-1.5 border-t border-cpc-tile-border/60 bg-white px-5 py-2 font-poppins text-[11px] text-cpc-heading-soft">
           <Eye className="h-3 w-3" aria-hidden />
-          Draft events are hidden from the student-facing calendar preview.
+          Draft events are hidden from the student calendar.
         </div>
       )}
     </Modal>
