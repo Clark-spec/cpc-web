@@ -8,7 +8,14 @@ import type {
 
 export const MY_SECTION: SectionId = "BSIT-3A";
 
-export const SECTION_IDS: SectionId[] = ["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D"];
+export const SECTION_IDS: SectionId[] = [
+  "BSIT-3A",
+  "BSIT-3B",
+  "BSIT-3C",
+  "BSIT-3D",
+  "BEED-2A",
+  "BSHM-1A",
+];
 
 export const SEMESTER = "1st Semester";
 export const ACADEMIC_YEAR = "2026-2027";
@@ -119,11 +126,25 @@ const BSIT_3D: ScheduleEntry[] = [
   slot("BSIT-3D", 8, { days: SAT, start: hm(16), end: hm(19), roomA: "LAB 2", roomB: "LAB 2", instructor: "A. Batoon", status: "not_active" }),
 ];
 
+const BEED_2A: ScheduleEntry[] = [
+  slot("BEED-2A", 3, { days: MWF, start: hm(8), end: hm(9), roomA: "301", roomB: "ONLINE", instructor: "J. Cadungog" }),
+  slot("BEED-2A", 0, { days: MWF, start: hm(9), end: hm(10), roomA: "301", roomB: "ONLINE", instructor: "M. Santos" }),
+  slot("BEED-2A", 5, { days: TTH, start: hm(10), end: hm(11, 30), roomA: "302", roomB: "ONLINE", instructor: "J. Cadungog" }),
+];
+
+const BSHM_1A: ScheduleEntry[] = [
+  slot("BSHM-1A", 7, { days: MWF, start: hm(10), end: hm(11), roomA: "TENT 1", roomB: "ONLINE", instructor: "A. Entrena" }),
+  slot("BSHM-1A", 1, { days: TTH, start: hm(13), end: hm(14, 30), roomA: "303", roomB: "ONLINE", instructor: "A. Entrena" }),
+  slot("BSHM-1A", 3, { days: SAT, start: hm(8), end: hm(11), roomA: "304", roomB: "ONLINE", instructor: "M. Santos" }),
+];
+
 export const SCHEDULES: SectionSchedule[] = [
   { section: "BSIT-3A", semester: SEMESTER, academicYear: ACADEMIC_YEAR, entries: BSIT_3A },
   { section: "BSIT-3B", semester: SEMESTER, academicYear: ACADEMIC_YEAR, entries: BSIT_3B },
   { section: "BSIT-3C", semester: SEMESTER, academicYear: ACADEMIC_YEAR, entries: BSIT_3C },
   { section: "BSIT-3D", semester: SEMESTER, academicYear: ACADEMIC_YEAR, entries: BSIT_3D },
+  { section: "BEED-2A", semester: SEMESTER, academicYear: ACADEMIC_YEAR, entries: BEED_2A },
+  { section: "BSHM-1A", semester: SEMESTER, academicYear: ACADEMIC_YEAR, entries: BSHM_1A },
 ];
 
 export function isSectionId(value: string | null | undefined): value is SectionId {

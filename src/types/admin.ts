@@ -68,7 +68,16 @@ export type ClearanceRequest = {
 
 export type TrendDirection = "up" | "down" | "flat";
 
-export type DashboardStatId = "enrollments" | "clearance" | "requests" | "complaints";
+export type DashboardStatId =
+  | "enrollments"
+  | "clearance"
+  | "requests"
+  | "complaints"
+  | "schedules"
+  | "signed"
+  | "rejected"
+  | "loads"
+  | "corrections";
 
 export type DashboardStat = {
   id: DashboardStatId;

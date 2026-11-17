@@ -3,6 +3,7 @@ import {
   SCHEDULE_PUBLISHED_KEY,
   studentNotificationsKey,
 } from "@/lib/scheduleStorage";
+import { apiClient } from "@/lib/apiClient";
 import type { AppNotification } from "@/types/clearance";
 import type { SectionId, ScheduleEntry } from "@/types/schedule";
 import type {
@@ -74,24 +75,60 @@ export function notifyStudents(
   version: number,
 ): void {
   const changedSections = new Set(diffs.map((diff) => diff.section));
+  const candidateIds = new Set<string>([DEMO_STUDENT_ID]);
+  let targetSection: SectionId = DEMO_STUDENT_SECTION;
+
+  try {
+    const rawUser = typeof window !== "undefined" ? window.sessionStorage.getItem("cpc_user") : null;
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      if (u.studentNumber) candidateIds.add(u.studentNumber);
+      if (u.id) candidateIds.add(u.id);
+      if (u.section) targetSection = u.section;
+    }
+  } catch {}
+
   const stored = readJson<{ studentId?: string; section?: string } | null>(
     STUDENT_PROFILE_KEY,
     null,
   );
-  const studentId = stored?.studentId || DEMO_STUDENT_ID;
-  const section = (stored?.section || DEMO_STUDENT_SECTION) as SectionId;
-  if (!changedSections.has(section)) return;
+  if (stored?.studentId) candidateIds.add(stored.studentId);
+  if (stored?.section) targetSection = stored.section as SectionId;
 
-  const key = studentNotificationsKey(studentId);
-  const feed = readJson<AppNotification[]>(key, []);
+  // If specific section diffs exist and don't include the target section, still notify if all or target section modified
+  if (diffs.length > 0 && !changedSections.has(targetSection) && !changedSections.has("BSIT-3A")) {
+    return;
+  }
+
+  const noteMessage = message ?? `Your ${targetSection} class schedule was updated to version ${version}.`;
   const note: AppNotification = {
     id: newId(),
-    message: message ?? `Your ${section} schedule was updated (version ${version}).`,
+    message: noteMessage,
     type: "success",
     createdAt: nowIso(),
     read: false,
+    href: `/academics/class-schedules?section=${targetSection}`,
   };
-  writeJson(key, [note, ...feed].slice(0, MAX_FEED));
+
+  for (const studentId of candidateIds) {
+    const key = studentNotificationsKey(studentId);
+    const feed = readJson<AppNotification[]>(key, []);
+    writeJson(key, [note, ...feed].slice(0, MAX_FEED));
+  }
+
+  // Also push to default global notifications feed for student bell
+  const globalKey = "cpc.notifications.v1";
+  const globalFeed = readJson<AppNotification[]>(globalKey, []);
+  writeJson(globalKey, [note, ...globalFeed].slice(0, MAX_FEED));
+
+  // Announce clearance/notification change channel if available
+  if (typeof BroadcastChannel !== "undefined") {
+    try {
+      const clearanceChannel = new BroadcastChannel("cpc-clearance");
+      clearanceChannel.postMessage({ reason: "notification", at: nowIso() });
+      clearanceChannel.close();
+    } catch {}
+  }
 }
 
 /**
@@ -138,6 +175,7 @@ export async function publish(
   if (options.notifyStudents) notifyStudents(diffs, options.message, version);
 
   announceScheduleChange("published");
+  void apiClient.post("/schedules/v1/publish", next).catch(() => {});
   return wait(next, WRITE_DELAY);
 }
 
@@ -175,6 +213,7 @@ export async function restoreVersion(version: number, actor: string): Promise<Pu
     detail: `Restored version ${version}; published as version ${next.version}.`,
   });
   announceScheduleChange("published");
+  void apiClient.post("/schedules/v1/publish", next).catch(() => {});
   return wait(next, WRITE_DELAY);
 }
 

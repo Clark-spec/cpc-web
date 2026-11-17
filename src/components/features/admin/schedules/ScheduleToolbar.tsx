@@ -70,7 +70,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
   /* New class and duplicate both write into one section. On "All sections" a
    * new class still has a home — the first section this role owns — but a copy
    * would be aimed at nothing, so that one waits for a tab. */
-  const targetSection: SectionId = section === "all" ? sectionsForRole[0] : section;
+  const targetSection: SectionId = (section === "all" ? sectionsForRole[0] : section) ?? "BSIT-3A";
   const roleReason = editDisabledReason(targetSection) ?? "";
   const newDisabled = !canEditSection(targetSection);
   const duplicateDisabled = newDisabled || section === "all";

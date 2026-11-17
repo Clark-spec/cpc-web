@@ -1,11 +1,16 @@
 import {
   ArrowDownRight,
   ArrowUpRight,
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
   ClipboardList,
   MessageSquareWarning,
   Minus,
   ShieldCheck,
+  UserPen,
   Wrench,
+  XCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
@@ -18,6 +23,11 @@ const ICONS: Record<DashboardStat["id"], LucideIcon> = {
   clearance: ShieldCheck,
   requests: Wrench,
   complaints: MessageSquareWarning,
+  schedules: CalendarDays,
+  signed: CheckCircle2,
+  rejected: XCircle,
+  loads: BookOpen,
+  corrections: UserPen,
 };
 
 const ICON_TONES: Record<DashboardStat["id"], string> = {
@@ -25,6 +35,11 @@ const ICON_TONES: Record<DashboardStat["id"], string> = {
   clearance: "bg-emerald-50 text-emerald-600",
   requests: "bg-amber-50 text-amber-600",
   complaints: "bg-rose-50 text-rose-600",
+  schedules: "bg-indigo-50 text-indigo-600",
+  signed: "bg-emerald-50 text-emerald-600",
+  rejected: "bg-rose-50 text-rose-600",
+  loads: "bg-sky-50 text-sky-600",
+  corrections: "bg-purple-50 text-purple-600",
 };
 
 const SPARK_TONES: Record<DashboardStat["id"], string> = {
@@ -32,6 +47,11 @@ const SPARK_TONES: Record<DashboardStat["id"], string> = {
   clearance: "#059669",
   requests: "#d97706",
   complaints: "#e11d48",
+  schedules: "#4f46e5",
+  signed: "#059669",
+  rejected: "#e11d48",
+  loads: "#0284c7",
+  corrections: "#9333ea",
 };
 
 type StatCardProps = {

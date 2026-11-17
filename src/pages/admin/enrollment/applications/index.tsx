@@ -13,6 +13,7 @@ import { EnrollmentDetailsModal } from "@/components/features/admin/enrollment/E
 import { RecentEnrollmentActivity } from "@/components/features/admin/enrollment/RecentEnrollmentActivity";
 import { EnrollmentQuickActions } from "@/components/features/admin/enrollment/EnrollmentQuickActions";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { AccessRestrictedCard } from "@/components/common/feedback";
 import { useEnrollmentApplications } from "@/components/features/admin/enrollment/useEnrollmentApplications";
 import {
   ENROLLMENT_STATUS_LABELS,
@@ -105,6 +106,15 @@ export default function EnrollmentApplicationsPage({ view }: { view: EnrollmentV
   const lockedStatus = view === "all" ? undefined : view;
 
   if (!user) return null;
+
+  if (user.role !== "admin" && user.role !== "registrar") {
+    return (
+      <AccessRestrictedCard
+        moduleTitle="Enrollment Applications"
+        description="Enrollment applications and applicant records are strictly managed by the Registrar's Office and Administrator. Your role does not have authorization to view or review enrollment applications."
+      />
+    );
+  }
 
   const scopeCount = view === "all" ? total : counts[view];
 

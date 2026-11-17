@@ -234,8 +234,13 @@ export async function fetchPublishedScheduleApi(): Promise<PublishedSchedule> {
     const response = await apiClient.get("/schedules/v1/published");
     const mapped = mapApiSchedule(response.data?.data?.schedule);
     if (mapped) {
-      localStorage.setItem(SCHEDULE_PUBLISHED_KEY, JSON.stringify(mapped));
-      return mapped;
+      const current = readPublishedSchedule();
+      // Only replace local storage if the API has a newer version or if no valid schedule was stored
+      if (mapped.version > current.version || current.version === 0) {
+        localStorage.setItem(SCHEDULE_PUBLISHED_KEY, JSON.stringify(mapped));
+        return mapped;
+      }
+      return current;
     }
   } catch {
     // Fall back to storage or seed

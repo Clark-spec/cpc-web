@@ -23,7 +23,7 @@ const gridMinute = z
 
 export const entryFormSchema = z
   .object({
-    section: z.enum(["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D"]),
+    section: z.string().min(1, "Choose a section."),
     subjectId: z.string().min(1, "Choose a subject."),
     /** DaysPicker chips: at least one meeting day. */
     days: z.array(z.enum(DAY_VALUES)).min(1, "Pick at least one day."),

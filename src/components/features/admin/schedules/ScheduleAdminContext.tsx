@@ -81,6 +81,7 @@ export type ScheduleAdminContextValue = {
   actor: string;
   role: AdminRole;
   canEdit: boolean;
+  canPublish: boolean;
   canEditSection: (section: SectionId) => boolean;
   editDisabledReason: (section?: SectionId) => string | null;
   sectionsForRole: SectionId[];

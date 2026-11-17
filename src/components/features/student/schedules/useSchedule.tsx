@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useSearchParams } from "react-router";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useAuth } from "@/components/context/useAuth";
 import { showInfo } from "@/lib/feedback";
 import {
   formatPublishedCaption,
@@ -40,6 +41,18 @@ function readSeenVersion(): number | null {
 
 function writeSeenVersion(version: number): void {
   localStorage.setItem(SEEN_VERSION_KEY, String(version));
+}
+
+function deriveStudentSection(user: { course?: string | null; section?: string | null } | null): SectionId {
+  if (user?.section && isSectionId(user.section)) return user.section;
+  try {
+    const rawProfile = typeof window !== "undefined" ? window.localStorage.getItem("cpc.student-profile.v1") : null;
+    if (rawProfile) {
+      const p = JSON.parse(rawProfile);
+      if (p.section && isSectionId(p.section)) return p.section;
+    }
+  } catch {}
+  return MY_SECTION;
 }
 
 type ScheduleContextValue = {
@@ -73,16 +86,22 @@ type ScheduleContextValue = {
 const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const mySection = useMemo<SectionId>(() => deriveStudentSection(user), [user]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [storedSection, setStoredSection] = useLocalStorage<SectionId>(
-    SECTION_KEY,
-    MY_SECTION,
+    `${SECTION_KEY}.${user?.studentNumber ?? "default"}`,
+    mySection,
   );
   const [roomSet, setStoredRoomSet] = useLocalStorage<RoomSet>(ROOM_SET_KEY, "A");
 
   const paramSection = searchParams.get("section");
   // URL wins over storage, so a shared link always opens the right section.
-  const section: SectionId = isSectionId(paramSection) ? paramSection : storedSection;
+  const section: SectionId = isSectionId(paramSection)
+    ? paramSection
+    : isSectionId(storedSection)
+      ? storedSection
+      : mySection;
 
   const [published, setPublished] = useState<PublishedSchedule>(() => readPublishedSchedule());
   const [seenVersion, setSeenVersion] = useState<number | null>(() => readSeenVersion());
@@ -94,6 +113,11 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
   const highlightTimer = useRef<number | null>(null);
   const initialTimer = useRef<number | null>(null);
   const firstSection = useRef(true);
+
+  const sections = useMemo<SectionId[]>(() => {
+    const fromPublished = published.schedules.map((item) => item.section).filter(isSectionId);
+    return fromPublished.length > 0 ? Array.from(new Set(fromPublished)) : SECTION_IDS;
+  }, [published.schedules]);
 
   // Students read the PUBLISHED record only; a section nobody has published yet
   // renders through the page's existing empty state rather than inventing rows.
@@ -223,8 +247,8 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     () => ({
       section,
       setSection,
-      sections: SECTION_IDS,
-      mySection: MY_SECTION,
+      sections,
+      mySection,
       schedule,
       updatedCaption: formatPublishedCaption(published),
       showUpdateNotice: seenVersion !== null && seenVersion !== published.version,
@@ -247,6 +271,8 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     [
       section,
       setSection,
+      sections,
+      mySection,
       schedule,
       published,
       seenVersion,

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { cn } from "@/lib/cn";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";
+import { PublishModal } from "@/components/features/admin/schedules/PublishModal";
 
 /** "Oct 04, 2026, 9:12 AM" — falls back to the raw value if the stamp is odd. */
 function formatStamp(iso: string): string {
@@ -25,6 +26,7 @@ function formatStamp(iso: string): string {
 export function PublishStatusBar() {
   const {
     canEdit,
+    canPublish,
     conflictCount,
     discardDraft,
     dirtyCount,
@@ -33,6 +35,7 @@ export function PublishStatusBar() {
     publishing,
   } = useScheduleAdmin();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   const neverPublished = published.version === 0;
   const disabledReason = editDisabledReason();
@@ -101,6 +104,18 @@ export function PublishStatusBar() {
             <RotateCcw className="h-3.5 w-3.5 shrink-0 text-admin-muted" aria-hidden />
             Discard draft
           </button>
+
+          {canPublish && (
+            <button
+              type="button"
+              onClick={() => setPublishOpen(true)}
+              disabled={publishing}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-cpc-navy px-4 py-2 font-poppins text-xs font-semibold text-white shadow-sm transition-all hover:bg-cpc-navy-deep hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <UploadCloud className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {dirtyCount > 0 ? `Publish ${dirtyCount} ${dirtyCount === 1 ? "change" : "changes"}` : "Publish Schedule"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -130,6 +145,11 @@ export function PublishStatusBar() {
         danger
         busy={publishing}
         id="schedule-discard-title"
+      />
+
+      <PublishModal
+        open={publishOpen}
+        onClose={() => setPublishOpen(false)}
       />
     </section>
   );

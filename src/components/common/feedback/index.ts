@@ -4,4 +4,5 @@ export * from "./NotificationBell";
 export * from "./AdminNotificationBell";
 export * from "./StudentQuickViewDrawer";
 export * from "./ErrorCard";
+export * from "./AccessRestrictedCard";
 

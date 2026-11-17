@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 import { formatDateTime, formatRelativeTime } from "@/lib/format";
 import { StatusBadge } from "@/components/common/display/StatusBadge";
 import { EmptyState } from "@/components/common/display/EmptyState";
-import type { ActivityItem, ActivityStudent, ActivityType } from "@/types/admin";
+import type { ActivityItem, ActivityStudent, ActivityType, AdminRole } from "@/types/admin";
 
 const TYPE_ICONS: Record<ActivityType, LucideIcon> = {
   enrollment: ClipboardList,
@@ -28,7 +28,7 @@ const TYPE_TONES: Record<ActivityType, string> = {
 
 type FilterId = "all" | ActivityType;
 
-const FILTERS: Array<{ id: FilterId; label: string }> = [
+const ALL_FILTERS: Array<{ id: FilterId; label: string }> = [
   { id: "all", label: "All" },
   { id: "enrollment", label: "Enrollment" },
   { id: "clearance", label: "Clearance" },
@@ -42,16 +42,45 @@ const PREVIEW_ROWS = 4;
 type RecentActivityTableProps = {
   items: ActivityItem[];
   onOpenStudent: (student: ActivityStudent) => void;
+  role?: AdminRole;
 };
 
-/** Recent activity feed with type filters and a student quick-view trigger. */
-export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTableProps) {
+/** Recent activity feed with role-scoped filters and a student quick-view trigger. */
+export function RecentActivityTable({ items, onOpenStudent, role }: RecentActivityTableProps) {
   const [filter, setFilter] = useState<FilterId>("all");
   const [showAll, setShowAll] = useState(false);
 
+  // Scoped activity types permitted for the current role
+  const allowedTypes = useMemo<ActivityType[]>(() => {
+    if (!role || role === "admin" || role === "registrar") {
+      return ["enrollment", "clearance", "complaint", "announcement"];
+    }
+    if (role === "sao" || role.startsWith("dean_")) {
+      return ["clearance", "complaint", "announcement"];
+    }
+    // instructor, library, accounting
+    return ["clearance", "announcement"];
+  }, [role]);
+
+  const scopedItems = useMemo(
+    () => items.filter((item) => allowedTypes.includes(item.type)),
+    [items, allowedTypes],
+  );
+
+  const availableFilters = useMemo(
+    () =>
+      ALL_FILTERS.filter(
+        (f) => f.id === "all" || allowedTypes.includes(f.id as ActivityType),
+      ),
+    [allowedTypes],
+  );
+
   const filtered = useMemo(
-    () => (filter === "all" ? items : items.filter((item) => item.type === filter)),
-    [filter, items],
+    () =>
+      filter === "all"
+        ? scopedItems
+        : scopedItems.filter((item) => item.type === filter),
+    [filter, scopedItems],
   );
 
   const hidden = Math.max(filtered.length - PREVIEW_ROWS, 0);
@@ -63,12 +92,12 @@ export function RecentActivityTable({ items, onOpenStudent }: RecentActivityTabl
         <span className="mr-1 font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">
           Filter
         </span>
-        {FILTERS.map((entry) => {
+        {availableFilters.map((entry) => {
           const active = filter === entry.id;
           const count =
             entry.id === "all"
-              ? items.length
-              : items.filter((item) => item.type === entry.id).length;
+              ? scopedItems.length
+              : scopedItems.filter((item) => item.type === entry.id).length;
 
           return (
             <button

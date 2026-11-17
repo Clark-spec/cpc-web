@@ -51,8 +51,8 @@ export function useScheduleFilterState(
             master.rooms.find((room) => room.id === filters.room)?.name ?? filters.room;
           const target = roomName.trim().toUpperCase();
           if (
-            entry.roomSetA.trim().toUpperCase() !== target &&
-            entry.roomSetB.trim().toUpperCase() !== target
+            (entry.roomSetA ?? "").trim().toUpperCase() !== target &&
+            (entry.roomSetB ?? "").trim().toUpperCase() !== target
           ) {
             continue;
           }

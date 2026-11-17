@@ -17,6 +17,8 @@ import { DashboardSkeleton } from "@/components/common/display/Skeleton";
 import { StatCard } from "@/components/features/admin/dashboard/StatCard";
 import { EnrollmentChart } from "@/components/features/admin/dashboard/EnrollmentChart";
 import { EnrollmentOverviewTable } from "@/components/features/admin/dashboard/EnrollmentOverviewTable";
+import { AcademicOverviewPanel } from "@/components/features/admin/dashboard/AcademicOverviewPanel";
+import { OfficeClearanceOverviewPanel } from "@/components/features/admin/dashboard/OfficeClearanceOverviewPanel";
 import { QuickActions } from "@/components/features/admin/dashboard/QuickActions";
 import { RecentActivityTable } from "@/components/features/admin/dashboard/RecentActivityTable";
 import { StudentQuickViewDrawer } from "@/components/common/feedback/StudentQuickViewDrawer";
@@ -117,36 +119,42 @@ export default function DashboardPage() {
           </section>
 
           <div className="grid items-stretch gap-6 xl:grid-cols-12">
-            <section
-              aria-labelledby="enrollment-overview-heading"
-              className="flex flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:shadow-[0_16px_40px_rgba(15,36,104,0.08)] xl:col-span-8"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/50 bg-white/40 px-5 py-4 backdrop-blur-xs">
-                <div>
-                  <h2
-                    id="enrollment-overview-heading"
-                    className="font-poppins text-sm font-semibold text-cpc-navy-text"
+            {user.role === "admin" || user.role === "registrar" ? (
+              <section
+                aria-labelledby="enrollment-overview-heading"
+                className="flex flex-col justify-between overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md transition-all duration-200 hover:shadow-[0_16px_40px_rgba(15,36,104,0.08)] xl:col-span-8"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2 border-b border-cpc-tile-border/50 bg-white/40 px-5 py-4 backdrop-blur-xs">
+                  <div>
+                    <h2
+                      id="enrollment-overview-heading"
+                      className="font-poppins text-sm font-semibold text-cpc-navy-text"
+                    >
+                      Enrollment Overview
+                    </h2>
+                    <p className="font-poppins text-[11px] text-cpc-heading-soft">
+                      Current applications and their status for AY 2026-2027.
+                    </p>
+                  </div>
+                  <Link
+                    to="/admin/enrollment/applications"
+                    className="inline-flex items-center gap-1 font-poppins text-[11px] font-semibold text-cpc-blue-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
                   >
-                    Enrollment Overview
-                  </h2>
-                  <p className="font-poppins text-[11px] text-cpc-heading-soft">
-                    Current applications and their status for AY 2026-2027.
-                  </p>
+                    View all
+                    <ArrowRight className="h-3 w-3" aria-hidden />
+                  </Link>
                 </div>
-                <Link
-                  to="/admin/enrollment/applications"
-                  className="inline-flex items-center gap-1 font-poppins text-[11px] font-semibold text-cpc-blue-accent underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-                >
-                  View all
-                  <ArrowRight className="h-3 w-3" aria-hidden />
-                </Link>
-              </div>
 
-              <div className="flex flex-1 flex-col justify-between gap-5 p-5">
-                <EnrollmentChart rows={enrollment} />
-                <EnrollmentOverviewTable rows={enrollment} />
-              </div>
-            </section>
+                <div className="flex flex-1 flex-col justify-between gap-5 p-5">
+                  <EnrollmentChart rows={enrollment} />
+                  <EnrollmentOverviewTable rows={enrollment} />
+                </div>
+              </section>
+            ) : user.role === "instructor" || user.role.startsWith("dean_") ? (
+              <AcademicOverviewPanel user={user} />
+            ) : (
+              <OfficeClearanceOverviewPanel user={user} />
+            )}
 
             <section
               aria-labelledby="quick-actions-heading"
@@ -223,7 +231,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <RecentActivityTable items={activity} onOpenStudent={setStudent} />
+            <RecentActivityTable
+              items={activity}
+              onOpenStudent={setStudent}
+              role={user.role}
+            />
           </section>
         </>
       ) : null}

@@ -5,7 +5,14 @@
  * student page only filters, sorts and lays it out.
  */
 
-export type SectionId = "BSIT-3A" | "BSIT-3B" | "BSIT-3C" | "BSIT-3D";
+export type SectionId =
+  | "BSIT-3A"
+  | "BSIT-3B"
+  | "BSIT-3C"
+  | "BSIT-3D"
+  | "BEED-2A"
+  | "BSHM-1A"
+  | (string & {});
 
 export type DayCode = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT";
 

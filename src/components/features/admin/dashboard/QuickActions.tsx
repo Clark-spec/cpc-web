@@ -1,5 +1,6 @@
 import {
   ArrowUpRight,
+  CalendarDays,
   ClipboardCheck,
   Inbox,
   Megaphone,
@@ -8,7 +9,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "@/lib/cn";
-import { ALL_ROLES } from "@/lib/navigation";
+import { ALL_ROLES, DEAN_ROLES } from "@/lib/navigation";
 import type { AdminRole } from "@/types/admin";
 
 type CountKey = "enrollments" | "clearance" | "serviceRequests";
@@ -41,11 +42,18 @@ const ACTIONS: QuickAction[] = [
     countKey: "clearance",
   },
   {
+    label: "Class Schedules",
+    description: "Manage timetables, faculty loads & room assignments",
+    to: "/admin/academics/class-schedules",
+    icon: CalendarDays,
+    roles: ["admin", "registrar", ...DEAN_ROLES, "instructor"],
+  },
+  {
     label: "View Service Requests",
     description: "Certificates, transcripts and forms",
     to: "/admin/service-requests",
     icon: Inbox,
-    roles: ["admin", "registrar", "sao"],
+    roles: ["admin", "registrar", ...DEAN_ROLES, "sao"],
     countKey: "serviceRequests",
   },
   {
@@ -83,6 +91,14 @@ export function QuickActions({ role, counts }: QuickActionsProps) {
         const Icon = action.icon;
         const primary = index === 0;
         const count = action.countKey ? counts[action.countKey] : null;
+        const label =
+          role === "instructor" && action.to === "/admin/academics/class-schedules"
+            ? "My Teaching Schedule"
+            : action.label;
+        const description =
+          role === "instructor" && action.to === "/admin/academics/class-schedules"
+            ? "View assigned subjects, sections & timetable"
+            : action.description;
 
         return (
           <li key={action.to}>
@@ -110,7 +126,7 @@ export function QuickActions({ role, counts }: QuickActionsProps) {
                     primary ? "text-white" : "text-cpc-navy-text",
                   )}
                 >
-                  {action.label}
+                  {label}
                   <ArrowUpRight
                     className={cn(
                       "h-3 w-3 shrink-0 opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100",
@@ -125,7 +141,7 @@ export function QuickActions({ role, counts }: QuickActionsProps) {
                     primary ? "text-white/80" : "text-cpc-heading-soft",
                   )}
                 >
-                  {action.description}
+                  {description}
                 </span>
               </span>
 

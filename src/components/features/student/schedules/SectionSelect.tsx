@@ -7,7 +7,8 @@ import {
 } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { MY_SECTION, SECTION_IDS } from "@/services/scheduleStudent/mockSchedules";
+import { SECTION_IDS } from "@/services/scheduleStudent/mockSchedules";
+import { useSchedule } from "@/components/features/student/schedules/useSchedule";
 import type { SectionId } from "@/types/schedule";
 
 type SectionSelectProps = {
@@ -16,17 +17,15 @@ type SectionSelectProps = {
 };
 
 /**
- * Accessible listbox for the four BSIT sections.
- *
- * The trigger exposes `aria-expanded`/`aria-controls`; the listbox receives
- * focus when opened, tracks the highlighted option with
- * `aria-activedescendant`, and supports Arrow keys, Home/End, Enter/Space,
- * Escape and Tab.
+ * Accessible listbox for the student's sections.
  */
 export function SectionSelect({ value, onChange }: SectionSelectProps) {
+  const { mySection, sections: contextSections } = useSchedule();
+  const sections = contextSections.length > 0 ? contextSections : SECTION_IDS;
+
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(() =>
-    Math.max(0, SECTION_IDS.indexOf(value)),
+    Math.max(0, sections.indexOf(value)),
   );
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -36,12 +35,10 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
   const listboxId = `${baseId}-listbox`;
   const optionId = (section: SectionId) => `${listboxId}-option-${section}`;
 
-  // Focus the listbox as soon as it opens so the keyboard handler receives keys.
   useEffect(() => {
     if (open) listRef.current?.focus();
   }, [open]);
 
-  // Click outside closes the dropdown.
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (event: MouseEvent) => {
@@ -56,25 +53,32 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
     triggerRef.current?.focus();
   }
 
-  function openMenu(index = SECTION_IDS.indexOf(value)) {
+  function openMenu(index = sections.indexOf(value)) {
     setActiveIndex(Math.max(0, index));
     setOpen(true);
   }
 
-  function select(section: SectionId) {
-    onChange(section);
+  function select(next: SectionId) {
+    onChange(next);
     closeAndReturnFocus();
+  }
+
+  function handleTriggerKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      openMenu();
+    }
   }
 
   function handleListKeyDown(event: ReactKeyboardEvent<HTMLUListElement>) {
     switch (event.key) {
       case "ArrowDown":
         event.preventDefault();
-        setActiveIndex((index) => (index + 1) % SECTION_IDS.length);
+        setActiveIndex((current) => (current + 1) % sections.length);
         break;
       case "ArrowUp":
         event.preventDefault();
-        setActiveIndex((index) => (index - 1 + SECTION_IDS.length) % SECTION_IDS.length);
+        setActiveIndex((current) => (current - 1 + sections.length) % sections.length);
         break;
       case "Home":
         event.preventDefault();
@@ -82,12 +86,12 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
         break;
       case "End":
         event.preventDefault();
-        setActiveIndex(SECTION_IDS.length - 1);
+        setActiveIndex(sections.length - 1);
         break;
       case "Enter":
       case " ":
         event.preventDefault();
-        select(SECTION_IDS[activeIndex]);
+        select(sections[activeIndex]);
         break;
       case "Escape":
         event.preventDefault();
@@ -111,24 +115,17 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
         aria-expanded={open}
         aria-controls={listboxId}
         onClick={() => (open ? setOpen(false) : openMenu())}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-            event.preventDefault();
-            openMenu();
-          }
-          if (event.key === "Escape" && open) {
-            event.preventDefault();
-            closeAndReturnFocus();
-          }
-        }}
+        onKeyDown={handleTriggerKeyDown}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2.5 text-left font-poppins text-sm font-semibold text-cpc-navy-text shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent sm:min-w-[210px]",
-          open ? "border-cpc-blue-accent" : "border-cpc-input-border hover:border-cpc-tile-border",
+          "flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border bg-white px-3.5 py-2 font-poppins text-xs font-semibold text-cpc-navy-text shadow-sm transition-all sm:min-w-[200px]",
+          open
+            ? "border-cpc-blue-accent ring-2 ring-cpc-blue-accent/20"
+            : "border-cpc-input-border hover:border-cpc-blue-accent/40",
         )}
       >
         <span className="flex min-w-0 items-center gap-2">
           <span className="truncate">{value}</span>
-          {value === MY_SECTION && (
+          {value === mySection && (
             <span className="rounded-full bg-cpc-section-light px-2 py-0.5 text-[10px] font-semibold text-cpc-blue-accent">
               My section
             </span>
@@ -136,8 +133,8 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
         </span>
         <ChevronDown
           className={cn(
-            "h-4 w-4 shrink-0 text-cpc-heading-soft transition-transform",
-            open && "rotate-180",
+            "h-4 w-4 shrink-0 text-cpc-heading-soft transition-transform duration-200",
+            open && "rotate-180 text-cpc-blue-accent",
           )}
           aria-hidden
         />
@@ -149,12 +146,12 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
           id={listboxId}
           role="listbox"
           aria-labelledby={triggerId}
-          aria-activedescendant={optionId(SECTION_IDS[activeIndex])}
+          aria-activedescendant={optionId(sections[activeIndex])}
           tabIndex={-1}
           onKeyDown={handleListKeyDown}
           className="absolute top-full right-0 z-40 mt-1.5 max-h-64 w-full min-w-[210px] overflow-y-auto rounded-xl border border-cpc-input-border bg-white p-1 shadow-[0_18px_40px_rgba(27,47,158,0.18)] outline-none sm:w-64"
         >
-          {SECTION_IDS.map((section, index) => {
+          {sections.map((section, index) => {
             const selected = section === value;
             const active = index === activeIndex;
             return (
@@ -173,13 +170,13 @@ export function SectionSelect({ value, onChange }: SectionSelectProps) {
               >
                 <span className="flex items-center gap-2">
                   {section}
-                  {section === MY_SECTION && (
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-cpc-blue-accent">
+                  {section === mySection && (
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-cpc-blue-accent shadow-xs">
                       My section
                     </span>
                   )}
                 </span>
-                {selected && <Check className="h-4 w-4 shrink-0" aria-hidden />}
+                {selected && <Check className="h-4 w-4 shrink-0 text-cpc-blue-accent" aria-hidden />}
               </li>
             );
           })}

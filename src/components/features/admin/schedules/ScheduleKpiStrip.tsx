@@ -67,7 +67,7 @@ export function ScheduleKpiStrip() {
     const usedRooms = new Set<string>();
     for (const entry of scoped.rows) {
       for (const room of [entry.roomSetA, entry.roomSetB]) {
-        const name = room.trim().toUpperCase();
+        const name = (room ?? "").trim().toUpperCase();
         if (name !== "" && name !== ONLINE_ROOM) usedRooms.add(name);
       }
     }

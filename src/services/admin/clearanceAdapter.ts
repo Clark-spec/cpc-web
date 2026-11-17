@@ -77,9 +77,18 @@ export function readAdminRequests(): ClearanceRequest[] {
 
 export function visibleRequests(user: AdminUser): ClearanceRequest[] {
   const all = readAdminRequests();
-  return user.role === "admin"
-    ? all
-    : all.filter((request) => request.office === user.office);
+  if (user.role === "admin") return all;
+  const byOffice = all.filter((request) => request.office === user.office);
+  if (user.office === "dean" && user.homePrograms && user.homePrograms.length > 0) {
+    return byOffice.filter((request) =>
+      user.homePrograms!.some((prog) => {
+        const pLower = prog.toLowerCase();
+        const rLower = (request.program ?? "").toLowerCase();
+        return rLower.includes(pLower) || pLower.includes(rLower);
+      }),
+    );
+  }
+  return byOffice;
 }
 
 /** Role-aware clearance queue, newest request first. */

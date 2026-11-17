@@ -166,12 +166,12 @@ export function detectConflicts(schedules: SectionSchedule[]): Conflict[] {
       // conflict identity, so a pair that clashes in two different rooms gets
       // one row per room, while a double-booked room (LAB 1 in both columns)
       // is the same single clash rather than the same row twice.
-      const setA = first.entry.roomSetA.trim().toUpperCase();
-      if (setA && setA !== ONLINE_ROOM && setA === second.entry.roomSetA.trim().toUpperCase()) {
+      const setA = (first.entry.roomSetA ?? "").trim().toUpperCase();
+      if (setA && setA !== ONLINE_ROOM && setA === (second.entry.roomSetA ?? "").trim().toUpperCase()) {
         conflicts.push(buildConflict("room", day, first, second, setA));
       }
-      const setB = first.entry.roomSetB.trim().toUpperCase();
-      if (setB && setB !== ONLINE_ROOM && setB === second.entry.roomSetB.trim().toUpperCase()) {
+      const setB = (first.entry.roomSetB ?? "").trim().toUpperCase();
+      if (setB && setB !== ONLINE_ROOM && setB === (second.entry.roomSetB ?? "").trim().toUpperCase()) {
         conflicts.push(buildConflict("room", day, first, second, setB));
       }
     }
@@ -274,8 +274,8 @@ export function findFreeSlots(
           entry.days.includes(day) &&
           rangesOverlap(start, end, entry.startMin, entry.endMin) &&
           ((request.instructorId !== undefined && entry.instructorId === request.instructorId) ||
-            (roomA !== "" && roomA !== ONLINE_ROOM && entry.roomSetA.toUpperCase() === roomA) ||
-            (roomB !== "" && roomB !== ONLINE_ROOM && entry.roomSetB.toUpperCase() === roomB)),
+            (roomA !== "" && roomA !== ONLINE_ROOM && (entry.roomSetA ?? "").toUpperCase() === roomA) ||
+            (roomB !== "" && roomB !== ONLINE_ROOM && (entry.roomSetB ?? "").toUpperCase() === roomB)),
       );
       if (!clashesSection && !clashesOthers) {
         suggestions.push({ day, startMin: start, endMin: end });
@@ -313,8 +313,8 @@ export function entriesForRoom(
     schedule.entries
       .filter(
         (entry) =>
-          entry.roomSetA.trim().toUpperCase() === needle ||
-          entry.roomSetB.trim().toUpperCase() === needle,
+          (entry.roomSetA ?? "").trim().toUpperCase() === needle ||
+          (entry.roomSetB ?? "").trim().toUpperCase() === needle,
       )
       .map((entry) => ({ entry, section: schedule.section })),
   );
