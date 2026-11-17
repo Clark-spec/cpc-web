@@ -95,8 +95,8 @@ export function notifyStudents(
   if (stored?.studentId) candidateIds.add(stored.studentId);
   if (stored?.section) targetSection = stored.section as SectionId;
 
-  // If specific section diffs exist and don't include the target section, still notify if all or target section modified
-  if (diffs.length > 0 && !changedSections.has(targetSection) && !changedSections.has("BSIT-3A")) {
+  // Only skip notification if no diffs touch the student's own section
+  if (diffs.length > 0 && !changedSections.has(targetSection)) {
     return;
   }
 

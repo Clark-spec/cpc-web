@@ -62,6 +62,10 @@ const SECTION_ALIASES: Record<string, SectionId> = {
   "bsit 3-c": "BSIT-3C",
   "bsit-3d": "BSIT-3D",
   "bsit 3-d": "BSIT-3D",
+  "beed-2a": "BEED-2A",
+  "beed 2-a": "BEED-2A",
+  "bshm-1a": "BSHM-1A",
+  "bshm 1-a": "BSHM-1A",
 };
 
 const DAY_ALIASES: Record<string, DayCode> = {

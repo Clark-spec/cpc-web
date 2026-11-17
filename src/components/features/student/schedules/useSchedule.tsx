@@ -50,8 +50,17 @@ function deriveStudentSection(user: { course?: string | null; section?: string |
     if (rawProfile) {
       const p = JSON.parse(rawProfile);
       if (p.section && isSectionId(p.section)) return p.section;
+      const prog = String(p.course || p.program || "").toLowerCase();
+      if (prog.includes("education") || prog.includes("beed")) return "BEED-2A";
+      if (prog.includes("hospitality") || prog.includes("bshm") || prog.includes("hotel")) return "BSHM-1A";
+      if (prog.includes("information") || prog.includes("technology") || prog.includes("bsit")) return "BSIT-3A";
     }
   } catch {}
+  if (user?.course) {
+    const c = user.course.toLowerCase();
+    if (c.includes("education") || c.includes("beed")) return "BEED-2A";
+    if (c.includes("hospitality") || c.includes("bshm") || c.includes("hotel")) return "BSHM-1A";
+  }
   return MY_SECTION;
 }
 

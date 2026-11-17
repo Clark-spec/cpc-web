@@ -69,9 +69,11 @@ const SECTION_META_SEED: Array<Omit<SectionMeta, "section">> = [
   { semester: SEMESTER, academicYear: ACADEMIC_YEAR, adviser: "T. Comayas", studentCount: 39 },
   { semester: SEMESTER, academicYear: ACADEMIC_YEAR, adviser: "B. Empaces", studentCount: 44 },
   { semester: SEMESTER, academicYear: ACADEMIC_YEAR, adviser: "R. Dela Cruz", studentCount: 41 },
+  { semester: SEMESTER, academicYear: ACADEMIC_YEAR, adviser: "J. Cadungog", studentCount: 35 },
+  { semester: SEMESTER, academicYear: ACADEMIC_YEAR, adviser: "A. Entrena", studentCount: 30 },
 ];
 
-const SECTION_ORDER: SectionId[] = ["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D"];
+const SECTION_ORDER: SectionId[] = ["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D", "BEED-2A", "BSHM-1A"];
 
 /** "HCI 1" -> "subj-hci-1"; keeps ids readable in the change history. */
 export function slugId(prefix: string, value: string): string {
