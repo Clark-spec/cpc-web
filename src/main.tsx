@@ -8,7 +8,6 @@ const LEGACY_DEMO_KEYS = [
   "cpc-sr-demo-notifications-v1",
   "cpc-sr-demo-notifications-v2",
   "cpc-sr-demo-draft-v1",
-  "cpc:notifications:student",
   "cpc:notifications:clearance",
   "cpc.clearance.records.v1",
   "cpc.clearance.timeline.v1",
@@ -71,6 +70,17 @@ import EnrollmentStepPage from "@/pages/student/enrollment/step";
 import StudentProfilePage from "@/pages/student/profile";
 import OnlineComplaintPage from "@/pages/student/online-complaint";
 import ComplaintStatusPage from "@/pages/student/complaint-status";
+import StudentVerifyPage from "@/pages/student/verify";
+import StudentEnrollmentFormPage from "@/pages/student/enrollment-form";
+import StudentQueuePage from "@/pages/student/queue";
+import DisplayPage from "@/pages/display";
+import CommitteeScreeningPage from "@/pages/committee/screening";
+import GuidanceQueuePage from "@/pages/guidance/queue";
+import ClinicQueuePage from "@/pages/clinic/queue";
+import AccountingQueuePage from "@/pages/accounting/queue";
+import RegistrarQueuePage from "@/pages/registrar/queue";
+import RegistrarVerificationPage from "@/pages/registrar/verification";
+import RegistrarSchedulePage from "@/pages/registrar/schedule";
 
 /** Staff roles that can open Academics › Academic Calendar. */
 const ACADEMIC_CALENDAR_ROLES = [
@@ -80,6 +90,12 @@ const ACADEMIC_CALENDAR_ROLES = [
   "dean_edu",
   "dean_hm",
 ] as const;
+
+const SCREENING_ROLES = ["admin", "dean_cs", "dean_edu", "dean_hm"] as const;
+const GUIDANCE_ROLES = ["admin", "guidance"] as const;
+const CLINIC_ROLES = ["admin", "clinic"] as const;
+const ACCOUNTING_ROLES = ["admin", "accounting"] as const;
+const REGISTRAR_ROLES = ["admin", "registrar"] as const;
 
 export function AppRoutes() {
   return (
@@ -138,14 +154,136 @@ export function AppRoutes() {
           path="students/account-settings"
           element={<AccountSettingsAdminPage />}
         />
+        <Route
+          path="enrollment/screening"
+          element={
+            <RequireAdminRole roles={SCREENING_ROLES}>
+              <CommitteeScreeningPage />
+            </RequireAdminRole>
+          }
+        />
+        <Route
+          path="enrollment/guidance"
+          element={
+            <RequireAdminRole roles={GUIDANCE_ROLES}>
+              <GuidanceQueuePage />
+            </RequireAdminRole>
+          }
+        />
+        <Route
+          path="enrollment/clinic"
+          element={
+            <RequireAdminRole roles={CLINIC_ROLES}>
+              <ClinicQueuePage />
+            </RequireAdminRole>
+          }
+        />
+        <Route
+          path="enrollment/accounting"
+          element={
+            <RequireAdminRole roles={ACCOUNTING_ROLES}>
+              <AccountingQueuePage />
+            </RequireAdminRole>
+          }
+        />
+        <Route
+          path="enrollment/registrar-queue"
+          element={
+            <RequireAdminRole roles={REGISTRAR_ROLES}>
+              <RegistrarQueuePage />
+            </RequireAdminRole>
+          }
+        />
+        <Route
+          path="enrollment/verification"
+          element={
+            <RequireAdminRole roles={REGISTRAR_ROLES}>
+              <RegistrarVerificationPage />
+            </RequireAdminRole>
+          }
+        />
+        <Route
+          path="enrollment/schedule"
+          element={
+            <RequireAdminRole roles={REGISTRAR_ROLES}>
+              <RegistrarSchedulePage />
+            </RequireAdminRole>
+          }
+        />
         {/* Every other sidebar destination renders the shared placeholder. */}
         <Route path="*" element={<ComingSoonPage />} />
       </Route>
+
+      {/* ── Public Live Queue Display (TV screen) ────────────────────── */}
+      <Route path="/display" element={<DisplayPage />} />
+
+      {/* ── Office Stations Direct Routes (Spec Section 6) ──────────── */}
+      <Route
+        path="/committee/screening"
+        element={
+          <RequireAdminRole roles={SCREENING_ROLES}>
+            <CommitteeScreeningPage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path="/guidance/queue"
+        element={
+          <RequireAdminRole roles={GUIDANCE_ROLES}>
+            <GuidanceQueuePage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path="/clinic/queue"
+        element={
+          <RequireAdminRole roles={CLINIC_ROLES}>
+            <ClinicQueuePage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path="/accounting/queue"
+        element={
+          <RequireAdminRole roles={ACCOUNTING_ROLES}>
+            <AccountingQueuePage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path="/registrar/queue"
+        element={
+          <RequireAdminRole roles={REGISTRAR_ROLES}>
+            <RegistrarQueuePage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path="/registrar/verification"
+        element={
+          <RequireAdminRole roles={REGISTRAR_ROLES}>
+            <RegistrarVerificationPage />
+          </RequireAdminRole>
+        }
+      />
+      <Route
+        path="/registrar/schedule"
+        element={
+          <RequireAdminRole roles={REGISTRAR_ROLES}>
+            <RegistrarSchedulePage />
+          </RequireAdminRole>
+        }
+      />
 
       {/* ── Protected student portal ─────────────────────────────────────── */}
       <Route element={<RequireStudent />}>
         {/* Student home */}
         <Route path="/student/home" element={<StudentHomePage />} />
+
+        {/* Student enrollment workflow (Spec Section 6) */}
+        <Route path="/student/verify" element={<StudentVerifyPage />} />
+        <Route path="/student/enrollment-form" element={<StudentEnrollmentFormPage />} />
+        <Route path="/student/queue" element={<StudentQueuePage />} />
 
         {/* Student services */}
         <Route path="/student/service-requests" element={<ServiceRequestsPage />} />
@@ -166,6 +304,9 @@ export function AppRoutes() {
         {/* Enrollment flow */}
         <Route path="/online-enrollment" element={<ProtectedEnrollment />}>
           <Route index element={<OnlineEnrollmentPage />} />
+          <Route path="verify" element={<StudentVerifyPage />} />
+          <Route path="form" element={<StudentEnrollmentFormPage />} />
+          <Route path="queue" element={<StudentQueuePage />} />
           <Route path="step/:step" element={<EnrollmentStepPage />} />
           <Route path="confirmation" element={<EnrollmentConfirmationPage />} />
           <Route path="status" element={<EnrollmentStatusPage />} />

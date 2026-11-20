@@ -1,6 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { AuthProvider } from "@/components/context/useAuth";
+import { AdminAuthProvider } from "@/components/context/AdminAuthContext";
+import { NotificationProvider } from "@/components/context/NotificationContext";
 import { ToastProvider } from "@/components/ui/toast";
 import { SuccessModalHost } from "@/components/feedback/SuccessModalHost";
 import { setNavigate } from "@/lib/router";
@@ -38,9 +40,13 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ToastHost>
       <AuthProvider>
-        <NavigateSetter />
-        {children}
-        <SuccessModalHost />
+        <AdminAuthProvider>
+          <NotificationProvider>
+            <NavigateSetter />
+            {children}
+            <SuccessModalHost />
+          </NotificationProvider>
+        </AdminAuthProvider>
       </AuthProvider>
     </ToastHost>
   );

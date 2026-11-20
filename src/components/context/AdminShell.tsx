@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Navigate } from "react-router";
 import { ToastProvider } from "@/components/ui/toast";
 import { AdminLayout } from "@/components/common/layout/AdminLayout";
-import { AdminAuthProvider, useAdminAuth } from "@/components/context/AdminAuthContext";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { AdminDataProvider } from "@/components/context/AdminDataContext";
 import { SidebarProvider } from "@/components/context/SidebarContext";
 import type { AdminRole } from "@/types/admin";
@@ -47,11 +47,9 @@ export function RequireAdminRole({
 /** /admin/login route element (auth provider + toasts for the sign-in feedback). */
 export function AdminLoginRoute() {
   return (
-    <AdminAuthProvider>
-      <ToastProvider>
-        <AdminLoginPage />
-      </ToastProvider>
-    </AdminAuthProvider>
+    <ToastProvider>
+      <AdminLoginPage />
+    </ToastProvider>
   );
 }
 
@@ -61,16 +59,14 @@ export function AdminLoginRoute() {
  */
 export function AdminShell() {
   return (
-    <AdminAuthProvider>
-      <RequireAdmin>
-        <ToastProvider>
-          <SidebarProvider>
-            <AdminDataProvider>
-              <AdminLayout />
-            </AdminDataProvider>
-          </SidebarProvider>
-        </ToastProvider>
-      </RequireAdmin>
-    </AdminAuthProvider>
+    <RequireAdmin>
+      <ToastProvider>
+        <SidebarProvider>
+          <AdminDataProvider>
+            <AdminLayout />
+          </AdminDataProvider>
+        </SidebarProvider>
+      </ToastProvider>
+    </RequireAdmin>
   );
 }

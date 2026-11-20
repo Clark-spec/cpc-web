@@ -181,6 +181,9 @@ export function buildOfficeChecks(
         };
       });
     }
+
+    default:
+      return [];
   }
 }
 

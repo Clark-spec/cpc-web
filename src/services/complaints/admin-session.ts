@@ -28,6 +28,8 @@ const ROLE_EMAILS: Record<AdminRole, string> = {
   accounting: "accounting@cpc.edu.ph",
   sao: "sao@cpc.edu.ph",
   instructor: "instructor@cpc.edu.ph",
+  guidance: "guidance@cpc.edu.ph",
+  clinic: "clinic@cpc.edu.ph",
 };
 
 /** Backend role claim each demo role signs in with. */
@@ -41,6 +43,8 @@ const ROLE_CLAIMS: Record<AdminRole, string> = {
   accounting: "ACCOUNTING",
   sao: "SAO",
   instructor: "INSTRUCTOR",
+  guidance: "GUIDANCE",
+  clinic: "CLINIC",
 };
 
 /**

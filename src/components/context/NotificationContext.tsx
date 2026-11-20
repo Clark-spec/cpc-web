@@ -18,6 +18,8 @@ import {
   deleteAllNotificationsApi,
 } from "@/services/notifications";
 import { useSSE } from "@/hooks/useSSE";
+import { reconcileAllEnrollmentNotifications } from "@/services/notifications/studentNotificationService";
+import { useAuth } from "@/components/context/useAuth";
 
 export type NotificationType = "info" | "success" | "warning";
 
@@ -93,6 +95,24 @@ function readStored(key: string): AppNotification[] {
   }
 }
 
+function readAllStudentStored(storageKey: string, studentId?: string): AppNotification[] {
+  const keys = [storageKey];
+  if (studentId) {
+    keys.push(`cpc:notifications:${studentId}`);
+  }
+  const map = new Map<string, AppNotification>();
+  for (const k of keys) {
+    for (const item of readStored(k)) {
+      if (!map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    }
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, MAX_NOTIFICATIONS);
+}
+
 type NotificationProviderProps = {
   children: ReactNode;
   /** Optional storage key for offline fallback. Defaults to shared key. */
@@ -107,9 +127,19 @@ export function NotificationProvider({
   children,
   storageKey = DEFAULT_STORAGE_KEY,
 }: NotificationProviderProps) {
-  const [notifications, setNotifications] = useState<AppNotification[]>(() => readStored(storageKey));
+  let currentStudentId: string | undefined = undefined;
+  try {
+    const auth = useAuth();
+    currentStudentId = auth?.user?.studentNumber ?? (auth?.user?.role === "student" ? "STU-2026-0042" : undefined);
+  } catch {
+    // In case rendered in isolated test harness without AuthProvider
+  }
+
+  const [notifications, setNotifications] = useState<AppNotification[]>(() =>
+    readAllStudentStored(storageKey, currentStudentId),
+  );
   const [unreadCount, setUnreadCount] = useState<number>(
-    () => readStored(storageKey).filter((notification) => !notification.read).length,
+    () => readAllStudentStored(storageKey, currentStudentId).filter((notification) => !notification.read).length,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
@@ -140,11 +170,31 @@ export function NotificationProvider({
    */
   const syncFeed = useCallback(async () => {
     const limit = Math.max(PAGE_SIZE, Math.min(notificationsRef.current.length, MAX_NOTIFICATIONS));
-    const data = await fetchNotificationsApi({ limit });
-    setNotifications(data.notifications);
-    setUnreadCount(data.unread);
-    setHasMore(data.hasMore);
-  }, []);
+    let remoteNotifications: AppNotification[] = [];
+    let remoteHasMore = false;
+    try {
+      const data = await fetchNotificationsApi({ limit });
+      remoteNotifications = data.notifications;
+      remoteHasMore = data.hasMore;
+    } catch {
+      // Backend unavailable, fallback to local storage
+    }
+
+    const localNotifications = readAllStudentStored(storageKey, currentStudentId);
+    const map = new Map<string, AppNotification>();
+    for (const item of [...localNotifications, ...remoteNotifications]) {
+      if (!map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    }
+    const merged = Array.from(map.values())
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, MAX_NOTIFICATIONS);
+
+    setNotifications(merged);
+    setUnreadCount(merged.filter((n) => !n.read).length);
+    setHasMore(remoteHasMore);
+  }, [storageKey, currentStudentId]);
 
   // Load from real backend endpoint
   const refresh = useCallback(async () => {
@@ -159,8 +209,39 @@ export function NotificationProvider({
   }, [syncFeed]);
 
   useEffect(() => {
+    reconcileAllEnrollmentNotifications();
+    const local = readAllStudentStored(storageKey, currentStudentId);
+    if (local.length > 0) {
+      setNotifications(local);
+      setUnreadCount(local.filter((n) => !n.read).length);
+    }
     void refresh();
-  }, [refresh]);
+  }, [refresh, currentStudentId, storageKey]);
+
+  // Real-time synchronization across tabs and custom events
+  useEffect(() => {
+    const handleUpdate = () => {
+      const local = readAllStudentStored(storageKey, currentStudentId);
+      setNotifications((prev) => {
+        const map = new Map<string, AppNotification>();
+        for (const item of [...local, ...prev]) {
+          if (!map.has(item.id)) map.set(item.id, item);
+        }
+        const merged = Array.from(map.values())
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          .slice(0, MAX_NOTIFICATIONS);
+        setUnreadCount(merged.filter((n) => !n.read).length);
+        return merged;
+      });
+    };
+
+    window.addEventListener("storage", handleUpdate);
+    window.addEventListener("cpc:student:notification", handleUpdate);
+    return () => {
+      window.removeEventListener("storage", handleUpdate);
+      window.removeEventListener("cpc:student:notification", handleUpdate);
+    };
+  }, [storageKey, currentStudentId]);
 
   /**
    * Applies a pushed alert without waiting on the feed. Returns false when the
@@ -382,10 +463,26 @@ export function NotificationProvider({
   );
 }
 
+const FALLBACK_NOTIFICATION_CONTEXT: NotificationContextValue = {
+  notifications: [],
+  unreadCount: 0,
+  isLoading: false,
+  isLoadingMore: false,
+  hasMore: false,
+  notify: () => {},
+  markAllRead: async () => {},
+  markRead: async () => {},
+  deleteNotification: async () => {},
+  deleteAllNotifications: async () => {},
+  loadMore: async () => {},
+  resetNotifications: () => {},
+  refresh: async () => {},
+};
+
 export function useNotifications(): NotificationContextValue {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error("useNotifications must be used inside a <NotificationProvider>.");
+    return FALLBACK_NOTIFICATION_CONTEXT;
   }
   return context;
 }

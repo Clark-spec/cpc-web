@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/cn";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 import { useAuth } from "@/components/context/useAuth";
+import { getStudentSession } from "@/services/enrollmentWorkflow/service";
 
 type NavLink = {
   label: string;
@@ -30,9 +31,11 @@ const navItems: NavItem[] = [
   {
     label: "Enrollment",
     links: [
-      { label: "Online Enrollment", to: "/online-enrollment" },
-      { label: "Enrollment Requirements", to: "#" },
-      { label: "Registrar Information", to: "#" },
+      { label: "Online Enrollment (Step 0)", to: "/student/verify" },
+      { label: "Enrollment Form", to: "/student/enrollment-form" },
+      { label: "My Queue Ticket", to: "/student/queue" },
+      { label: "Enrollment Status", to: "/online-enrollment/status" },
+      { label: "Public Queue Display", to: "/display" },
     ],
   },
   {
@@ -91,7 +94,7 @@ const utilityLinks = [
 ];
 
 const quickLinks = [
-  { label: "Online Enrollment", to: "/online-enrollment" },
+  { label: "Online Enrollment", to: "/student/verify" },
   { label: "Online Clearance", to: "/student-services/online-clearance" },
 ];
 
@@ -186,13 +189,23 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
 
           <div className="flex items-center justify-end gap-2">
             <Link
-              to="/online-enrollment"
+              to={
+                user &&
+                (getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "SUBMITTED" ||
+                  getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "APPROVED")
+                  ? "/student/queue"
+                  : "/student/verify"
+              }
               className={cn(
                 "inline-flex items-center gap-2 rounded-md bg-cpc-navy-top px-5 py-2.5 font-poppins text-[11px] font-semibold tracking-[0.12em] text-white uppercase shadow-[0_6px_18px_rgba(27,47,158,0.22)] transition-colors hover:bg-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
                 fluid && "hidden lg:inline-flex",
               )}
             >
-              Enroll Now
+              {user &&
+              (getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "SUBMITTED" ||
+                getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "APPROVED")
+                ? "Enrollment Status"
+                : "Enroll Now"}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
 

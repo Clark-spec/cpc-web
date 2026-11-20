@@ -19,11 +19,14 @@ export function normalizeAdminNotification(value: unknown): AdminNotification | 
 
   return {
     id: value.id,
+    title: typeof value.title === "string" ? value.title : undefined,
     message: value.message,
     type: value.type,
     createdAt: value.createdAt,
     read: value.read,
     href: typeof value.href === "string" ? value.href : undefined,
+    department: typeof value.department === "string" ? value.department : undefined,
+    targetRole: typeof value.targetRole === "string" ? value.targetRole : undefined,
   };
 }
 
@@ -70,6 +73,35 @@ export function deleteAdminNotification(id: string): void {
 /** Removes all admin notifications from local storage. */
 export function deleteAllAdminNotifications(): void {
   writeJson(ADMIN_NOTIFICATIONS_KEY, []);
+}
+
+/** Pushes a new admin notification (e.g. from enrollment workflows, queue calls, etc.). */
+export function recordAdminNotification(
+  notification: Omit<AdminNotification, "id" | "createdAt" | "read"> & {
+    id?: string;
+  },
+): void {
+  const notifications = readAdminNotifications();
+  // Prevent duplicate unread notifications with identical title and message
+  const exists = notifications.some(
+    (n) =>
+      !n.read &&
+      (n.id === notification.id ||
+        (n.title === notification.title && n.message === notification.message)),
+  );
+  if (exists) return;
+
+  const entry: AdminNotification = {
+    ...notification,
+    id: notification.id || `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    createdAt: new Date().toISOString(),
+    read: false,
+  };
+  writeJson(ADMIN_NOTIFICATIONS_KEY, [entry, ...notifications].slice(0, 50));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("cpc:admin:notification"));
+  }
 }
 
 

@@ -6,6 +6,8 @@ import {
   ClipboardList,
   Eye,
   FileCheck2,
+  Tv,
+  UserCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router";
@@ -29,11 +31,23 @@ const ACTIONS: QuickAction[] = [
     countKey: "for-review",
   },
   {
+    label: "Screening Committee Review",
+    description: "Dean subject evaluation & remarks",
+    to: "/committee/screening",
+    icon: UserCheck,
+  },
+  {
     label: "View All Applications",
     description: "Browse the complete applicant list",
     to: "/admin/enrollment/applications",
     icon: ClipboardList,
     countKey: "total",
+  },
+  {
+    label: "Live TV Queue Display",
+    description: "Public lobby status for Clinic, Acct & Reg",
+    to: "/display",
+    icon: Tv,
   },
   {
     label: "View Approved Applications",

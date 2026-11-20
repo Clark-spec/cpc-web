@@ -16,7 +16,9 @@ export type AdminRole =
   | "library"
   | "accounting"
   | "sao"
-  | "instructor";
+  | "instructor"
+  | "guidance"
+  | "clinic";
 
 export type AdminUser = {
   /** Stable mock id; also used to namespace the saved signature. */
@@ -147,6 +149,8 @@ export type AdminNotification = {
   createdAt: string;
   read: boolean;
   href?: string;
+  department?: string;
+  targetRole?: AdminRole | string;
 };
 
 export type SignatureMethod = "draw" | "type" | "upload";

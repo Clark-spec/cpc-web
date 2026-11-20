@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "@/components/context/useAuth";
-import { NotificationProvider } from "@/components/context/NotificationContext";
 
 /**
  * Guards every student-portal route and mounts the shared notification provider.
@@ -14,9 +13,7 @@ export function RequireStudent({ children }: { children?: ReactNode }) {
     return <Navigate to="/login/student" replace />;
   }
 
-  const content = children ? <>{children}</> : <Outlet />;
-
-  return <NotificationProvider>{content}</NotificationProvider>;
+  return children ? <>{children}</> : <Outlet />;
 }
 
 

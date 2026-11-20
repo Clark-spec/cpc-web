@@ -22,6 +22,8 @@ const OFFICE_NAMES: Record<string, string> = {
   accounting: "Accounting Office",
   sao: "Student Affairs Office",
   instructor: "Faculty",
+  guidance: "Guidance Office",
+  clinic: "College Clinic",
 };
 
 const ROLE_DEPARTMENT_NAMES: Partial<Record<AdminRole, string>> = {
@@ -34,10 +36,12 @@ const ROLE_DISPLAY_ORDER: AdminRole[] = [
   "admin",
   "registrar",
   "dean_cs",
-  "library",
   "dean_edu",
-  "accounting",
   "dean_hm",
+  "guidance",
+  "clinic",
+  "accounting",
+  "library",
   "sao",
   "instructor",
 ];

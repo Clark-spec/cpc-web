@@ -29,11 +29,14 @@ import {
   resetDemoData as resetDemoDataService,
 } from "@/services/admin";
 import { deleteAdminNotification as deleteAdminNotificationService } from "@/services/admin/notifications";
+import { normalizeDepartment } from "@/services/enrollmentWorkflow/service";
+import type { DepartmentCode } from "@/types/enrollmentWorkflow";
 import {
   deleteAdminNotificationApi,
   fetchAdminNotificationFeed,
   markAdminNotificationsReadApi,
 } from "@/services/admin/notificationFeed";
+import { reconcileAllEnrollmentNotifications } from "@/services/notifications/studentNotificationService";
 import type {
   ActivityItem,
   AdminBadgeCounts,
@@ -71,6 +74,93 @@ type AdminDataContextValue = AdminDataState & {
   resetDemo: () => Promise<void>;
 };
 
+export function isNotificationVisibleToRole(
+  notification: AdminNotification,
+  role: AdminRole,
+): boolean {
+  // Global roles (admin, registrar) see all administrative notifications
+  if (role === "admin" || role === "registrar") {
+    return true;
+  }
+
+  // Deans: strictly filtered to their own department!
+  if (role === "dean_cs" || role === "dean_edu" || role === "dean_hm") {
+    const userDept: DepartmentCode =
+      role === "dean_cs" ? "BSIT" : role === "dean_edu" ? "BEED" : "BSHM";
+
+    // 1. If notification has a specific targetRole, it must match this dean
+    if (notification.targetRole && notification.targetRole !== role) {
+      return false;
+    }
+
+    // 2. If notification has department explicitly set
+    if (notification.department) {
+      const notifDept = normalizeDepartment(notification.department);
+      return notifDept === userDept;
+    }
+
+    // 3. If notification text indicates screening or another department
+    const text = `${notification.title ?? ""} ${notification.message}`.toLowerCase();
+
+    if (userDept === "BSIT") {
+      if (
+        text.includes("(beed)") ||
+        text.includes("(bshm)") ||
+        text.includes("hospitality") ||
+        text.includes("teacher education")
+      ) {
+        return false;
+      }
+    } else if (userDept === "BEED") {
+      if (
+        text.includes("(bsit)") ||
+        text.includes("(bshm)") ||
+        text.includes("computer studies") ||
+        text.includes("hospitality")
+      ) {
+        return false;
+      }
+    } else if (userDept === "BSHM") {
+      if (
+        text.includes("(bsit)") ||
+        text.includes("(beed)") ||
+        text.includes("computer studies") ||
+        text.includes("teacher education")
+      ) {
+        return false;
+      }
+    }
+
+    // If it's a screening notification, it must explicitly belong to their department
+    if (notification.href?.includes("screening")) {
+      if (userDept === "BSIT") return text.includes("(bsit)") || text.includes("computer studies");
+      if (userDept === "BEED") return text.includes("(beed)") || text.includes("teacher education");
+      if (userDept === "BSHM") return text.includes("(bshm)") || text.includes("hospitality");
+    }
+
+    return true;
+  }
+
+  // Station roles
+  if (role === "guidance") {
+    if (notification.targetRole && notification.targetRole !== "guidance") return false;
+    if (notification.href?.includes("screening") && !notification.href.includes("guidance")) return false;
+    return true;
+  }
+  if (role === "clinic") {
+    if (notification.targetRole && notification.targetRole !== "clinic") return false;
+    if (notification.href?.includes("screening")) return false;
+    return true;
+  }
+  if (role === "accounting") {
+    if (notification.targetRole && notification.targetRole !== "accounting") return false;
+    if (notification.href?.includes("screening")) return false;
+    return true;
+  }
+
+  return true;
+}
+
 const EMPTY_STATE: AdminDataState = {
   stats: null,
   enrollment: [],
@@ -95,12 +185,18 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   );
 
   const loadNotifications = useCallback(async (): Promise<AdminNotification[]> => {
+    let remote: AdminNotification[] = [];
     try {
-      return await fetchAdminNotificationFeed();
+      remote = await fetchAdminNotificationFeed();
     } catch {
       // Backend unreachable: keep the demo bell working off local storage.
-      return getAdminNotifications();
     }
+    const local = await getAdminNotifications();
+    const map = new Map<string, AdminNotification>();
+    for (const n of [...local, ...remote]) {
+      if (!map.has(n.id)) map.set(n.id, n);
+    }
+    return Array.from(map.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, []);
 
   const load = useCallback(
@@ -154,7 +250,18 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   // staff bell polls the feed while the tab is visible.
   const syncNotifications = useCallback(async () => {
     try {
-      const notifications = await fetchAdminNotificationFeed();
+      let remote: AdminNotification[] = [];
+      try {
+        remote = await fetchAdminNotificationFeed();
+      } catch {
+        // Backend unreachable
+      }
+      const local = await getAdminNotifications();
+      const map = new Map<string, AdminNotification>();
+      for (const n of [...local, ...remote]) {
+        if (!map.has(n.id)) map.set(n.id, n);
+      }
+      const notifications = Array.from(map.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       setState((current) => ({ ...current, notifications }));
     } catch {
       // Keep the last known feed; the next tick retries.
@@ -179,6 +286,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Initial fetch: the service is the external store, so this is the
     // sanctioned "subscribe on mount" case for this provider.
+    reconcileAllEnrollmentNotifications();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load("initial");
   }, [load]);
@@ -195,28 +303,42 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
         void load("silent");
       }
     };
+    const onCustomAdmin = () => {
+      void load("silent");
+    };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("cpc:admin:notification", onCustomAdmin);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("cpc:admin:notification", onCustomAdmin);
+    };
   }, [load]);
 
   const refresh = useCallback(async () => {
     await load("refresh");
   }, [load]);
 
+  const filteredNotifications = useMemo(() => {
+    if (!user) return state.notifications;
+    return state.notifications.filter((n) => isNotificationVisibleToRole(n, user.role));
+  }, [state.notifications, user]);
+
   const markAllNotificationsRead = useCallback(async () => {
+    const idsToMark = filteredNotifications.map((n) => n.id);
     try {
-      await markAdminNotificationsReadApi();
+      await markAdminNotificationsReadApi(idsToMark);
     } catch {
-      await markNotificationsReadService();
+      await markNotificationsReadService(idsToMark);
     }
     setState((current) => ({
       ...current,
-      notifications: current.notifications.map((notification) => ({
-        ...notification,
-        read: true,
-      })),
+      notifications: current.notifications.map((notification) =>
+        idsToMark.includes(notification.id)
+          ? { ...notification, read: true }
+          : notification,
+      ),
     }));
-  }, []);
+  }, [filteredNotifications]);
 
   const markNotificationRead = useCallback(async (id: string) => {
     try {
@@ -264,13 +386,14 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   );
 
   const unreadNotifications = useMemo(
-    () => state.notifications.filter((notification) => !notification.read).length,
-    [state.notifications],
+    () => filteredNotifications.filter((notification) => !notification.read).length,
+    [filteredNotifications],
   );
 
   const value = useMemo<AdminDataContextValue>(
     () => ({
       ...state,
+      notifications: filteredNotifications,
       loading,
       refreshing,
       error,
@@ -288,6 +411,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [
       badges,
       error,
+      filteredNotifications,
       generateSamples,
       loading,
       markAllNotificationsRead,

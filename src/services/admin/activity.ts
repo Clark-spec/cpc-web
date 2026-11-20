@@ -198,3 +198,14 @@ export async function getRecentActivity(): Promise<ActivityItem[]> {
   return wait(activity.slice(0, 30));
 }
 
+/** Pushes a live activity entry to the admin activity stream. */
+export function recordAdminActivity(item: Omit<ActivityItem, "id" | "createdAt">): void {
+  const current = readActivity();
+  const entry: ActivityItem = {
+    ...item,
+    id: `act-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    createdAt: new Date().toISOString(),
+  };
+  writeJson(ADMIN_ACTIVITY_KEY, [entry, ...current].slice(0, 50));
+}
+

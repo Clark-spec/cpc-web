@@ -47,7 +47,25 @@ export async function getDashboardStats(user: AdminUser): Promise<DashboardStats
     (request) => request.status === "rejected",
   ).length;
 
-  const pendingEnrollments = 126;
+  let livePendingEnrollments = 0;
+  let liveScreeningPending = 0;
+  if (typeof window !== "undefined") {
+    try {
+      const raw = window.localStorage.getItem("cpc:enrollment:sessions:v1");
+      if (raw) {
+        const sessions = JSON.parse(raw);
+        const list = Object.values(sessions) as any[];
+        livePendingEnrollments = list.filter(
+          (s) => s.form?.status === "SUBMITTED" || s.steps?.screening?.status === "PENDING",
+        ).length;
+        liveScreeningPending = list.filter(
+          (s) => s.steps?.screening?.status === "PENDING",
+        ).length;
+      }
+    } catch {}
+  }
+
+  const pendingEnrollments = 126 + livePendingEnrollments;
   const openRequests = 39;
   const activeComplaints = 12;
 
@@ -137,6 +155,15 @@ export async function getDashboardStats(user: AdminUser): Promise<DashboardStats
 
     stats = [
       {
+        id: "enrollments",
+        label: `${programPrefix} Screening Queue`,
+        value: liveScreeningPending,
+        change: 2,
+        trend: "up",
+        href: "/committee/screening",
+        sparkline: sparklineFor(liveScreeningPending, [5, 4, 3, 2, 1, 0, 0]),
+      },
+      {
         id: "clearance",
         label: `${programPrefix} Clearance`,
         value: pendingClearance,
@@ -162,15 +189,6 @@ export async function getDashboardStats(user: AdminUser): Promise<DashboardStats
         trend: "down",
         href: "/admin/support/complaints",
         sparkline: [5, 4, 4, 3, 3, 3, 3],
-      },
-      {
-        id: "requests",
-        label: "Service Requests",
-        value: openRequests,
-        change: 0,
-        trend: "flat",
-        href: "/admin/service-requests",
-        sparkline: [42, 41, 43, 40, 39, 39, openRequests],
       },
     ];
   } else if (user.role === "instructor") {
@@ -249,6 +267,113 @@ export async function getDashboardStats(user: AdminUser): Promise<DashboardStats
         trend: "up",
         href: "/admin/clearance-requests",
         sparkline: sparklineFor(signedToday, [4, 5, 5, 6, 7, 8, 0]),
+      },
+    ];
+  } else if (user.role === "guidance") {
+    let guidancePending = 0;
+    let ticketsMinted = 0;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem("cpc:enrollment:sessions:v1");
+        if (raw) {
+          const sessions = JSON.parse(raw);
+          const list = Object.values(sessions) as any[];
+          guidancePending = list.filter(
+            (s) => s.steps?.screening?.status === "APPROVED" && s.steps?.guidance?.status === "PENDING",
+          ).length;
+          ticketsMinted = list.filter((s) => s.ticket).length;
+        }
+      } catch {}
+    }
+    stats = [
+      {
+        id: "enrollments",
+        label: "Guidance Queue",
+        value: guidancePending,
+        change: 3,
+        trend: "up",
+        href: "/guidance/queue",
+        sparkline: sparklineFor(guidancePending, [4, 3, 2, 2, 1, 0, 0]),
+      },
+      {
+        id: "signed",
+        label: "Queue Tickets Minted",
+        value: ticketsMinted,
+        change: 5,
+        trend: "up",
+        href: "/guidance/queue",
+        sparkline: sparklineFor(ticketsMinted, [1, 2, 2, 3, 4, 4, 0]),
+      },
+      {
+        id: "requests",
+        label: "Service Requests",
+        value: openRequests,
+        change: 0,
+        trend: "flat",
+        href: "/admin/service-requests",
+        sparkline: [42, 41, 43, 40, 39, 39, openRequests],
+      },
+      {
+        id: "complaints",
+        label: "Student Guidance Concerns",
+        value: activeComplaints,
+        change: -1,
+        trend: "down",
+        href: "/admin/support/complaints",
+        sparkline: [18, 17, 16, 15, 14, 13, activeComplaints],
+      },
+    ];
+  } else if (user.role === "clinic") {
+    let clinicWaiting = 0;
+    let clinicDone = 0;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem("cpc:enrollment:queue_tickets:v1");
+        if (raw) {
+          const tickets = JSON.parse(raw) as any[];
+          clinicWaiting = tickets.filter(
+            (t) => t.clinic?.status === "WAITING" || t.clinic?.status === "SERVING" || t.clinic?.status === "CALLED",
+          ).length;
+          clinicDone = tickets.filter((t) => t.clinic?.status === "DONE").length;
+        }
+      } catch {}
+    }
+    stats = [
+      {
+        id: "enrollments",
+        label: "Clinic Waiting Queue",
+        value: clinicWaiting,
+        change: 2,
+        trend: "up",
+        href: "/clinic/queue",
+        sparkline: sparklineFor(clinicWaiting, [5, 4, 3, 2, 1, 0, 0]),
+      },
+      {
+        id: "signed",
+        label: "Health Assessments Done",
+        value: clinicDone,
+        change: 4,
+        trend: "up",
+        href: "/clinic/queue",
+        sparkline: sparklineFor(clinicDone, [1, 2, 3, 3, 4, 4, 0]),
+      },
+      {
+        id: "requests",
+        label: "Service Requests",
+        value: openRequests,
+        change: 0,
+        trend: "flat",
+        href: "/admin/service-requests",
+        sparkline: [42, 41, 43, 40, 39, 39, openRequests],
+      },
+      {
+        id: "complaints",
+        label: "Support Concerns",
+        value: activeComplaints,
+        change: 0,
+        trend: "flat",
+        href: "/admin/support/complaints",
+        sparkline: [18, 17, 16, 15, 14, 13, activeComplaints],
       },
     ];
   } else {
