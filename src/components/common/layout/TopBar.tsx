@@ -15,7 +15,9 @@ export function TopBar({ bell }: { bell?: ReactNode }) {
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_140%_at_0%_0%,rgba(255,255,255,0.10),transparent_55%)]"
       />
-      <div className="relative mx-auto grid h-14 w-full max-w-[1440px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-4 sm:px-6 lg:px-[50px]">
+      {/* The motto is hidden below md, so use two columns there; three columns
+          would leave an empty track that pushes the bell into the middle. */}
+      <div className="relative mx-auto grid h-14 w-full max-w-[1440px] grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:px-[50px]">
         <div className="flex min-w-0 items-center gap-2.5">
           <MapPinIcon className="h-4 w-4 shrink-0 text-white/70" />
           <div className="min-w-0">

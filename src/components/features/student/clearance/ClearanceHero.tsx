@@ -8,7 +8,13 @@ const breadcrumbItems: HeroBreadcrumb[] = [
   { label: "Online Clearance", href: null },
 ];
 
-/** Shared system hero banner, re-used with clearance content. */
+const chips = [
+  "Digital e-signatures",
+  "Track each office",
+  "Downloadable clearance",
+] as const;
+
+/** Online Clearance page hero. */
 export function ClearanceHero() {
   return (
     <PageHeroBanner
@@ -17,6 +23,7 @@ export function ClearanceHero() {
       title="ONLINE CLEARANCE"
       subtitle="Complete your clearance requirements digitally and track each office's approval."
       backgroundImage={cpcBg}
+      chips={chips}
     />
   );
 }

@@ -1,11 +1,11 @@
 import type { ProfileFormState } from "@/components/features/student/profile/useProfileForm";
-import type { useUnsavedChangesGuard } from "@/components/features/student/profile/useUnsavedChangesGuard";
+import type { UnsavedChangesBlocker } from "@/components/features/student/profile/useUnsavedChangesGuard";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { RequestCorrectionModal } from "@/components/features/student/profile/RequestCorrectionModal";
 
 type ProfileDialogsProps = {
   form: ProfileFormState;
-  blocker: ReturnType<typeof useUnsavedChangesGuard>;
+  blocker: UnsavedChangesBlocker;
   correctionField: string | null;
   onCloseCorrection: () => void;
 };

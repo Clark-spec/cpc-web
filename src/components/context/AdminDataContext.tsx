@@ -41,6 +41,7 @@ import type {
   ActivityItem,
   AdminBadgeCounts,
   AdminNotification,
+  AdminRole,
   ClearanceRequest,
   DashboardStats,
   EnrollmentOverviewRow,
