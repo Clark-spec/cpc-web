@@ -56,6 +56,7 @@ export function ScreeningCommitteeView() {
     studentName: "",
   });
   const [referRemarks, setReferRemarks] = useState("");
+  const [feeVerified, setFeeVerified] = useState<Record<string, boolean>>({});
 
   const refresh = () => {
     setQueue(getScreeningQueue(activeDept === "all" ? undefined : activeDept));
@@ -72,7 +73,9 @@ export function ScreeningCommitteeView() {
   const bshmCount = getScreeningQueue("BSHM").length;
 
   const handleApprove = (studentId: string) => {
-    approveScreening(studentId, user?.name ?? "Screening Committee", user?.role ?? undefined);
+    if (!feeVerified[studentId]) return;
+    approveScreening(studentId, user?.name ?? "Screening Committee", user?.role ?? undefined, true);
+    setFeeVerified((current) => ({ ...current, [studentId]: false }));
     refresh();
   };
 
@@ -193,12 +196,23 @@ export function ScreeningCommitteeView() {
                   <button
                     type="button"
                     onClick={() => handleApprove(form.studentId)}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-cpc-blue-accent px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition"
+                    disabled={!feeVerified[form.studentId]}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-cpc-blue-accent px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-45"
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Approve Form
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Approve & Sign
                   </button>
                 </div>
               </div>
+
+              <label className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs leading-relaxed text-amber-900">
+                <input
+                  type="checkbox"
+                  checked={Boolean(feeVerified[form.studentId])}
+                  onChange={(event) => setFeeVerified((current) => ({ ...current, [form.studentId]: event.target.checked }))}
+                  className="mt-0.5 accent-cpc-blue-accent"
+                />
+                <span>Confirm that the student paid the required ₱100 department fee before signing this form.</span>
+              </label>
 
               {/* Subjects List */}
               <div className="mt-4">

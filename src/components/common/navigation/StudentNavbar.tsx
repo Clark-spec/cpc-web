@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
     links: [
       { label: "Online Enrollment (Step 0)", to: "/student/verify" },
       { label: "Enrollment Form", to: "/student/enrollment-form" },
-      { label: "My Queue Ticket", to: "/student/queue" },
+      { label: "Clearance Signatures", to: "/student/queue" },
       { label: "Enrollment Status", to: "/online-enrollment/status" },
       { label: "Public Queue Display", to: "/display" },
     ],

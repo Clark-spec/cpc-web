@@ -1,197 +1,169 @@
-import { useMemo, useState } from "react";
-import type { LucideIcon } from "lucide-react";
-import {
-  BookOpen,
-  GraduationCap,
-  Monitor,
-  Users,
-  UtensilsCrossed,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { RefreshCw, Search, Trash2, Users } from "lucide-react";
 import { PageBanner } from "@/components/common/display/PageBanner";
-import { StudentDetailsModal } from "@/components/features/admin/student-accounts/StudentDetailsModal";
-import { StudentsTable } from "@/components/features/admin/student-accounts/StudentsTable";
-import { StudentsToolbar } from "@/components/features/admin/student-accounts/StudentsToolbar";
-import { SummaryCard } from "@/components/features/admin/student-accounts/SummaryCard";
+import { RegistrarStudentCreator } from "@/components/features/admin/student-accounts/RegistrarStudentCreator";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { useToast } from "@/components/ui/toast";
 import {
-  COURSE_CODES,
-  STUDENTS,
-} from "@/components/features/admin/student-accounts/mockStudentAccounts";
-import type {
-  CourseCode,
-  StudentRecord,
-  StudentsFilters,
-} from "@/components/features/admin/student-accounts/types";
+  deleteRegistrarStudentAccount,
+  listRegistrarStudentAccounts,
+  type RegistrarStudentAccount,
+} from "@/services/studentAccounts/admin";
 
-const DEFAULT_FILTERS: StudentsFilters = {
-  query: "",
-  course: "all",
-  year: "all",
-  section: "all",
-  page: 1,
-  pageSize: 10,
-};
-
-const COURSE_ICONS: Record<CourseCode, LucideIcon> = {
-  BSIT: Monitor,
-  BEED: BookOpen,
-  BSED: GraduationCap,
-  BSHM: UtensilsCrossed,
-};
-
-const COURSE_TONES: Record<CourseCode, string> = {
-  BSIT: "bg-cpc-section-light text-cpc-blue-accent",
-  BEED: "bg-emerald-50 text-emerald-600",
-  BSED: "bg-amber-50 text-amber-600",
-  BSHM: "bg-rose-50 text-rose-600",
-};
-
-/** Route: /admin/students — the searchable student directory. */
 export function AllStudentsWorkspace() {
-  const [filters, setFilters] = useState<StudentsFilters>(DEFAULT_FILTERS);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { user } = useAdminAuth();
+  const { toast } = useToast();
+  const [students, setStudents] = useState<RegistrarStudentAccount[]>([]);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredRows = useMemo(() => {
-    const query = filters.query.trim().toLowerCase();
+  const role = user?.role;
+  const canManageAccounts = role === "admin" || role === "registrar";
 
-    return STUDENTS.filter((student) => {
-      const matchesQuery =
-        !query ||
-        [student.fullName, student.studentId, student.email].some((value) =>
-          value.toLowerCase().includes(query),
-        );
-      const matchesCourse = filters.course === "all" || student.course === filters.course;
-      const matchesYear = filters.year === "all" || student.year === filters.year;
-      const matchesSection =
-        filters.section === "all" || student.section === filters.section;
-
-      return matchesQuery && matchesCourse && matchesYear && matchesSection;
-    }).sort((a, b) => a.fullName.localeCompare(b.fullName));
-  }, [filters]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / filters.pageSize));
-  const page = Math.min(filters.page, totalPages);
-  const pageRows = filteredRows.slice(
-    (page - 1) * filters.pageSize,
-    page * filters.pageSize,
-  );
-
-  const hasActiveFilters =
-    filters.query.trim() !== "" ||
-    filters.course !== "all" ||
-    filters.year !== "all" ||
-    filters.section !== "all";
-
-  const selectedStudent = STUDENTS.find((student) => student.id === selectedId) ?? null;
-
-  const courseCounts = useMemo(() => {
-    const counts = new Map<CourseCode, number>();
-    for (const student of STUDENTS) {
-      counts.set(student.course, (counts.get(student.course) ?? 0) + 1);
+  const loadStudents = useCallback(async () => {
+    if (!canManageAccounts || !role) return;
+    setLoading(true);
+    setError(null);
+    try {
+      setStudents(await listRegistrarStudentAccounts(role));
+    } catch {
+      // Do not leave old, demo, or stale rows visible when the database is unavailable.
+      setStudents([]);
+      setError("Student accounts could not be loaded from the database.");
+    } finally {
+      setLoading(false);
     }
-    return counts;
-  }, []);
+  }, [canManageAccounts, role]);
 
-  function setFilter<K extends keyof StudentsFilters>(
-    key: K,
-    value: StudentsFilters[K],
-  ) {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-      ...(key === "page" ? {} : { page: 1 }),
-      ...(key === "course" || key === "year" ? { section: "all" } : {}),
-    }));
+  useEffect(() => {
+    void loadStudents();
+  }, [loadStudents]);
+
+  const filteredStudents = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return students;
+    return students.filter((student) =>
+      [student.studentNumber, student.name, student.section ?? "", student.course ?? ""]
+        .some((value) => value.toLowerCase().includes(needle)),
+    );
+  }, [query, students]);
+
+  async function removeStudent(student: RegistrarStudentAccount) {
+    if (!role || deletingId) return;
+    const confirmed = window.confirm(
+      `Delete ${student.studentNumber} — ${student.name}? This permanently removes the account and continuing-student record. Linked requests and notifications may also be removed.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(student.id);
+    try {
+      await deleteRegistrarStudentAccount(role, student.id);
+      setStudents((current) => current.filter((row) => row.id !== student.id));
+      toast(`Student account ${student.studentNumber} was deleted.`, "success");
+    } catch (deleteError) {
+      toast(deleteError instanceof Error ? deleteError.message : "Student account could not be deleted.", "error");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
-  function resetFilters() {
-    setFilters((prev) => ({ ...DEFAULT_FILTERS, pageSize: prev.pageSize }));
-  }
-
-  function applyCourseFilter(course: CourseCode | "all") {
-    setFilters((prev) => ({ ...prev, course, section: "all", page: 1 }));
-  }
+  if (!canManageAccounts) return null;
 
   return (
     <div className="space-y-6">
+      <RegistrarStudentCreator onCreated={() => void loadStudents()} />
+
       <PageBanner
         title="All Students"
-        subtitle="Browse student records, sections and enrollment status across every program"
+        subtitle="Only Registrar-created student accounts saved in the database appear here."
         right={
           <div className="flex items-center gap-2.5 rounded-xl border border-white/80 bg-white/80 px-3.5 py-2.5 shadow-[0_10px_30px_rgba(15,36,104,0.08)] backdrop-blur">
-            <span
-              aria-hidden
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cpc-section-light text-cpc-blue-accent"
-            >
+            <span aria-hidden className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cpc-section-light text-cpc-blue-accent">
               <Users className="h-4 w-4" />
             </span>
             <div>
-              <p className="font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">
-                Total students
-              </p>
-              <p className="font-poppins text-sm leading-none font-bold text-cpc-navy-text tabular-nums">
-                {STUDENTS.length}
-              </p>
+              <p className="font-poppins text-[10px] font-bold tracking-[0.12em] text-cpc-heading-soft uppercase">Saved accounts</p>
+              <p className="font-poppins text-sm leading-none font-bold text-cpc-navy-text tabular-nums">{students.length}</p>
             </div>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <SummaryCard
-          label="Total Students"
-          count={STUDENTS.length}
-          icon={Users}
-          tone="bg-cpc-section-light text-cpc-blue-accent"
-          chip="All programs"
-          hint="Every student in the directory"
-          active={filters.course === "all"}
-          onClick={() => applyCourseFilter("all")}
-        />
-        {COURSE_CODES.map((course) => {
-          const count = courseCounts.get(course) ?? 0;
-          const share = STUDENTS.length === 0 ? 0 : Math.round((count / STUDENTS.length) * 100);
-          return (
-            <SummaryCard
-              key={course}
-              label={course}
-              count={count}
-              icon={COURSE_ICONS[course]}
-              tone={COURSE_TONES[course]}
-              chip={`${share}% of total`}
-              hint={`Students enrolled in ${course}`}
-              active={filters.course === course}
-              onClick={() => applyCourseFilter(course)}
+      <section aria-label="Saved student accounts" className="overflow-hidden rounded-2xl border border-cpc-tile-border/70 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-cpc-tile-border/50 p-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="font-poppins text-sm font-bold text-cpc-navy-text">Database student accounts</h2>
+            <p className="mt-1 font-poppins text-xs text-cpc-heading-soft">Deleting an account removes its student access and continuing-student record.</p>
+          </div>
+          <label className="relative block w-full sm:max-w-xs">
+            <span className="sr-only">Search saved students</span>
+            <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cpc-muted-blue" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search name, ID or section"
+              className="h-10 w-full rounded-lg border border-cpc-input-border bg-white pl-9 pr-3 font-poppins text-xs text-cpc-navy-text outline-none focus:border-cpc-blue-accent"
             />
-          );
-        })}
-      </div>
+          </label>
+        </div>
 
-      <StudentsToolbar
-        filters={filters}
-        setFilter={setFilter}
-        resetFilters={resetFilters}
-        hasActiveFilters={hasActiveFilters}
-      />
-
-      <StudentsTable
-        rows={pageRows}
-        totalRows={filteredRows.length}
-        page={page}
-        pageSize={filters.pageSize}
-        hasActiveFilters={hasActiveFilters}
-        onView={(student: StudentRecord) => setSelectedId(student.id)}
-        onPageChange={(nextPage) => setFilter("page", nextPage)}
-        onPageSizeChange={(size) => setFilter("pageSize", size)}
-        onClearFilters={resetFilters}
-      />
-
-      {selectedStudent && (
-        <StudentDetailsModal
-          key={selectedStudent.id}
-          student={selectedStudent}
-          onClose={() => setSelectedId(null)}
-        />
-      )}
+        {error ? (
+          <div role="alert" className="flex flex-col items-start gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-poppins text-sm text-rose-700">{error}</p>
+            <button type="button" onClick={() => void loadStudents()} className="cpc-btn cpc-btn-secondary cpc-btn-sm">
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden /> Try again
+            </button>
+          </div>
+        ) : loading ? (
+          <p role="status" className="p-6 font-poppins text-sm text-cpc-heading-soft">Loading saved student accounts…</p>
+        ) : filteredStudents.length === 0 ? (
+          <p className="p-6 font-poppins text-sm text-cpc-heading-soft">
+            {query ? "No saved student accounts match that search." : "No Registrar-created student accounts are saved yet."}
+          </p>
+        ) : (
+          <div className="admin-scrollbar max-h-[65vh] overflow-auto">
+            <table className="w-full min-w-[680px] border-collapse">
+              <caption className="sr-only">{filteredStudents.length} saved student accounts</caption>
+              <thead>
+                <tr className="border-b border-cpc-tile-border/60 text-left">
+                  <th scope="col" className="px-4 py-3 font-poppins text-[10px] font-bold uppercase tracking-wide text-cpc-heading-soft">Student ID</th>
+                  <th scope="col" className="px-4 py-3 font-poppins text-[10px] font-bold uppercase tracking-wide text-cpc-heading-soft">Name</th>
+                  <th scope="col" className="px-4 py-3 font-poppins text-[10px] font-bold uppercase tracking-wide text-cpc-heading-soft">Section</th>
+                  <th scope="col" className="px-4 py-3 font-poppins text-[10px] font-bold uppercase tracking-wide text-cpc-heading-soft">Course / Year</th>
+                  <th scope="col" className="px-4 py-3 text-right font-poppins text-[10px] font-bold uppercase tracking-wide text-cpc-heading-soft">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-cpc-tile-border/50">
+                {filteredStudents.map((student) => (
+                  <tr key={student.id} className="hover:bg-cpc-section-light/30">
+                    <td className="px-4 py-3 font-mono text-xs font-bold text-cpc-blue-accent">{student.studentNumber}</td>
+                    <td className="px-4 py-3 font-poppins text-xs font-semibold text-cpc-navy-text">{student.name}</td>
+                    <td className="px-4 py-3 font-poppins text-xs text-cpc-navy-text">{student.section || "—"}</td>
+                    <td className="px-4 py-3 font-poppins text-xs text-cpc-navy-text">
+                      {student.course || "—"}{student.yearLevel ? ` · Year ${student.yearLevel}` : ""}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        disabled={deletingId !== null}
+                        onClick={() => void removeStudent(student)}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 font-poppins text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                        aria-label={`Delete student ${student.studentNumber}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                        {deletingId === student.id ? "Deleting…" : "Delete"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

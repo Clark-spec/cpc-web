@@ -12,6 +12,7 @@ import type {
 export const mockStudent: StudentProfile = {
   name: "Harry Styles",
   studentId: "20240778",
+  section: "BSIT 3-A",
   yearLevel: "3rd year",
   course: "BSIT",
   program: "BS Information Technology",

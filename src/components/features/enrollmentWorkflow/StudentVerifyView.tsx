@@ -12,7 +12,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/components/context/useAuth";
+import { apiClient } from "@/lib/apiClient";
 import {
+  cacheContinuingStudentRecord,
   checkEligibility,
   confirmVerification,
   getCorrectionRequests,
@@ -21,25 +23,61 @@ import {
   subscribeToEnrollmentQueue,
   type VerificationCorrection,
 } from "@/services/enrollmentWorkflow/service";
+import type { MasterlistRecord } from "@/types/enrollmentWorkflow";
+import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 
 export function StudentVerifyView() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Use logged in student ID or demo fallback
+  // Use the logged-in student ID, with demo fallback only for demo identities.
   const studentId = user?.studentNumber || "2024-00012";
-  const [session, setSession] = useState(() => getStudentSession(studentId));
+  const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId);
+  const [session, setSession] = useState<StudentEnrollmentSession | null>(() =>
+    isDatabaseStudent ? null : getStudentSession(studentId),
+  );
+  const [recordLoading, setRecordLoading] = useState(isDatabaseStudent);
+  const [recordLoadError, setRecordLoadError] = useState(false);
   const [corrections, setCorrections] = useState<VerificationCorrection[]>(() =>
     getCorrectionRequests().filter((r) => r.studentId === studentId),
   );
 
   useEffect(() => {
+    let active = true;
     const unsub = subscribeToEnrollmentQueue(() => {
+      if (isDatabaseStudent && !checkEligibility(studentId).record) return;
       setSession(getStudentSession(studentId));
       setCorrections(getCorrectionRequests().filter((r) => r.studentId === studentId));
     });
-    return unsub;
-  }, [studentId]);
+    if (isDatabaseStudent) {
+      setRecordLoading(true);
+      setRecordLoadError(false);
+      apiClient.get<{ data?: { record?: MasterlistRecord } }>("/students/v1/continuing-record")
+        .then((response) => {
+          const record = response.data?.data?.record;
+          if (!active) return;
+          if (!record || record.studentIdNo !== studentId) {
+            setRecordLoadError(true);
+            return;
+          }
+          cacheContinuingStudentRecord(record);
+          setSession(getStudentSession(studentId));
+          setCorrections(getCorrectionRequests().filter((r) => r.studentId === studentId));
+        })
+        .catch(() => {
+          if (active) setRecordLoadError(true);
+        })
+        .finally(() => {
+          if (active) setRecordLoading(false);
+        });
+    } else {
+      setSession(getStudentSession(studentId));
+    }
+    return () => {
+      active = false;
+      unsub();
+    };
+  }, [isDatabaseStudent, studentId]);
 
   const { eligible, record, reason } = checkEligibility(studentId);
 
@@ -50,16 +88,17 @@ export function StudentVerifyView() {
   const [correctionSuccess, setCorrectionSuccess] = useState(false);
 
   const latestCorrection = corrections[0];
-  const isVerified = session.steps.verification.status === "APPROVED";
+  const isVerified = session?.steps.verification.status === "APPROVED";
 
   const handleConfirm = () => {
+    if (!session) return;
     confirmVerification(studentId);
     navigate("/student/enrollment-form");
   };
 
   const handleSubmitCorrection = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!requestedValue.trim() || !correctionReason.trim()) return;
+    if (!session || !requestedValue.trim() || !correctionReason.trim()) return;
 
     submitCorrectionRequest(studentId, {
       field,
@@ -74,6 +113,20 @@ export function StudentVerifyView() {
       setCorrectionReason("");
     }, 1500);
   };
+
+  if (recordLoading) {
+    return <div role="status" className="mx-auto max-w-4xl px-4 py-16 text-center font-poppins text-sm text-cpc-heading-soft">Loading your official Registrar record…</div>;
+  }
+
+  if (recordLoadError || !session) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center font-poppins">
+        <h1 className="text-xl font-bold text-cpc-navy-text">Registrar record unavailable</h1>
+        <p className="mt-2 text-sm text-cpc-heading-soft">Online Enrollment uses the continuing-student record saved for your student ID. Please contact the Registrar if this message continues.</p>
+        <Link to="/student/home" className="mt-5 inline-flex rounded-xl bg-cpc-blue-accent px-4 py-2 text-xs font-semibold text-white">Return to Student Portal</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 font-poppins">
@@ -205,12 +258,12 @@ export function StudentVerifyView() {
 
             <div className="rounded-xl border border-cpc-input-border/50 bg-cpc-section-light/50 p-4">
               <span className="text-[11px] font-bold uppercase tracking-wider text-cpc-heading-soft">
-                Current Level & Sem
+                Current Level
               </span>
               <p className="mt-1 text-sm font-bold text-cpc-navy-text">
-                Year {record.yearLevel} · {record.semester === 1 ? "1st" : "2nd"} Semester
+                {(["", "1st", "2nd", "3rd", "4th"][record.yearLevel] ?? `Year ${record.yearLevel}`)} Year
               </p>
-              <p className="text-xs text-cpc-muted-blue">Continuing Student</p>
+              <p className="text-xs text-cpc-muted-blue">2nd Semester · Continuing Student</p>
             </div>
 
             <div className="rounded-xl border border-cpc-input-border/50 bg-cpc-section-light/50 p-4">

@@ -20,6 +20,7 @@ import {
 import { useSSE } from "@/hooks/useSSE";
 import { reconcileAllEnrollmentNotifications } from "@/services/notifications/studentNotificationService";
 import { useAuth } from "@/components/context/useAuth";
+import { studentNotificationsKey } from "@/lib/clearanceStorage";
 
 export type NotificationType = "info" | "success" | "warning";
 
@@ -75,7 +76,6 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 
 const PAGE_SIZE = 20;
 const MAX_NOTIFICATIONS = 50;
-const DEFAULT_STORAGE_KEY = "cpc:notifications:student";
 
 function isNotification(value: unknown): value is AppNotification {
   if (typeof value !== "object" || value === null) return false;
@@ -95,57 +95,32 @@ function readStored(key: string): AppNotification[] {
   }
 }
 
-function readAllStudentStored(storageKey: string, studentId?: string): AppNotification[] {
-  const keys = [storageKey];
-  if (studentId) {
-    keys.push(`cpc:notifications:${studentId}`);
-  }
-  const map = new Map<string, AppNotification>();
-  for (const k of keys) {
-    for (const item of readStored(k)) {
-      if (!map.has(item.id)) {
-        map.set(item.id, item);
-      }
-    }
-  }
-  return Array.from(map.values())
+function readAllStudentStored(studentId?: string): AppNotification[] {
+  if (!studentId) return [];
+  return readStored(studentNotificationsKey(studentId))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, MAX_NOTIFICATIONS);
 }
 
-type NotificationProviderProps = {
-  children: ReactNode;
-  /** Optional storage key for offline fallback. Defaults to shared key. */
-  storageKey?: string;
-};
-
 /**
- * Shared notification feed for the student portal. Connects to backend notifications
- * API and synchronizes in real time via Server-Sent Events (SSE).
+ * Student-scoped notification feed. Reads the signed-in student's backend feed
+ * and keeps an offline cache under that student's ID only.
  */
-export function NotificationProvider({
-  children,
-  storageKey = DEFAULT_STORAGE_KEY,
-}: NotificationProviderProps) {
-  let currentStudentId: string | undefined = undefined;
-  try {
-    const auth = useAuth();
-    currentStudentId = auth?.user?.studentNumber ?? (auth?.user?.role === "student" ? "STU-2026-0042" : undefined);
-  } catch {
-    // In case rendered in isolated test harness without AuthProvider
-  }
+export function NotificationProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const currentStudentId = user?.role === "student" ? (user.studentNumber ?? user.id) : undefined;
 
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
-    readAllStudentStored(storageKey, currentStudentId),
+    readAllStudentStored(currentStudentId),
   );
   const [unreadCount, setUnreadCount] = useState<number>(
-    () => readAllStudentStored(storageKey, currentStudentId).filter((notification) => !notification.read).length,
+    () => readAllStudentStored(currentStudentId).filter((notification) => !notification.read).length,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(false);
-  const skipPersist = useRef(false);
   const notificationsRef = useRef(notifications);
+  const notificationsOwnerId = useRef(currentStudentId);
 
   useEffect(() => {
     notificationsRef.current = notifications;
@@ -153,22 +128,28 @@ export function NotificationProvider({
 
   // Sync to localStorage as offline cache
   useEffect(() => {
-    if (skipPersist.current) {
-      skipPersist.current = false;
+    if (!currentStudentId) return;
+    if (notificationsOwnerId.current !== currentStudentId) {
       return;
     }
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(notifications.slice(0, MAX_NOTIFICATIONS)));
+      window.localStorage.setItem(studentNotificationsKey(currentStudentId), JSON.stringify(notifications.slice(0, MAX_NOTIFICATIONS)));
     } catch {
       // Ignore storage failures
     }
-  }, [notifications, storageKey]);
+  }, [notifications, currentStudentId]);
 
   /**
    * Pulls the newest page. The limit keeps any "See earlier" pages the reader
    * already expanded instead of collapsing the list on every realtime event.
    */
   const syncFeed = useCallback(async () => {
+    if (!currentStudentId) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setHasMore(false);
+      return;
+    }
     const limit = Math.max(PAGE_SIZE, Math.min(notificationsRef.current.length, MAX_NOTIFICATIONS));
     let remoteNotifications: AppNotification[] = [];
     let remoteHasMore = false;
@@ -180,9 +161,9 @@ export function NotificationProvider({
       // Backend unavailable, fallback to local storage
     }
 
-    const localNotifications = readAllStudentStored(storageKey, currentStudentId);
+    const localNotifications = readAllStudentStored(currentStudentId);
     const map = new Map<string, AppNotification>();
-    for (const item of [...localNotifications, ...remoteNotifications]) {
+    for (const item of [...remoteNotifications, ...localNotifications]) {
       if (!map.has(item.id)) {
         map.set(item.id, item);
       }
@@ -194,7 +175,7 @@ export function NotificationProvider({
     setNotifications(merged);
     setUnreadCount(merged.filter((n) => !n.read).length);
     setHasMore(remoteHasMore);
-  }, [storageKey, currentStudentId]);
+  }, [currentStudentId]);
 
   // Load from real backend endpoint
   const refresh = useCallback(async () => {
@@ -210,21 +191,25 @@ export function NotificationProvider({
 
   useEffect(() => {
     reconcileAllEnrollmentNotifications();
-    const local = readAllStudentStored(storageKey, currentStudentId);
-    if (local.length > 0) {
-      setNotifications(local);
-      setUnreadCount(local.filter((n) => !n.read).length);
+    const local = readAllStudentStored(currentStudentId);
+    notificationsOwnerId.current = currentStudentId;
+    setNotifications(local);
+    setUnreadCount(local.filter((n) => !n.read).length);
+    if (currentStudentId) void refresh();
+    else {
+      setHasMore(false);
+      setIsLoading(false);
     }
-    void refresh();
-  }, [refresh, currentStudentId, storageKey]);
+  }, [refresh, currentStudentId]);
 
   // Real-time synchronization across tabs and custom events
   useEffect(() => {
     const handleUpdate = () => {
-      const local = readAllStudentStored(storageKey, currentStudentId);
+      const local = readAllStudentStored(currentStudentId);
       setNotifications((prev) => {
         const map = new Map<string, AppNotification>();
-        for (const item of [...local, ...prev]) {
+        const previousForStudent = notificationsOwnerId.current === currentStudentId ? prev : [];
+        for (const item of [...local, ...previousForStudent]) {
           if (!map.has(item.id)) map.set(item.id, item);
         }
         const merged = Array.from(map.values())
@@ -241,52 +226,13 @@ export function NotificationProvider({
       window.removeEventListener("storage", handleUpdate);
       window.removeEventListener("cpc:student:notification", handleUpdate);
     };
-  }, [storageKey, currentStudentId]);
-
-  /**
-   * Applies a pushed alert without waiting on the feed. Returns false when the
-   * payload is unusable, in which case the caller falls back to a refetch.
-   */
-  const applyPushedNotification = useCallback((data: unknown) => {
-    if (typeof data !== "object" || data === null) return false;
-    const raw = data as Partial<AppNotification>;
-    if (typeof raw.id !== "string" || !raw.id) return false;
-    if (typeof raw.message !== "string" || !raw.message) return false;
-
-    const incoming: AppNotification = {
-      id: raw.id,
-      title: typeof raw.title === "string" && raw.title ? raw.title : undefined,
-      message: raw.message,
-      type: raw.type === "success" || raw.type === "warning" ? raw.type : "info",
-      createdAt:
-        typeof raw.createdAt === "string" && raw.createdAt
-          ? raw.createdAt
-          : new Date().toISOString(),
-      read: false,
-      href: typeof raw.href === "string" && raw.href ? raw.href : undefined,
-    };
-
-    if (notificationsRef.current.some((notification) => notification.id === incoming.id)) {
-      return true;
-    }
-
-    setNotifications((previous) =>
-      previous.some((notification) => notification.id === incoming.id)
-        ? previous
-        : [incoming, ...previous].slice(0, MAX_NOTIFICATIONS),
-    );
-    setUnreadCount((previous) => previous + 1);
-    return true;
-  }, []);
+  }, [currentStudentId]);
 
   // Real-time synchronization via Server-Sent Events (SSE). `connected` also
   // fires after an automatic reconnect, so missed notifications are fetched.
   useSSE(
     useCallback(
-      (type, data) => {
-        if (type === "notification_created" && applyPushedNotification(data)) {
-          return;
-        }
+      (type) => {
         if (
           type === "connected" ||
           type === "notification_updated" ||
@@ -298,13 +244,15 @@ export function NotificationProvider({
           void syncFeed().catch(() => {});
         }
       },
-      [applyPushedNotification, syncFeed],
+      [syncFeed],
     ),
-    true,
+    Boolean(currentStudentId),
+    currentStudentId,
   );
 
   const notify = useCallback(
     ({ message, type = "info", officeId, href, silent = false }: NotifyInput) => {
+      if (!currentStudentId) return;
       const notification: AppNotification = {
         id: crypto.randomUUID(),
         message,
@@ -323,11 +271,11 @@ export function NotificationProvider({
         else showInfo("Notification", message);
       }
     },
-    [],
+    [currentStudentId],
   );
 
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
+    if (!currentStudentId || isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
     try {
       const offset = notificationsRef.current.length;
@@ -343,7 +291,7 @@ export function NotificationProvider({
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMore, isLoadingMore]);
+  }, [currentStudentId, hasMore, isLoadingMore]);
 
   const markAllRead = useCallback(async () => {
     setNotifications((previous) =>

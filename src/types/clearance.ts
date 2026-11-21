@@ -70,6 +70,7 @@ export interface ClearanceHistoryItem {
 export interface StudentProfile {
   name: string;
   studentId: string;
+  section?: string;
   yearLevel: string;
   course: string;
   program: string;

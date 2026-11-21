@@ -72,6 +72,10 @@ export interface EnrollmentSubjectItem {
   units: number;
   schedule: string;
   room?: string;
+  days?: string;
+  roomSetA?: string;
+  roomSetB?: string;
+  active?: boolean;
   instructor?: string;
   status?: "enrolled" | "dropped";
 }
@@ -163,4 +167,7 @@ export interface StudentEnrollmentSession {
   steps: Record<WorkflowStepName, WorkflowStep>;
   form: EnrollmentFormRecord;
   ticket?: QueueTicket;
+  signatureRequests?: Partial<Record<"screening" | "guidance" | "clinic" | "registrar" | "accounting", string>>;
+  screeningFeePaidAt?: string;
+  screeningFeeVerifiedBy?: string;
 }

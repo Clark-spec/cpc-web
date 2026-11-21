@@ -135,6 +135,46 @@ export function getMasterlist(): MasterlistRecord[] {
   }
 }
 
+/** Adds the registrar-created account to this browser's enrollment cache. */
+export function registerContinuingStudent(
+  studentId: string,
+  name: string,
+  section: string,
+): MasterlistRecord {
+  const existing = getMasterlist().find((item) => item.studentIdNo.toLowerCase() === studentId.toLowerCase());
+  if (existing) return existing;
+
+  const normalizedSection = section.trim().toUpperCase();
+  const department = (normalizedSection.match(/\b(BSIT|BEED|BSHM)\b/)?.[1] ?? "BSIT") as DepartmentCode;
+  const yearLevel = Number(normalizedSection.match(/(?:^|\s|-)([1-4])(?:\s*-\s*[A-Z]|\s*[A-Z])?$/)?.[1] ?? 2);
+  const currentYear = new Date().getFullYear() - (new Date().getMonth() < 7 ? 1 : 0);
+  const record: MasterlistRecord = {
+    studentIdNo: studentId,
+    name: name.trim(),
+    department,
+    course: {
+      BSIT: "BS Information Technology",
+      BEED: "Bachelor of Elementary Education",
+      BSHM: "BS Hospitality Management",
+    }[department],
+    yearLevel,
+    semester: 2,
+    standing: "regular",
+    lastTermEnrolled: `${currentYear - 1}-${currentYear} 2nd Semester`,
+    isEligible: true,
+  };
+  return cacheContinuingStudentRecord(record);
+}
+
+export function cacheContinuingStudentRecord(record: MasterlistRecord): MasterlistRecord {
+  if (typeof window === "undefined") return record;
+  const list = getMasterlist();
+  const next = [record, ...list.filter((item) => item.studentIdNo.toLowerCase() !== record.studentIdNo.toLowerCase())];
+  window.localStorage.setItem(KEY_MASTERLIST, JSON.stringify(next));
+  notifyQueueChange();
+  return record;
+}
+
 export function checkEligibility(studentId: string): {
   eligible: boolean;
   record?: MasterlistRecord;
@@ -398,7 +438,7 @@ function buildInitialSession(student: MasterlistRecord): StudentEnrollmentSessio
       department: student.department,
       course: student.course,
       yearLevel: student.yearLevel,
-      term: "1st Semester 2026-2027",
+      term: "2nd Semester 2025-2026",
       type: student.standing === "regular" ? "preprinted" : "blank",
       standing: student.standing,
       subjects: student.standing === "regular" ? subjects : [],
@@ -436,6 +476,28 @@ export function getAllSessions(): Record<string, StudentEnrollmentSession> {
 export function getStudentSession(studentId: string): StudentEnrollmentSession {
   const sessions = getAllSessions();
   if (sessions[studentId]) {
+    const record = checkEligibility(studentId).record;
+    if (record && JSON.stringify(sessions[studentId].student) !== JSON.stringify(record)) {
+      const current = sessions[studentId];
+      const prescribedSubjects = CURRICULUM_CATALOG[record.department]?.[record.yearLevel] ?? [];
+      const refreshed = {
+        ...current,
+        student: record,
+        form: {
+          ...current.form,
+          studentName: record.name,
+          department: record.department,
+          course: record.course,
+          yearLevel: record.yearLevel,
+          term: "2nd Semester 2025-2026",
+          ...(current.form.status === "DRAFT" && record.standing === "regular"
+            ? { subjects: prescribedSubjects, totalUnits: prescribedSubjects.reduce((sum, item) => sum + item.units, 0) }
+            : {}),
+        },
+      };
+      saveStudentSession(refreshed);
+      return refreshed;
+    }
     if (sessions[studentId].form.status === "SUBMITTED" || sessions[studentId].form.status === "APPROVED") {
       reconcileAllEnrollmentNotifications();
     }
@@ -445,14 +507,14 @@ export function getStudentSession(studentId: string): StudentEnrollmentSession {
   const { record } = checkEligibility(studentId);
   const student = record ?? {
     studentIdNo: studentId,
-    name: "Maria Santos",
-    department: "BSIT",
+    name: /^\d{8}$/.test(studentId) ? "Student record unavailable" : "Maria Santos",
+    department: "BSIT" as DepartmentCode,
     course: "BS Information Technology",
-    yearLevel: 2,
+    yearLevel: /^\d{8}$/.test(studentId) ? 1 : 2,
     semester: 2,
-    standing: "regular",
-    lastTermEnrolled: "2025-2026 1st Semester",
-    isEligible: true,
+    standing: "regular" as const,
+    lastTermEnrolled: "2025-2026 2nd Semester",
+    isEligible: !/^\d{8}$/.test(studentId),
   };
 
   const initial = buildInitialSession(student);
@@ -497,7 +559,17 @@ export function checkClearanceStatus(studentId: string): {
   cleared: boolean;
   offices: Array<{ office: string; label: string; status: string; signer?: string }>;
 } {
-  // Checks localStorage clearance records or defaults to cleared for continuing demo students
+  const requiredOffices = [
+    { office: "instructor", label: "Program Adviser" },
+    { office: "dean", label: "Dean" },
+    { office: "library", label: "College Library" },
+    { office: "accounting", label: "Accounting Office" },
+    { office: "sao", label: "Student Affairs Office" },
+    { office: "registrar", label: "Registrar's Office" },
+  ];
+
+  // Read the student's own Online Clearance record. A missing record or
+  // unsigned office must remain pending; never assume a demo clearance is signed.
   if (typeof window !== "undefined") {
     try {
       const clearanceRaw = window.localStorage.getItem("cpc:clearance:records");
@@ -508,24 +580,24 @@ export function checkClearanceStatus(studentId: string): {
           : null;
 
         if (myRecord && Array.isArray(myRecord.offices)) {
-          const allSigned = myRecord.offices.every((o: { status: string }) => o.status === "signed");
-          return { cleared: allSigned, offices: myRecord.offices };
+          const offices = requiredOffices.map((required) => {
+            const saved = myRecord.offices.find((office: { office?: string }) => office?.office === required.office);
+            return {
+              ...required,
+              status: saved?.status ?? "not_requested",
+              signer: saved?.signerName,
+            };
+          });
+          return { cleared: offices.every((office) => office.status === "signed"), offices };
         }
       }
     } catch {}
   }
 
-  // Default mock e-signed clearance for continuing student demo
-  const sampleOffices = [
-    { office: "instructor", label: "Program Adviser", status: "signed", signer: "Prof. R. Dela Cruz" },
-    { office: "dean", label: "Dean", status: "signed", signer: "Dr. M. Santos" },
-    { office: "library", label: "College Library", status: "signed", signer: "Mrs. A. Gomez" },
-    { office: "accounting", label: "Accounting Office", status: "signed", signer: "Mr. K. Tan" },
-    { office: "sao", label: "Student Affairs Office", status: "signed", signer: "Prof. L. Fernandez" },
-    { office: "registrar", label: "Registrar's Office", status: "signed", signer: "Mrs. L. Reyes" },
-  ];
-
-  return { cleared: true, offices: sampleOffices };
+  return {
+    cleared: false,
+    offices: requiredOffices.map((office) => ({ ...office, status: "not_requested" })),
+  };
 }
 
 export function approveClearanceStep(studentId: string): StudentEnrollmentSession {
@@ -566,6 +638,7 @@ export function submitEnrollmentForm(studentId: string): StudentEnrollmentSessio
 
   session.form.status = "SUBMITTED";
   session.form.submittedAt = new Date().toISOString();
+  if (session.signatureRequests) delete session.signatureRequests.screening;
 
   // Unlock Step 3: Screening Committee
   session.steps.screening.status = "PENDING";
@@ -583,7 +656,7 @@ export function submitEnrollmentForm(studentId: string): StudentEnrollmentSessio
   recordStudentNotification(studentId, {
     id: `enrollment-submitted-${session.form.id || studentId}`,
     title: "Enrollment Form Submitted",
-    message: `Your subjects for 1st Sem 2026-2027 (${session.form.totalUnits} units) have been submitted and are queued for Screening Committee review.`,
+    message: `Your subjects for ${session.form.term} (${session.form.totalUnits} units) have been submitted and are queued for Screening Committee review.`,
     type: "info",
     href: "/student/queue",
   });
@@ -681,7 +754,7 @@ export function getScreeningQueue(deanDepartment?: DepartmentCode | string): Enr
           department: studentDept,
           course: session.student.course,
           yearLevel: session.student.yearLevel,
-          term: session.form?.term || "1st Semester 2026-2027",
+          term: session.form?.term || "2nd Semester 2025-2026",
           type: session.student.standing === "regular" ? "preprinted" : "blank",
           standing: session.student.standing,
           subjects,
@@ -699,7 +772,11 @@ export function approveScreening(
   studentId: string,
   actor: string,
   actorRole?: string,
+  feePaidVerified = false,
 ): StudentEnrollmentSession {
+  if (!feePaidVerified) {
+    throw new Error("Confirm the ₱100 department fee was paid before approving the Dean & Screening signature.");
+  }
   const session = getStudentSession(studentId);
   const studentDept = normalizeDepartment(session.student.department || session.form?.department);
 
@@ -716,6 +793,8 @@ export function approveScreening(
   session.steps.screening.status = "APPROVED";
   session.steps.screening.updatedBy = actor;
   session.steps.screening.updatedAt = new Date().toISOString();
+  session.screeningFeePaidAt = session.steps.screening.updatedAt;
+  session.screeningFeeVerifiedBy = actor;
 
   // Unlock Step 4: Guidance
   session.steps.guidance.status = "PENDING";
@@ -917,6 +996,64 @@ export function approveGuidance(studentId: string, actor: string): QueueTicket {
   return ticket;
 }
 
+export type EnrollmentSignatureOffice = "screening" | "guidance" | "clinic" | "registrar" | "accounting";
+
+/** Sends a student signature request to the office that owns the current step. */
+export function requestEnrollmentSignature(
+  studentId: string,
+  office: EnrollmentSignatureOffice,
+): StudentEnrollmentSession {
+  const session = getStudentSession(studentId);
+  const canRequest: Record<EnrollmentSignatureOffice, boolean> = {
+    screening: session.form.status === "SUBMITTED" && session.steps.screening.status !== "APPROVED",
+    guidance: session.steps.screening.status === "APPROVED" && session.steps.guidance.status !== "APPROVED",
+    clinic: session.steps.guidance.status === "APPROVED" && session.steps.clinic.status !== "APPROVED",
+    registrar: session.steps.screening.status === "APPROVED" && session.steps.guidance.status === "APPROVED" && session.steps.clinic.status === "APPROVED" && session.steps.registrar.status !== "APPROVED",
+    accounting: session.steps.screening.status === "APPROVED" && session.steps.guidance.status === "APPROVED" && session.steps.clinic.status === "APPROVED" && session.steps.accounting.status !== "APPROVED",
+  };
+
+  if (!canRequest[office]) {
+    throw new Error("This signature request is not available yet. Complete the previous enrollment steps first.");
+  }
+  if (session.signatureRequests?.[office] && session.steps[office].status !== "RESUBMIT") {
+    throw new Error("Your request has already been sent to this office.");
+  }
+
+  const officeDetails: Record<EnrollmentSignatureOffice, { label: string; targetRole: string; href: string }> = {
+    screening: {
+      label: "Dean & Screening Committee",
+      targetRole: session.student.department === "BSIT" ? "dean_cs" : session.student.department === "BEED" ? "dean_edu" : "dean_hm",
+      href: "/committee/screening",
+    },
+    guidance: { label: "Guidance Office", targetRole: "guidance", href: "/guidance/queue" },
+    clinic: { label: "Clinic", targetRole: "clinic", href: "/clinic/queue" },
+    registrar: { label: "Registrar", targetRole: "registrar", href: "/registrar/queue" },
+    accounting: { label: "Accounting", targetRole: "accounting", href: "/accounting/queue" },
+  };
+  const details = officeDetails[office];
+  const requestedAt = new Date().toISOString();
+  session.signatureRequests = { ...session.signatureRequests, [office]: requestedAt };
+  saveStudentSession(session);
+
+  recordAdminNotification({
+    title: `Signature Requested: ${details.label}`,
+    message: `${session.student.name} (${session.student.studentIdNo}) requested an enrollment signature from ${details.label}.`,
+    type: "info",
+    href: details.href,
+    department: session.student.department,
+    targetRole: details.targetRole,
+  });
+  recordStudentNotification(studentId, {
+    id: `enrollment-signature-${office}-${studentId}-${requestedAt}`,
+    title: `Request sent to ${details.label}`,
+    message: `Your signature request was sent to ${details.label}.`,
+    type: "success",
+    href: "/student/queue",
+  });
+
+  return session;
+}
+
 /* ------------------------------------------------------------- Queue System */
 
 export function getQueueTickets(): QueueTicket[] {
@@ -1097,7 +1234,10 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
   session.steps[office].updatedAt = new Date().toISOString();
 
   // If Clinic done, unlock Accounting; if Accounting done, unlock Registrar
-  if (office === "clinic") session.steps.accounting.status = "PENDING";
+  if (office === "clinic") {
+    session.steps.accounting.status = "PENDING";
+    session.steps.registrar.status = "PENDING";
+  }
   if (office === "accounting") session.steps.registrar.status = "PENDING";
 
   saveStudentSession(session);
@@ -1162,7 +1302,7 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
     recordStudentNotification(ticket.studentId, {
       id: `official-enrolled-${ticket.studentId}`,
       title: "Official Enrollment Confirmed!",
-      message: `Congratulations ${ticket.studentName}! You are officially enrolled for 1st Semester 2026-2027. Your Certificate of Registration (COR) is ready.`,
+      message: `Congratulations ${ticket.studentName}! You are officially enrolled for ${session.form.term}. Your Certificate of Registration (COR) is ready.`,
       type: "success",
       href: "/student/queue",
     });

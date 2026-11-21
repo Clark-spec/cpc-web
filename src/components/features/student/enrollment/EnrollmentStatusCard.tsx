@@ -141,7 +141,7 @@ export function EnrollmentStatusCard() {
 
       <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center border-t border-cpc-input-border/50 pt-6">
         <Link to="/student/queue" className="cpc-btn cpc-btn-primary">
-          <Ticket className="h-4 w-4" /> My Queue Ticket
+          <Ticket className="h-4 w-4" /> Request Signatures
         </Link>
         <Link to="/student/enrollment-form" className="cpc-btn cpc-btn-secondary">
           Review Form Subjects

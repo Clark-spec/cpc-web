@@ -21,6 +21,7 @@ type NotificationRow = {
   createdAt: string;
   read: boolean;
   href?: string | null;
+  officeId?: string | null;
 };
 
 function adminConfig(
@@ -69,6 +70,7 @@ export async function fetchAdminNotificationFeed(): Promise<AdminNotification[]>
     createdAt: row.createdAt,
     read: Boolean(row.read),
     href: row.href ?? undefined,
+    targetRole: row.officeId ?? undefined,
   }));
 }
 

@@ -79,87 +79,28 @@ export function isNotificationVisibleToRole(
   notification: AdminNotification,
   role: AdminRole,
 ): boolean {
-  // Global roles (admin, registrar) see all administrative notifications
-  if (role === "admin" || role === "registrar") {
+  // Only the administrator sees notifications across all offices.
+  if (role === "admin") {
     return true;
   }
+
+  if (notification.targetRole) return notification.targetRole === role;
 
   // Deans: strictly filtered to their own department!
   if (role === "dean_cs" || role === "dean_edu" || role === "dean_hm") {
     const userDept: DepartmentCode =
       role === "dean_cs" ? "BSIT" : role === "dean_edu" ? "BEED" : "BSHM";
 
-    // 1. If notification has a specific targetRole, it must match this dean
-    if (notification.targetRole && notification.targetRole !== role) {
-      return false;
-    }
-
-    // 2. If notification has department explicitly set
+    // Local notifications may target a dean by department.
     if (notification.department) {
       const notifDept = normalizeDepartment(notification.department);
       return notifDept === userDept;
     }
 
-    // 3. If notification text indicates screening or another department
-    const text = `${notification.title ?? ""} ${notification.message}`.toLowerCase();
-
-    if (userDept === "BSIT") {
-      if (
-        text.includes("(beed)") ||
-        text.includes("(bshm)") ||
-        text.includes("hospitality") ||
-        text.includes("teacher education")
-      ) {
-        return false;
-      }
-    } else if (userDept === "BEED") {
-      if (
-        text.includes("(bsit)") ||
-        text.includes("(bshm)") ||
-        text.includes("computer studies") ||
-        text.includes("hospitality")
-      ) {
-        return false;
-      }
-    } else if (userDept === "BSHM") {
-      if (
-        text.includes("(bsit)") ||
-        text.includes("(beed)") ||
-        text.includes("computer studies") ||
-        text.includes("teacher education")
-      ) {
-        return false;
-      }
-    }
-
-    // If it's a screening notification, it must explicitly belong to their department
-    if (notification.href?.includes("screening")) {
-      if (userDept === "BSIT") return text.includes("(bsit)") || text.includes("computer studies");
-      if (userDept === "BEED") return text.includes("(beed)") || text.includes("teacher education");
-      if (userDept === "BSHM") return text.includes("(bshm)") || text.includes("hospitality");
-    }
-
-    return true;
+    return false;
   }
 
-  // Station roles
-  if (role === "guidance") {
-    if (notification.targetRole && notification.targetRole !== "guidance") return false;
-    if (notification.href?.includes("screening") && !notification.href.includes("guidance")) return false;
-    return true;
-  }
-  if (role === "clinic") {
-    if (notification.targetRole && notification.targetRole !== "clinic") return false;
-    if (notification.href?.includes("screening")) return false;
-    return true;
-  }
-  if (role === "accounting") {
-    if (notification.targetRole && notification.targetRole !== "accounting") return false;
-    if (notification.href?.includes("screening")) return false;
-    return true;
-  }
-
-  return true;
+  return false;
 }
 
 const EMPTY_STATE: AdminDataState = {

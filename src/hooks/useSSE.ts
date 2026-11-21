@@ -20,7 +20,7 @@ type SseEventHandler = (type: string, data: unknown) => void;
  * @param onEvent  Stable callback — wrap in useCallback to prevent reconnects.
  * @param enabled  Pass `false` to skip connecting (e.g. user is not logged in).
  */
-export function useSSE(onEvent: SseEventHandler, enabled = true) {
+export function useSSE(onEvent: SseEventHandler, enabled = true, identity?: string) {
   const handlerRef = useRef(onEvent);
 
   useEffect(() => {
@@ -67,6 +67,6 @@ export function useSSE(onEvent: SseEventHandler, enabled = true) {
     return () => {
       es?.close();
     };
-  }, [enabled]);
+  }, [enabled, identity]);
 }
 

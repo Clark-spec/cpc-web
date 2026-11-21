@@ -94,16 +94,20 @@ export function getActiveStudent(): {
   studentName: string;
   program: string;
   yearLevel: string;
+  section: string;
 } {
   try {
     const raw = typeof window !== "undefined" ? window.sessionStorage.getItem("cpc_user") : null;
     if (raw) {
       const u = JSON.parse(raw);
+      const yearLevel = Number(u.yearLevel ?? 0);
+      const yearSuffix = ["", "1st", "2nd", "3rd", "4th"];
       return {
         studentId: u.studentNumber || u.id || mockStudent.studentId,
         studentName: u.name || mockStudent.name,
         program: u.course || mockStudent.program,
-        yearLevel: u.yearLevel ? `${u.yearLevel}rd Year` : mockStudent.yearLevel,
+        yearLevel: yearLevel ? `${yearSuffix[yearLevel] ?? `Year ${yearLevel}`} Year` : mockStudent.yearLevel,
+        section: u.section || mockStudent.section || "BSIT 3-A",
       };
     }
   } catch {}
@@ -112,6 +116,7 @@ export function getActiveStudent(): {
     studentName: mockStudent.name,
     program: mockStudent.program,
     yearLevel: mockStudent.yearLevel,
+    section: mockStudent.section || "BSIT 3-A",
   };
 }
 
@@ -123,7 +128,7 @@ function createInitialStudentRecord(student = getActiveStudent()): ClearanceReco
   return {
     studentId: student.studentId,
     studentName: student.studentName,
-    section: "BSIT 3-A",
+    section: student.section,
     program: student.program,
     yearLevel: student.yearLevel,
     term: "1st Semester",
@@ -176,10 +181,7 @@ function readStudentRecord(): ClearanceRecord {
   const student = getActiveStudent();
   const records = readRecords();
   const found = records.find(
-    (record) =>
-      record.studentId === student.studentId ||
-      record.studentId === mockStudent.studentId ||
-      record.studentName.toLowerCase() === student.studentName.toLowerCase(),
+    (record) => record.studentId === student.studentId,
   );
   if (found) {
     const normalized = normalizeRecord(found, student);
@@ -196,16 +198,11 @@ function readStudentRecord(): ClearanceRecord {
 function writeStudentRecord(record: ClearanceRecord, reason: string): void {
   const records = readRecords();
   const exists = records.some(
-    (entry) =>
-      entry.studentId === record.studentId ||
-      entry.studentName.toLowerCase() === record.studentName.toLowerCase(),
+    (entry) => entry.studentId === record.studentId,
   );
   const next = exists
     ? records.map((entry) =>
-        entry.studentId === record.studentId ||
-        entry.studentName.toLowerCase() === record.studentName.toLowerCase()
-          ? record
-          : entry,
+      entry.studentId === record.studentId ? record : entry,
       )
     : [...records, record];
 
@@ -242,6 +239,20 @@ function event(
 
 const isFullySigned = (offices: OfficeSignature[]): boolean =>
   offices.length > 0 && offices.every((office) => office.status === "signed");
+
+function clearanceNotificationRoute(record: ClearanceRecord, office: OfficeId) {
+  if (office === "dean") {
+    const program = record.program.toLowerCase();
+    if (program.includes("hospital") || program.includes("bshm")) {
+      return { targetRole: "dean_hm", department: "BSHM" };
+    }
+    if (program.includes("education") || program.includes("beed")) {
+      return { targetRole: "dean_edu", department: "BEED" };
+    }
+    return { targetRole: "dean_cs", department: "BSIT" };
+  }
+  return { targetRole: office };
+}
 
 function nextReferenceNumber(records: ClearanceRecord[]): string {
   const highest = records.reduce((max, record) => {
@@ -323,6 +334,7 @@ export async function requestSignature(
     `${record.studentName} (${record.section}) requested clearance from ${officeLabel}.`,
     "info",
     `/admin/clearance-requests?office=${officeId}&student=${record.studentId}`,
+    clearanceNotificationRoute(record, officeId),
   );
   pushActivity(
     studentActivity(
@@ -371,11 +383,16 @@ export async function requestSignatures(officeIds: OfficeId[]): Promise<Clearanc
     appendTimeline(events);
     writeStudentRecord(record, "student-request");
 
-    pushAdminNotification(
-      `${record.studentName} requested clearance from ${events.length} offices.`,
-      "info",
-      `/admin/clearance-requests`,
-    );
+    for (const event of events) {
+      const officeId = event.requestId.slice(event.requestId.lastIndexOf(":") + 1) as OfficeId;
+      const officeLabel = OFFICE_LABELS[officeId] ?? officeId;
+      pushAdminNotification(
+        `${record.studentName} (${record.section}) requested clearance from ${officeLabel}.`,
+        "info",
+        `/admin/clearance-requests?office=${officeId}&student=${record.studentId}`,
+        clearanceNotificationRoute(record, officeId),
+      );
+    }
   }
 
   return wait(toState(record, period), WRITE_DELAY);
@@ -408,6 +425,7 @@ export async function cancelRequest(officeId: OfficeId): Promise<ClearanceState>
     `${record.studentName} cancelled clearance request for ${officeLabel}.`,
     "warning",
     `/admin/clearance-requests?office=${officeId}`,
+    clearanceNotificationRoute(record, officeId),
   );
 
   return wait(toState(next, period), WRITE_DELAY);

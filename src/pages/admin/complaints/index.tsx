@@ -27,9 +27,9 @@ export default function ComplaintsAdminPage() {
           You don&apos;t have access to Complaints
         </h1>
         <p className="mt-2 max-w-sm font-poppins text-xs leading-relaxed text-cpc-heading-soft">
-          Complaints are handled by the Administrator, Registrar, SAO and the
-          program Deans. Your account is not part of that group, so this page is
-          unavailable.
+          Complaints are routed to the Administrator and the office responsible
+          for the selected category. Your account is not part of that group, so
+          this page is unavailable.
         </p>
         <Link to="/admin/dashboard" className="cpc-btn cpc-btn-primary cpc-btn-sm mt-6">
           <ArrowLeft className="h-3.5 w-3.5 shrink-0" aria-hidden />

@@ -103,7 +103,7 @@ export function CtaSection() {
                 className="cpc-btn cpc-btn-primary inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
               >
                 <Ticket className="h-4 w-4" />
-                View Queue Ticket ({session.ticket?.number})
+                Clearance Signatures · Ticket {session.ticket?.number}
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
             ) : isUnderReview ? (

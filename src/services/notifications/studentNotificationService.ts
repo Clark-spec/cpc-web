@@ -2,16 +2,15 @@ import type { AppNotification } from "@/components/context/NotificationContext";
 import { recordAdminNotification } from "@/services/admin/notifications";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 
-export const STUDENT_NOTIFICATION_STORAGE_KEY = "cpc:notifications:student";
 const KEY_SESSIONS = "cpc:enrollment:sessions:v1";
 
 /**
- * Returns stored notifications for student (from student-specific key or default key).
+ * Returns notifications from only the requested student's browser cache.
  */
-export function getStoredStudentNotifications(storageKey = STUDENT_NOTIFICATION_STORAGE_KEY): AppNotification[] {
+export function getStoredStudentNotifications(studentId: string): AppNotification[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(storageKey);
+    const raw = window.localStorage.getItem(`cpc:notifications:${studentId}`);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -21,11 +20,10 @@ export function getStoredStudentNotifications(storageKey = STUDENT_NOTIFICATION_
 }
 
 /**
- * Records a student notification to both the student-specific and shared feed keys,
- * ensuring the notification bell badge increments in real time across tabs and views.
+ * Records a student notification only in that student's browser cache.
  */
 export function recordStudentNotification(
-  studentId: string | undefined,
+  studentId: string,
   notification: Omit<AppNotification, "id" | "createdAt" | "read"> & {
     id?: string;
     createdAt?: string;
@@ -46,10 +44,7 @@ export function recordStudentNotification(
     local: true,
   };
 
-  const keys = [STUDENT_NOTIFICATION_STORAGE_KEY];
-  if (studentId) {
-    keys.push(`cpc:notifications:${studentId}`);
-  }
+  const keys = [`cpc:notifications:${studentId}`];
 
   for (const key of keys) {
     try {

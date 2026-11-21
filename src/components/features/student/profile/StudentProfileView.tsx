@@ -18,6 +18,7 @@ import { ProfileErrorState } from "@/components/features/student/profile/Profile
 import { ProfilePageHeader } from "@/components/features/student/profile/ProfilePageHeader";
 import { ProfileReadyContent } from "@/components/features/student/profile/ProfileReadyContent";
 import { ProfileSkeleton } from "@/components/features/student/profile/Skeleton";
+import { ChangePasswordPanel } from "@/components/features/student/profile/ChangePasswordPanel";
 
 /**
  * Stateful container: the profile, form, completeness and blocker hooks each
@@ -113,6 +114,7 @@ export function StudentProfileView() {
             onAvatarChange={handleAvatarChange}
           />
         )}
+        {status === "ready" && <div className="mt-5"><ChangePasswordPanel /></div>}
       </div>
 
       <ProfileEditActionDock

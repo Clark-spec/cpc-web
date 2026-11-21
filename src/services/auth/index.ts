@@ -15,7 +15,7 @@ import type { AxiosRequestConfig } from "axios";
 export type AuthUser = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   role: string;
   studentNumber?: string | null;
   course?: string | null;
@@ -23,6 +23,8 @@ export type AuthUser = {
   department?: string | null;
   avatarUrl?: string | null;
   phone?: string | null;
+  section?: string | null;
+  mustChangePassword?: boolean;
 };
 
 type ApiEnvelope<T> = {
