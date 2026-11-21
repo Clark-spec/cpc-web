@@ -8,14 +8,83 @@ import type {
 
 export const MY_SECTION: SectionId = "BSIT-3A";
 
-export const SECTION_IDS: SectionId[] = [
-  "BSIT-3A",
-  "BSIT-3B",
-  "BSIT-3C",
-  "BSIT-3D",
-  "BEED-2A",
-  "BSHM-1A",
-];
+/** Department order used by the student section picker. */
+export const PROGRAM_IDS = ["BSIT", "BSHM", "BEED", "BSED"] as const;
+export type ProgramId = (typeof PROGRAM_IDS)[number];
+
+export const YEAR_LEVELS = [1, 2, 3, 4] as const;
+export type YearLevel = (typeof YEAR_LEVELS)[number];
+
+export const YEAR_LEVEL_LABELS: Record<YearLevel, string> = {
+  1: "1st Year",
+  2: "2nd Year",
+  3: "3rd Year",
+  4: "4th Year",
+};
+
+export type SectionCatalogItem = {
+  program: ProgramId;
+  year: YearLevel;
+  letter: string;
+  id: SectionId;
+};
+
+/** A–D for every year of every department, in the order the portal shows. */
+export const SECTION_CATALOG: SectionCatalogItem[] = PROGRAM_IDS.flatMap((program) =>
+  YEAR_LEVELS.flatMap((year) =>
+    ["A", "B", "C", "D"].map((letter) => ({
+      program,
+      year,
+      letter,
+      id: `${program}-${year}${letter}` as SectionId,
+    })),
+  ),
+);
+
+/** Older published BSIT sections stay selectable even though they are outside A–D. */
+const LEGACY_SECTIONS: SectionId[] = ["BSIT-1E", "BSIT-1F", "BSIT-1G", "BSIT-2E"];
+
+export const SECTION_IDS: SectionId[] = Array.from(
+  new Set([...SECTION_CATALOG.map((item) => item.id), ...LEGACY_SECTIONS]),
+);
+
+export function parseSectionId(
+  section: string | null | undefined,
+): { program: ProgramId; year: YearLevel; letter: string } | null {
+  const match = /^([A-Z]+)-([1-4])([A-Z])$/.exec(String(section ?? "").toUpperCase());
+  if (!match) return null;
+  const program = PROGRAM_IDS.find((id) => id === match[1]);
+  if (!program) return null;
+  return { program, year: Number(match[2]) as YearLevel, letter: match[3] };
+}
+
+export type SectionGroup = {
+  program: ProgramId;
+  years: { year: YearLevel; sections: SectionId[] }[];
+};
+
+/** Groups any section list into department → year level → sections. */
+export function groupSections(sections: SectionId[]): SectionGroup[] {
+  const grouped = new Map<ProgramId, Map<YearLevel, Set<string>>>();
+  sections.forEach((section) => {
+    const parsed = parseSectionId(section);
+    if (!parsed) return;
+    if (!grouped.has(parsed.program)) grouped.set(parsed.program, new Map());
+    const years = grouped.get(parsed.program)!;
+    if (!years.has(parsed.year)) years.set(parsed.year, new Set());
+    years.get(parsed.year)!.add(parsed.letter);
+  });
+
+  return PROGRAM_IDS.map((program) => ({
+    program,
+    years: YEAR_LEVELS.map((year) => ({
+      year,
+      sections: Array.from(grouped.get(program)?.get(year) ?? [])
+        .sort()
+        .map((letter) => `${program}-${year}${letter}` as SectionId),
+    })).filter((item) => item.sections.length > 0),
+  })).filter((group) => group.years.length > 0);
+}
 
 export const SEMESTER = "1st Semester";
 export const ACADEMIC_YEAR = "2026-2027";

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { showInfo, showSuccess, showWarning } from "@/lib/feedback";
+import { canonicalProgram } from "@/lib/programs";
 import { useAuth } from "@/components/context/useAuth";
 import {
   CLEARANCE_CHANNEL_NAME,
@@ -86,10 +87,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         studentId: user.studentNumber || user.id || mockStudent.studentId,
         yearLevel: user.yearLevel ? `${user.yearLevel}rd Year` : mockStudent.yearLevel,
         course: user.course || mockStudent.course,
-        program:
-          user.course === "BSIT"
-            ? "BS Information Technology"
-            : user.course || mockStudent.program,
+        program: canonicalProgram(user.course || mockStudent.program),
         academicYear: mockStudent.academicYear,
         semester: mockStudent.semester,
         term: mockStudent.term,

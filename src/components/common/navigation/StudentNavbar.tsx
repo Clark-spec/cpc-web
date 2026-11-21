@@ -90,10 +90,7 @@ const utilityLinks = [
   { label: "Request Status", to: "/student/request-status", icon: ClipboardList },
 ];
 
-const quickLinks = [
-  { label: "Online Enrollment", to: "/student/verify" },
-  { label: "Online Clearance", to: "/student-services/online-clearance" },
-];
+const quickLinks: NavLink[] = [];
 
 function isLinkActive(pathname: string, to: string): boolean {
   return to !== "#" && pathname === to;

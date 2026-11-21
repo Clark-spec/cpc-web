@@ -28,6 +28,7 @@ export const deleteDraft = source.deleteDraft;
 export const getNotifications = source.getNotifications;
 export const markNotificationsRead = source.markNotificationsRead;
 export const downloadDocument = source.downloadDocument;
+export const getDocumentBlob = source.getDocumentBlob;
 
 /** True when the page is running on demo data instead of the CPC API. */
 export const isDemoData = useDemoData;

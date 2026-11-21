@@ -6,6 +6,15 @@ import {
   type RequestDocument,
 } from "@/services/serviceRequests/student";
 import { formatFileSize } from "@/components/features/student/service-requests/format";
+import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
+
+type PhotoPreview = {
+  src: string;
+  alt: string;
+  name: string;
+  size: number;
+};
 
 type StudentIdUploadProps = {
   files: File[];
@@ -119,11 +128,13 @@ function FileCard({
   index,
   disabled,
   onRemove,
+  onPreview,
 }: {
   file: File;
   index: number;
   disabled: boolean;
   onRemove: () => void;
+  onPreview: (preview: PhotoPreview) => void;
 }) {
   const preview = useMemo(
     () => (file.type.startsWith("image/") ? URL.createObjectURL(file) : null),
@@ -139,11 +150,26 @@ function FileCard({
     <li className="relative overflow-hidden rounded-[10px] border border-sr-border bg-white">
       <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-sr-section">
         {preview ? (
-          <img
-            src={preview}
-            alt={`Student ID photo ${index + 1}`}
-            className="h-full w-full object-cover"
-          />
+          <button
+            type="button"
+            onClick={() =>
+              onPreview({
+                src: preview,
+                alt: `Student ID photo ${index + 1}`,
+                name: file.name,
+                size: file.size,
+              })
+            }
+            aria-label={`View student ID photo ${index + 1}`}
+            title="View photo"
+            className="h-full w-full cursor-zoom-in"
+          >
+            <img
+              src={preview}
+              alt={`Student ID photo ${index + 1}`}
+              className="h-full w-full object-cover"
+            />
+          </button>
         ) : (
           <FileIcon className="h-8 w-8 text-sr-primary" />
         )}
@@ -172,10 +198,10 @@ export function StudentIdUpload({
   onRemoveSaved,
 }: StudentIdUploadProps) {
   const pickerId = useId();
-  const cameraId = useId();
   const pickerRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [preview, setPreview] = useState<PhotoPreview | null>(null);
 
   const busy = progress !== null;
   const blocked = disabled || busy;
@@ -189,7 +215,22 @@ export function StudentIdUpload({
 
   function openCamera() {
     if (blocked) return;
-    cameraRef.current?.click();
+    setCameraOpen(true);
+  }
+
+  function capturePhoto(file: File) {
+    if (blocked) return;
+    onAdd([file]);
+  }
+
+  function removePhoto(index: number) {
+    setPreview(null);
+    onRemove(index);
+  }
+
+  function removeSavedPhoto() {
+    setPreview(null);
+    onRemoveSaved();
   }
 
   return (
@@ -219,20 +260,6 @@ export function StudentIdUpload({
           event.target.value = "";
         }}
       />
-      <input
-        ref={cameraRef}
-        id={cameraId}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="sr-only"
-        disabled={blocked}
-        onChange={(event) => {
-          onAdd(Array.from(event.target.files ?? []));
-          event.target.value = "";
-        }}
-      />
-
       {total > 0 && (
         <ul className="grid grid-cols-2 gap-2.5">
           {files.map((file, index) => (
@@ -241,7 +268,8 @@ export function StudentIdUpload({
               file={file}
               index={index}
               disabled={blocked}
-              onRemove={() => onRemove(index)}
+              onRemove={() => removePhoto(index)}
+              onPreview={setPreview}
             />
           ))}
 
@@ -252,7 +280,7 @@ export function StudentIdUpload({
                 <RemoveButton
                   label="Remove saved draft photo"
                   disabled={blocked}
-                  onClick={onRemoveSaved}
+                  onClick={removeSavedPhoto}
                 />
               </div>
               <div className="px-2 py-1.5">
@@ -353,6 +381,28 @@ export function StudentIdUpload({
             Uploading your student ID… {progress ?? 0}%
           </p>
         </div>
+      )}
+
+      {cameraOpen && (
+        <CameraCaptureModal
+          open
+          onClose={() => setCameraOpen(false)}
+          onCapture={capturePhoto}
+          title="Take a photo of your student ID"
+          description="Position the front or back of your student ID in the frame, then capture. The photo will be attached to this request."
+          fileNamePrefix="student-id"
+        />
+      )}
+
+      {preview && (
+        <ImagePreviewModal
+          open
+          onClose={() => setPreview(null)}
+          src={preview.src}
+          alt={preview.alt}
+          title={preview.name}
+          meta={`${preview.name} · ${formatFileSize(preview.size)}`}
+        />
       )}
     </div>
   );

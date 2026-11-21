@@ -198,7 +198,7 @@ export function pushAdminNotification(
   message: string,
   type: AdminNotification["type"],
   href: string,
-  routing: Pick<AdminNotification, "targetRole" | "department"> = {},
+  target: Pick<AdminNotification, "targetRole" | "department"> = {},
 ): void {
   const existing = readJson<AdminNotification[]>(ADMIN_FEED_KEY, []);
   const list = Array.isArray(existing) ? existing : [];
@@ -209,7 +209,8 @@ export function pushAdminNotification(
     createdAt: new Date().toISOString(),
     read: false,
     href,
-    ...routing,
+    source: "clearance",
+    ...target,
   };
   writeJson(ADMIN_FEED_KEY, [notification, ...list].slice(0, MAX_FEED));
 }

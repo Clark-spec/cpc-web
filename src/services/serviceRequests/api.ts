@@ -450,3 +450,11 @@ export async function downloadDocument(id: RequestId, fileName: string): Promise
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+export async function getDocumentBlob(id: RequestId): Promise<Blob> {
+  const response = await apiClient.get(
+    `/service-requests/v1/${encodeURIComponent(String(id))}/document`,
+    { responseType: "blob" },
+  );
+  return response.data as Blob;
+}
+

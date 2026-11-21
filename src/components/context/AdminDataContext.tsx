@@ -78,8 +78,19 @@ export function isNotificationVisibleToRole(
   notification: AdminNotification,
   role: AdminRole,
 ): boolean {
-  // Only the administrator sees notifications across all offices.
-  if (role === "admin") {
+  // A clearance notification belongs to exactly one staff account — even the
+  // global roles must not see another office's request. Other modules keep
+  // their existing role visibility rules.
+  if (
+    notification.source === "clearance" &&
+    notification.targetRole &&
+    notification.targetRole !== role
+  ) {
+    return false;
+  }
+
+  // Global roles see untargeted administrative notifications.
+  if (role === "admin" || role === "registrar") {
     return true;
   }
 

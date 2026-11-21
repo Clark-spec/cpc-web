@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { programMatches } from "@/lib/programs";
 import { Badge } from "@/components/ui/badge";
 import { StudentQuickViewDrawer } from "@/components/common/feedback/StudentQuickViewDrawer";
 import type { ActivityStudent } from "@/types/admin";
@@ -73,11 +74,7 @@ function decisionBlockReason(
     return `This request belongs to the ${OFFICE_LABELS[row.office]}, not your office.`;
   }
   if (homeOffice === "dean" && homePrograms && homePrograms.length > 0) {
-    const matches = homePrograms.some((prog) => {
-      const pLower = prog.toLowerCase();
-      const rLower = (row.program ?? "").toLowerCase();
-      return rLower.includes(pLower) || pLower.includes(rLower);
-    });
+    const matches = homePrograms.some((program) => programMatches(row.program, program));
     if (!matches) {
       return `This student's program (${row.program}) is not under your department.`;
     }

@@ -27,6 +27,7 @@ export function normalizeAdminNotification(value: unknown): AdminNotification | 
     href: typeof value.href === "string" ? value.href : undefined,
     department: typeof value.department === "string" ? value.department : undefined,
     targetRole: typeof value.targetRole === "string" ? value.targetRole : undefined,
+    source: value.source === "clearance" ? "clearance" : undefined,
   };
 }
 

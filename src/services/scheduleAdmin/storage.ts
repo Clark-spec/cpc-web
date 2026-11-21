@@ -4,7 +4,7 @@ import {
   SCHEDULE_MASTER_KEY,
   SCHEDULE_PUBLISHED_KEY,
 } from "@/lib/scheduleStorage";
-import { ACADEMIC_YEAR, SEMESTER } from "@/services/scheduleStudent/mockSchedules";
+import { ACADEMIC_YEAR, SECTION_IDS, SEMESTER } from "@/services/scheduleStudent/mockSchedules";
 import {
   seedHistory,
   seedMasterData,
@@ -42,6 +42,13 @@ export function draftFromPublished(published: PublishedSchedule): DraftSchedule 
   };
 }
 
+/** Adds sections introduced by a later seed without touching existing rows. */
+function withAllSections<T extends { schedules: SectionSchedule[] }>(stored: T): T {
+  const present = new Set(stored.schedules.map((schedule) => schedule.section));
+  const missing = SECTION_IDS.filter((section) => !present.has(section)).map(emptySection);
+  return missing.length === 0 ? stored : { ...stored, schedules: [...stored.schedules, ...missing] };
+}
+
 export function getMasterSync(): ScheduleMasterData {
   const stored = readJson<ScheduleMasterData | null>(SCHEDULE_MASTER_KEY, null);
   if (
@@ -50,7 +57,15 @@ export function getMasterSync(): ScheduleMasterData {
     Array.isArray(stored.instructors) &&
     Array.isArray(stored.rooms)
   ) {
-    return stored;
+    const known = new Set((stored.sections ?? []).map((section) => section.section));
+    const missing = seedMasterData().sections.filter((section) => !known.has(section.section));
+    if (missing.length === 0) return stored;
+    const complete: ScheduleMasterData = {
+      ...stored,
+      sections: [...(stored.sections ?? []), ...missing],
+    };
+    writeJson(SCHEDULE_MASTER_KEY, complete);
+    return complete;
   }
   const seeded = seedMasterData();
   writeJson(SCHEDULE_MASTER_KEY, seeded);
@@ -59,7 +74,11 @@ export function getMasterSync(): ScheduleMasterData {
 
 export function getPublishedSync(): PublishedSchedule {
   const stored = readJson<PublishedSchedule | null>(SCHEDULE_PUBLISHED_KEY, null);
-  if (stored !== null && Array.isArray(stored.schedules)) return stored;
+  if (stored !== null && Array.isArray(stored.schedules)) {
+    const complete = withAllSections(stored);
+    if (complete !== stored) writeJson(SCHEDULE_PUBLISHED_KEY, complete);
+    return complete;
+  }
   const seeded = seedPublishedSchedule();
   writeJson(SCHEDULE_PUBLISHED_KEY, seeded);
   return seeded;
@@ -67,7 +86,11 @@ export function getPublishedSync(): PublishedSchedule {
 
 export function getDraftSync(): DraftSchedule {
   const stored = readJson<DraftSchedule | null>(SCHEDULE_DRAFT_KEY, null);
-  if (stored !== null && Array.isArray(stored.schedules)) return stored;
+  if (stored !== null && Array.isArray(stored.schedules)) {
+    const complete = withAllSections(stored);
+    if (complete !== stored) writeJson(SCHEDULE_DRAFT_KEY, complete);
+    return complete;
+  }
   const seeded = draftFromPublished(getPublishedSync());
   writeJson(SCHEDULE_DRAFT_KEY, seeded);
   return seeded;

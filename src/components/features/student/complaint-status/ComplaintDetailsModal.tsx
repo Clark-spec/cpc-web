@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Check, Paperclip, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { ComplaintStatusBadge } from "@/components/features/student/complaints/ComplaintStatusBadge";
 import { formatDateTime } from "@/components/features/student/service-requests/format";
 import type { StudentComplaint } from "@/services/complaints";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 
 type ComplaintDetailsModalProps = {
   complaint: StudentComplaint;
@@ -120,6 +121,7 @@ export function ComplaintDetailsModal({
   complaint,
   onClose,
 }: ComplaintDetailsModalProps) {
+  const [previewOpen, setPreviewOpen] = useState(false);
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -229,6 +231,15 @@ export function ComplaintDetailsModal({
                   <p className="truncate font-poppins text-[11.5px] text-sr-text">
                     {complaint.attachmentName}
                   </p>
+                  {complaint.attachmentUrl?.startsWith("data:image/") && (
+                    <button
+                      type="button"
+                      onClick={() => setPreviewOpen(true)}
+                      className="ml-auto shrink-0 rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page"
+                    >
+                      Preview
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -259,6 +270,16 @@ export function ComplaintDetailsModal({
           </div>
         </div>
       </div>
+      {complaint.attachmentUrl?.startsWith("data:image/") && (
+        <ImagePreviewModal
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          src={complaint.attachmentUrl}
+          alt={complaint.attachmentName || "Uploaded complaint photo"}
+          title="Uploaded complaint photo"
+          meta={complaint.attachmentName}
+        />
+      )}
     </div>
   );
 }

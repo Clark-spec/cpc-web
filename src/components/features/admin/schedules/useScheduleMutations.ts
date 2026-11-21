@@ -47,6 +47,8 @@ type ScheduleMutationsProps = {
   armUndo: (step: UndoableStep) => void;
   load: (quiet?: boolean) => Promise<void>;
   setSnapshot: (snapshot: ScheduleSnapshot | null) => void;
+  /** Deans publish each edit straight away; registrar/admin publish manually. */
+  autoPublish: boolean;
   entriesBySection: (section: SectionId) => ScheduleEntry[];
   selectedEntryId: string | null;
   setSelectedEntryId: (id: string | null) => void;
@@ -62,12 +64,31 @@ export function useScheduleMutations({
   armUndo,
   load,
   setSnapshot,
+  autoPublish,
   entriesBySection,
   selectedEntryId,
   setSelectedEntryId,
 }: ScheduleMutationsProps) {
   const { toast } = useToast();
   const [publishing, setPublishing] = useState(false);
+
+  /** A dean's draft edit is published immediately so students see it now. */
+  const publishDeanDraft = useCallback(
+    async (draft: DraftSchedule, section: SectionId, label: string) => {
+      if (!autoPublish) return;
+      try {
+        const next = await publishService(
+          { notifyStudents: true, message: `${label} — ${section} class schedule updated.` },
+          actor,
+        );
+        applyPublished(next);
+        applyDraft({ ...draft, baseVersion: next.version });
+      } catch {
+        toast("Saved, but students could not be notified.", "error");
+      }
+    },
+    [actor, applyDraft, applyPublished, autoPublish, toast],
+  );
 
   const mutateDraft = useCallback(
     async (message: string, run: () => Promise<DraftSchedule>, sectionForUndo: SectionId) => {
@@ -76,6 +97,7 @@ export function useScheduleMutations({
       try {
         const next = await run();
         applyDraft(next);
+        await publishDeanDraft(next, sectionForUndo, message);
         armUndo({
           message,
           revert: async () => {
@@ -92,7 +114,7 @@ export function useScheduleMutations({
         toast("That change didn't save. Please try again.", "error");
       }
     },
-    [actor, applyDraft, armUndo, draftRef, toast],
+    [actor, applyDraft, armUndo, draftRef, publishDeanDraft, toast],
   );
 
   const saveEntryValues = useCallback(
@@ -129,12 +151,17 @@ export function useScheduleMutations({
   const moveEntry = useCallback(
     async (entryId: string, patch: { startMin: number; endMin: number; days?: DayCode[] }) => {
       try {
-        applyDraft(await moveEntryService(entryId, patch, actor));
+        const next = await moveEntryService(entryId, patch, actor);
+        applyDraft(next);
+        const section =
+          next.schedules.find((schedule) => schedule.entries.some((entry) => entry.id === entryId))
+            ?.section ?? "BSIT-3A";
+        await publishDeanDraft(next, section, "Moved a class");
       } catch {
         toast("That move didn't save. Please try again.", "error");
       }
     },
-    [actor, applyDraft, toast],
+    [actor, applyDraft, publishDeanDraft, toast],
   );
 
   const quickEdit = useCallback(
@@ -180,6 +207,7 @@ export function useScheduleMutations({
           next = await deleteEntryService(id, actor);
         }
         applyDraft(next);
+        await publishDeanDraft(next, targetSection, `Removed ${ids.length} classes`);
         armUndo({
           message: `Removed ${ids.length} ${ids.length === 1 ? "class" : "classes"} from ${targetSection}`,
           revert: async () => {
@@ -197,7 +225,7 @@ export function useScheduleMutations({
         toast("That bulk delete didn't save.", "error");
       }
     },
-    [actor, applyDraft, armUndo, draftRef, setSelectedEntryId, toast],
+    [actor, applyDraft, armUndo, draftRef, publishDeanDraft, setSelectedEntryId, toast],
   );
 
   const duplicateSection = useCallback(
@@ -216,6 +244,16 @@ export function useScheduleMutations({
       const before = draftRef.current;
       const outcome = await importRowsService(rows, actor);
       applyDraft(outcome.draft);
+      const firstImported = outcome.results.find(
+        (item) => item.verdict !== "error" && item.section !== undefined && item.entry !== undefined,
+      );
+      if (firstImported?.section !== undefined && firstImported.entry !== undefined) {
+        await publishDeanDraft(
+          outcome.draft,
+          firstImported.section,
+          `Imported ${firstImported.entry.subjectCode}`,
+        );
+      }
       const imported = outcome.results.filter((item) => item.verdict !== "error").length;
       if (before) {
         armUndo({
@@ -233,7 +271,7 @@ export function useScheduleMutations({
       }
       return { results: outcome.results };
     },
-    [actor, applyDraft, armUndo, draftRef],
+    [actor, applyDraft, armUndo, draftRef, publishDeanDraft],
   );
 
   const publish = useCallback(

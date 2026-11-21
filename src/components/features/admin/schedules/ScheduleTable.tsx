@@ -687,9 +687,10 @@ export function ScheduleTable({ onEdit }: ScheduleTableProps) {
         </div>
       )}
 
-      {/* Desktop: one row per class. */}
-      <div className="hidden md:block">
-        <table className="w-full border-collapse">
+      {/* Desktop: one row per class. The table scrolls sideways inside this
+          wrapper so the admin page itself never gains a horizontal scroll. */}
+      <div className="admin-scrollbar hidden overflow-x-auto overscroll-x-contain md:block">
+        <table className="w-full min-w-[1200px] border-collapse">
           <caption className="sr-only">
             Scheduled classes for {section === "all" ? "all sections" : section}, sortable by
             section, code, subject, start time, units, instructor and status.
