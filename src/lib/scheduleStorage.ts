@@ -19,6 +19,9 @@ export const SCHEDULE_MASTER_KEY = "cpc:schedules:master";
 export const SCHEDULE_HISTORY_KEY = "cpc:schedules:history";
 export const SCHEDULE_CHANNEL_NAME = "cpc-schedules";
 
+/** studentNumber -> section, written by the student page so staff can target bell notes. */
+export const STUDENT_SECTION_REGISTRY_KEY = "cpc:student-sections.v1";
+
 /**
  * The per-student bell feed is one namespace shared by every feature that
  * notifies a student; `config/clearanceStorage.ts` owns the helper so the

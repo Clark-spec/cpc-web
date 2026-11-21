@@ -123,8 +123,8 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   );
 
   const effectiveFilters = useMemo<QueueFilters>(
-    () => (homeOffice ? { ...filters, office: homeOffice } : filters),
-    [filters, homeOffice],
+    () => (homeOffice && !staff.role.startsWith("dean_") ? { ...filters, office: homeOffice } : filters),
+    [filters, homeOffice, staff.role],
   );
 
   const { visibleRows, pageRows, totalRows, totalPages } = useClearanceQueue(
@@ -262,6 +262,17 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
     setSelectedId(id);
   }, []);
 
+  // Select request by id and focus the row in the queue (similar to deep link handling)
+  const selectRequest = useCallback((requestId: string) => {
+    // Find the row matching the request id
+    const targetRow = rows.find((r) => r.id === requestId) ?? null;
+    if (targetRow) {
+      setSelectedId(targetRow.id);
+      // Update filters to bring the row into view (same logic as deepLink)
+      setFiltersState((current) => focusRow(current, rows, targetRow));
+    }
+  }, [rows]);
+
   const stepRequest = useCallback(
     (delta: 1 | -1) => {
       if (visibleRows.length === 0) return;
@@ -393,6 +404,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
       applyKpiFilter,
       selectedId,
       selectRow,
+      selectRequest,
       stepRequest,
       toggleChecked,
       toggleCheckedAll,
@@ -452,6 +464,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
       visibleRows,
       clearChecked,
       selectRow,
+      selectRequest,
       applyKpiFilter,
       refreshing,
     ],

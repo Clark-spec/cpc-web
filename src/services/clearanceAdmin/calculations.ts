@@ -3,6 +3,7 @@ import type {
   ClearanceRequestRow,
   OfficeId,
 } from "@/types/clearance";
+import { programMatches } from "@/lib/programs";
 import type { OfficeLoad } from "@/components/features/admin/clearance/types";
 import { OFFICE_LABELS, OFFICE_ORDER } from "@/components/features/admin/clearance/officeChecks";
 import { ageHours, isOverdue } from "@/components/features/admin/clearance/sla";
@@ -66,11 +67,7 @@ export function scopeRows(
   let filtered = rows.filter((row) => row.office === office);
   if (office === "dean" && homePrograms && homePrograms.length > 0) {
     filtered = filtered.filter((row) =>
-      homePrograms.some((prog) => {
-        const pLower = prog.toLowerCase();
-        const rLower = (row.program ?? "").toLowerCase();
-        return rLower.includes(pLower) || pLower.includes(rLower);
-      }),
+      homePrograms.some((program) => programMatches(row.program, program)),
     );
   }
   return filtered;

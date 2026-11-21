@@ -6,7 +6,6 @@ import {
   Clock3,
   CreditCard,
   FileText,
-  GraduationCap,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -27,7 +26,7 @@ const OFFICE_METADATA: Record<
   OfficeId,
   { number: number; roleTitle: string; icon: LucideIcon }
 > = {
-  instructor: { number: 1, roleTitle: "Department Faculty / Instructor", icon: GraduationCap },
+  instructor: { number: 1, roleTitle: "Course Instructor", icon: BookOpen },
   dean: { number: 2, roleTitle: "Dean of Academic Affairs", icon: Award },
   library: { number: 3, roleTitle: "College Head Librarian", icon: BookOpen },
   registrar: { number: 4, roleTitle: "College Registrar", icon: FileText },

@@ -90,7 +90,7 @@ export function ScheduleToolbar({ searchInputRef, onNewClass, onDuplicate }: Sch
       aria-label="Schedule search and filters"
       className="rounded-2xl border border-white/80 bg-white/85 p-5 shadow-[0_8px_30px_rgb(15,36,104,0.04)] backdrop-blur-md space-y-4"
     >
-      {/* Section Scope Tabs */}
+      {/* Section Scope */}
       <SectionTabs />
 
       <div className="h-px w-full bg-cpc-input-border/60" />

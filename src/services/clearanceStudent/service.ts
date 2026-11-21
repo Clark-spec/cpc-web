@@ -14,6 +14,7 @@ import {
   CLEARANCE_TIMELINE_KEY,
 } from "@/lib/clearanceStorage";
 import { createDemoSignature } from "@/lib/demoSignature";
+import { canonicalProgram, clearanceNotificationTarget } from "@/lib/programs";
 import {
   pushAdminNotification,
   pushActivity,
@@ -102,19 +103,24 @@ export function getActiveStudent(): {
       const u = JSON.parse(raw);
       const yearLevel = Number(u.yearLevel ?? 0);
       const yearSuffix = ["", "1st", "2nd", "3rd", "4th"];
-      return {
-        studentId: u.studentNumber || u.id || mockStudent.studentId,
-        studentName: u.name || mockStudent.name,
-        program: u.course || mockStudent.program,
-        yearLevel: yearLevel ? `${yearSuffix[yearLevel] ?? `Year ${yearLevel}`} Year` : mockStudent.yearLevel,
-        section: u.section || mockStudent.section || "BSIT 3-A",
-      };
+      // The admin demo bridge replaces the shared `cpc_user` session with the
+      // staff account. Only a real student session may identify the record;
+      // otherwise fall back to the same demo student the UI renders.
+      if (u.role === "student") {
+        return {
+          studentId: u.studentNumber || u.id || mockStudent.studentId,
+          studentName: u.name || mockStudent.name,
+          program: canonicalProgram(u.course || mockStudent.program),
+          yearLevel: yearLevel ? `${yearSuffix[yearLevel] ?? `Year ${yearLevel}`} Year` : mockStudent.yearLevel,
+          section: u.section || mockStudent.section || "BSIT 3-A",
+        };
+      }
     }
   } catch {}
   return {
     studentId: mockStudent.studentId,
     studentName: mockStudent.name,
-    program: mockStudent.program,
+    program: canonicalProgram(mockStudent.program),
     yearLevel: mockStudent.yearLevel,
     section: mockStudent.section || "BSIT 3-A",
   };
@@ -155,7 +161,7 @@ function normalizeRecord(
     studentId: typeof parsed.studentId === "string" ? parsed.studentId : fallback.studentId,
     studentName: parsed.studentName ?? fallback.studentName,
     section: parsed.section ?? fallback.section,
-    program: parsed.program ?? fallback.program,
+    program: canonicalProgram(parsed.program ?? fallback.program),
     yearLevel: parsed.yearLevel ?? fallback.yearLevel,
     term: parsed.term ?? fallback.term,
     academicYear: parsed.academicYear ?? fallback.academicYear,
@@ -334,7 +340,7 @@ export async function requestSignature(
     `${record.studentName} (${record.section}) requested clearance from ${officeLabel}.`,
     "info",
     `/admin/clearance-requests?office=${officeId}&student=${record.studentId}`,
-    clearanceNotificationRoute(record, officeId),
+    clearanceNotificationTarget(officeId, record.program) ?? clearanceNotificationRoute(record, officeId),
   );
   pushActivity(
     studentActivity(
@@ -354,12 +360,14 @@ export async function requestSignatures(officeIds: OfficeId[]): Promise<Clearanc
   let record = readStudentRecord();
   const at = new Date().toISOString();
   const events: TimelineEvent[] = [];
+  const requestedOffices: OfficeId[] = [];
 
   for (const officeId of officeIds) {
     const current = record.offices.find((office) => office.office === officeId);
     if (!current || !period.open) continue;
     if (current.status === "requested" || current.status === "signed") continue;
 
+    requestedOffices.push(officeId);
     events.push(
       event(
         officeId,
@@ -383,14 +391,13 @@ export async function requestSignatures(officeIds: OfficeId[]): Promise<Clearanc
     appendTimeline(events);
     writeStudentRecord(record, "student-request");
 
-    for (const event of events) {
-      const officeId = event.requestId.slice(event.requestId.lastIndexOf(":") + 1) as OfficeId;
+    for (const officeId of requestedOffices) {
       const officeLabel = OFFICE_LABELS[officeId] ?? officeId;
       pushAdminNotification(
         `${record.studentName} (${record.section}) requested clearance from ${officeLabel}.`,
         "info",
         `/admin/clearance-requests?office=${officeId}&student=${record.studentId}`,
-        clearanceNotificationRoute(record, officeId),
+        clearanceNotificationTarget(officeId, record.program) ?? clearanceNotificationRoute(record, officeId),
       );
     }
   }
@@ -425,7 +432,7 @@ export async function cancelRequest(officeId: OfficeId): Promise<ClearanceState>
     `${record.studentName} cancelled clearance request for ${officeLabel}.`,
     "warning",
     `/admin/clearance-requests?office=${officeId}`,
-    clearanceNotificationRoute(record, officeId),
+    clearanceNotificationTarget(officeId, record.program) ?? clearanceNotificationRoute(record, officeId),
   );
 
   return wait(toState(next, period), WRITE_DELAY);

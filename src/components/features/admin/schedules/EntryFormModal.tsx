@@ -6,7 +6,11 @@ import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/cn";
 import { DAY_END_MIN, formatTimeRange } from "@/lib/scheduleTime";
 import { useScheduleAdmin } from "@/components/features/admin/schedules/ScheduleAdminContext";
-import { entryFormSchema, type EntryFormValues } from "@/components/features/admin/schedules/schema";
+import {
+  entryFormSchema,
+  OTHER_SUBJECT_ID,
+  type EntryFormValues,
+} from "@/components/features/admin/schedules/schema";
 import { detectConflictsWithEntry } from "@/components/features/admin/schedules/useConflicts";
 import { findFreeSlots, unitsFor } from "@/components/features/admin/schedules/conflicts";
 import { entryFromFormValues, formValuesFromEntry } from "@/components/features/admin/schedules/entryForm";
@@ -103,6 +107,7 @@ export function EntryFormModal({
     const base: EntryFormValues = {
       section: defaultSection,
       subjectId: "",
+      customSubject: "",
       days: ["MON"],
       startMin: DEFAULT_START,
       endMin: DEFAULT_START + DEFAULT_DURATION,
@@ -237,6 +242,7 @@ export function EntryFormModal({
   ]);
 
   const subjects = master.subjects.filter((item) => item.active);
+  const isCustomSubject = values.subjectId === OTHER_SUBJECT_ID;
   const instructors = master.instructors.filter((item) => item.active);
   const rooms = master.rooms.filter((item) => item.active);
   /* Editing never moves a class between sections; the row already belongs to
@@ -325,9 +331,28 @@ export function EntryFormModal({
                   {subject.code} — {subject.title} ({subject.units} units)
                 </option>
               ))}
+              <option value={OTHER_SUBJECT_ID}>Other — type a subject</option>
             </select>
             {error(errors.subjectId?.message, "entry-subject-error")}
           </div>
+
+          {isCustomSubject && (
+            <div className="sm:col-span-2">
+              <label htmlFor="entry-custom-subject" className={LABEL_BASE}>
+                Subject name
+              </label>
+              <input
+                id="entry-custom-subject"
+                type="text"
+                {...register("customSubject")}
+                disabled={!editable}
+                placeholder="e.g. Research Methods 1"
+                aria-describedby={errors.customSubject ? "entry-custom-subject-error" : undefined}
+                className={cn(FIELD_BASE, DISABLED_BASE, errors.customSubject && INVALID_BASE)}
+              />
+              {error(errors.customSubject?.message, "entry-custom-subject-error")}
+            </div>
+          )}
 
           <div className="sm:col-span-2">
             <span className={LABEL_BASE} id="entry-days-label">

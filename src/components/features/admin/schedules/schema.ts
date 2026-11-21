@@ -13,6 +13,9 @@ const DAY_VALUES = ["MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 const STATUS_VALUES = ["active", "not_active"] as const;
 const ROOM_TYPES = ["lab", "lecture", "online", "tent"] as const;
 
+/** Sentinel for the "Other — type a subject" choice in the entry form. */
+export const OTHER_SUBJECT_ID = "__other_subject__";
+
 /** Half-hour steps, the grid's own snapping unit. */
 const gridMinute = z
   .number()
@@ -25,6 +28,8 @@ export const entryFormSchema = z
   .object({
     section: z.string().min(1, "Choose a section."),
     subjectId: z.string().min(1, "Choose a subject."),
+    /** Used only when subjectId is OTHER_SUBJECT_ID. */
+    customSubject: z.string().max(80, "Keep the subject name under 80 characters.").optional(),
     /** DaysPicker chips: at least one meeting day. */
     days: z.array(z.enum(DAY_VALUES)).min(1, "Pick at least one day."),
     startMin: gridMinute,
@@ -40,7 +45,11 @@ export const entryFormSchema = z
   .refine((values) => values.endMin > values.startMin, {
     message: "The end time must be after the start time.",
     path: ["endMin"],
-  });
+  })
+  .refine(
+    (values) => values.subjectId !== OTHER_SUBJECT_ID || Boolean(values.customSubject?.trim()),
+    { message: "Type the subject name.", path: ["customSubject"] },
+  );
 
 export type EntryFormValues = z.infer<typeof entryFormSchema>;
 

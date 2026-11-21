@@ -148,6 +148,8 @@ export function useScheduleRoleScoping(
   return {
     canEdit,
     canPublish,
+    /** Dean edits go live immediately so students see them without a second step. */
+    autoPublish: isDean,
     canEditSection,
     editDisabledReason,
     sectionsForRole,

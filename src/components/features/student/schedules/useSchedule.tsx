@@ -13,6 +13,7 @@ import { useSearchParams } from "react-router";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useAuth } from "@/components/context/useAuth";
 import { showInfo } from "@/lib/feedback";
+import { STUDENT_SECTION_REGISTRY_KEY } from "@/lib/scheduleStorage";
 import {
   formatPublishedCaption,
   readPublishedSchedule,
@@ -51,6 +52,7 @@ function deriveStudentSection(user: { course?: string | null; section?: string |
       const p = JSON.parse(rawProfile);
       if (p.section && isSectionId(p.section)) return p.section;
       const prog = String(p.course || p.program || "").toLowerCase();
+      if (prog.includes("secondary") || prog.includes("bsed")) return "BSED-1A";
       if (prog.includes("education") || prog.includes("beed")) return "BEED-2A";
       if (prog.includes("hospitality") || prog.includes("bshm") || prog.includes("hotel")) return "BSHM-1A";
       if (prog.includes("information") || prog.includes("technology") || prog.includes("bsit")) return "BSIT-3A";
@@ -58,6 +60,7 @@ function deriveStudentSection(user: { course?: string | null; section?: string |
   } catch {}
   if (user?.course) {
     const c = user.course.toLowerCase();
+    if (c.includes("secondary") || c.includes("bsed")) return "BSED-1A";
     if (c.includes("education") || c.includes("beed")) return "BEED-2A";
     if (c.includes("hospitality") || c.includes("bshm") || c.includes("hotel")) return "BSHM-1A";
   }
@@ -111,6 +114,20 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     : isSectionId(storedSection)
       ? storedSection
       : mySection;
+
+  // Let the staff portal target this student's bell even when the account is
+  // not in the seeded mock directory.
+  useEffect(() => {
+    const studentId = user?.studentNumber;
+    if (!studentId) return;
+    try {
+      const raw = window.localStorage.getItem(STUDENT_SECTION_REGISTRY_KEY);
+      const registry = raw === null ? {} : (JSON.parse(raw) as Record<string, string>);
+      if (registry[studentId] === mySection) return;
+      registry[studentId] = mySection;
+      window.localStorage.setItem(STUDENT_SECTION_REGISTRY_KEY, JSON.stringify(registry));
+    } catch {}
+  }, [mySection, user?.studentNumber]);
 
   const [published, setPublished] = useState<PublishedSchedule>(() => readPublishedSchedule());
   const [seenVersion, setSeenVersion] = useState<number | null>(() => readSeenVersion());

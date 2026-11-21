@@ -11,6 +11,7 @@ export type StudentComplaint = {
   status: ComplaintStatus;
   anonymous: boolean;
   attachmentName: string | null;
+  attachmentUrl?: string | null;
   adminRemarks: string;
 };
 

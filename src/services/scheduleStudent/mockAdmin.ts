@@ -9,7 +9,7 @@
  * shared entries, because renaming master data must propagate by id instead of
  * rewriting every entry.
  */
-import { SCHEDULES, SEMESTER, ACADEMIC_YEAR } from "./mockSchedules";
+import { SCHEDULES, SECTION_IDS, SEMESTER, ACADEMIC_YEAR } from "./mockSchedules";
 import type { SectionId, SectionSchedule, ScheduleEntry } from "@/types/schedule";
 import type {
   Instructor,
@@ -73,7 +73,7 @@ const SECTION_META_SEED: Array<Omit<SectionMeta, "section">> = [
   { semester: SEMESTER, academicYear: ACADEMIC_YEAR, adviser: "A. Entrena", studentCount: 30 },
 ];
 
-const SECTION_ORDER: SectionId[] = ["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D", "BEED-2A", "BSHM-1A"];
+const SECTION_ORDER: SectionId[] = SECTION_IDS;
 
 /** "HCI 1" -> "subj-hci-1"; keeps ids readable in the change history. */
 export function slugId(prefix: string, value: string): string {
@@ -93,7 +93,11 @@ export function seedMasterData(): ScheduleMasterData {
     rooms: ROOM_SEED.map((room) => ({ ...room, id: slugId("room", room.name) })),
     sections: SECTION_ORDER.map((section, index) => ({
       section,
-      ...SECTION_META_SEED[index],
+      ...(SECTION_META_SEED[index] ?? {
+        semester: SEMESTER,
+        academicYear: ACADEMIC_YEAR,
+        studentCount: 0,
+      }),
     })),
   };
 }

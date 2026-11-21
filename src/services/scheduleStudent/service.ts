@@ -20,6 +20,7 @@ import {
   SCHEDULE_PUBLISHED_KEY,
 } from "@/lib/scheduleStorage";
 import { apiClient } from "@/lib/apiClient";
+import { SECTION_IDS } from "./mockSchedules";
 import { seedPublishedSchedule } from "./mockAdmin";
 import type { PublishedSchedule } from "@/types/scheduleAdmin";
 import type { DayCode, SectionId, SectionSchedule, ScheduleEntry } from "@/types/schedule";
@@ -53,20 +54,12 @@ export function isPublishedSchedule(value: unknown): value is PublishedSchedule 
 // one SectionSchedule per section, so the payload is grouped and normalised
 // here instead of teaching every component the backend's vocabulary.
 
-const SECTION_ALIASES: Record<string, SectionId> = {
-  "bsit-3a": "BSIT-3A",
-  "bsit 3-a": "BSIT-3A",
-  "bsit-3b": "BSIT-3B",
-  "bsit 3-b": "BSIT-3B",
-  "bsit-3c": "BSIT-3C",
-  "bsit 3-c": "BSIT-3C",
-  "bsit-3d": "BSIT-3D",
-  "bsit 3-d": "BSIT-3D",
-  "beed-2a": "BEED-2A",
-  "beed 2-a": "BEED-2A",
-  "bshm-1a": "BSHM-1A",
-  "bshm 1-a": "BSHM-1A",
-};
+const SECTION_ALIASES: Record<string, SectionId> = Object.fromEntries(
+  SECTION_IDS.flatMap((section) => [
+    [section.toLowerCase(), section],
+    [section.replace("-", " ").toLowerCase(), section],
+  ]),
+);
 
 const DAY_ALIASES: Record<string, DayCode> = {
   mon: "MON",

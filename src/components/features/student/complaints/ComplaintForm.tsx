@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   Camera,
   Clock,
@@ -22,6 +22,7 @@ import { formatDateTime } from "@/lib/format";
 import { COMPLAINT_CATEGORIES } from "./mockComplaints";
 import type { ComplaintFormValues } from "./types";
 import { CameraCaptureModal } from "@/components/ui/camera-capture-modal";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 
 type ComplaintFormProps = {
   onSubmit: (values: ComplaintFormValues) => Promise<string>;
@@ -143,6 +144,24 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const submitAction = useActionStatus();
   const [now, setNow] = useState(() => Date.now());
+  const [attachmentPreviewOpen, setAttachmentPreviewOpen] = useState(false);
+
+  const attachmentPreviewUrl = useMemo(
+    () =>
+      values.attachment?.type.startsWith("image/")
+        ? URL.createObjectURL(values.attachment)
+        : null,
+    [values.attachment],
+  );
+
+  useEffect(() => {
+    if (!attachmentPreviewUrl) return;
+    return () => URL.revokeObjectURL(attachmentPreviewUrl);
+  }, [attachmentPreviewUrl]);
+
+  useEffect(() => {
+    setAttachmentPreviewOpen(false);
+  }, [values.attachment]);
 
   const cooldownEnd = cooldownUntil ? new Date(cooldownUntil).getTime() : 0;
   const cooldownActive = cooldownEnd > now;
@@ -551,9 +570,25 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
 
               {values.attachment ? (
                 <div className="flex flex-wrap items-center gap-3 rounded-[10px] border border-cpc-input-border bg-white px-3 py-2.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cpc-section-light text-cpc-blue-accent">
-                    <Paperclip className="h-[18px] w-[18px]" aria-hidden />
-                  </span>
+                  {attachmentPreviewUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setAttachmentPreviewOpen(true)}
+                      aria-label="View attached photo"
+                      title="View photo"
+                      className="h-9 w-9 shrink-0 cursor-zoom-in overflow-hidden rounded-lg ring-1 ring-cpc-input-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
+                    >
+                      <img
+                        src={attachmentPreviewUrl}
+                        alt="Attached photo"
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ) : (
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cpc-section-light text-cpc-blue-accent">
+                      <Paperclip className="h-[18px] w-[18px]" aria-hidden />
+                    </span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-poppins text-[13px] font-medium text-cpc-navy-text">
                       {values.attachment.name}
@@ -688,6 +723,17 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
           open
           onClose={() => setCameraOpen(false)}
           onCapture={handleAttachment}
+        />
+      )}
+
+      {attachmentPreviewUrl && values.attachment && (
+        <ImagePreviewModal
+          open={attachmentPreviewOpen}
+          onClose={() => setAttachmentPreviewOpen(false)}
+          src={attachmentPreviewUrl}
+          alt="Attached complaint photo"
+          title={values.attachment.name}
+          meta={`${values.attachment.name} · ${formatFileSize(values.attachment.size)}`}
         />
       )}
     </section>

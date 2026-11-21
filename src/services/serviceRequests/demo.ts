@@ -384,3 +384,8 @@ export async function downloadDocument(id: RequestId, fileName: string): Promise
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+export async function getDocumentBlob(id: RequestId): Promise<Blob> {
+  await wait(300);
+  return documentBlobs.get(String(id)) ?? createDemoIdCard();
+}
+

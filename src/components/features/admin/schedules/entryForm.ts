@@ -9,7 +9,10 @@
  */
 import type { ScheduleEntry, SectionId } from "@/types/schedule";
 import type { ScheduleMasterData } from "@/types/scheduleAdmin";
-import type { EntryFormValues } from "@/components/features/admin/schedules/schema";
+import {
+  OTHER_SUBJECT_ID,
+  type EntryFormValues,
+} from "@/components/features/admin/schedules/schema";
 
 /**
  * Class ids read `SECTION-SUBJECT-CODE`, which makes them readable in a bug
@@ -37,7 +40,18 @@ export function entryFromFormValues(
   existing: ScheduleEntry[],
   replaceId?: string,
 ): ScheduleEntry {
-  const subject = master.subjects.find((item) => item.id === values.subjectId);
+  const isCustom = values.subjectId === OTHER_SUBJECT_ID;
+  const customName = values.customSubject?.trim();
+  const subject = isCustom
+    ? {
+        id: "",
+        code: customName || "NEW CLASS",
+        title: customName || "New subject",
+        units: 3,
+        colorKey: "indigo",
+        active: true,
+      }
+    : master.subjects.find((item) => item.id === values.subjectId);
   const teacher = master.instructors.find((item) => item.id === values.instructorId);
   const roomA = master.rooms.find((item) => item.id === values.roomAId);
   const roomB = master.rooms.find((item) => item.id === values.roomBId);
@@ -56,7 +70,7 @@ export function entryFromFormValues(
     instructor: teacher?.displayName ?? "",
     status: values.status,
     colorKey: subject?.colorKey ?? previous?.colorKey ?? "blue",
-    subjectId: subject?.id,
+    subjectId: isCustom ? undefined : subject?.id,
     instructorId: teacher?.id,
     roomAId: roomA?.id,
     roomBId: roomB?.id,
@@ -88,9 +102,11 @@ export function formValuesFromEntry(
   const teacher = master.instructors.find(
     (item) => item.id === entry.instructorId || item.displayName === entry.instructor,
   );
+  const isCustom = subject === undefined && Boolean(entry.subjectCode);
   return {
     section,
-    subjectId: subject?.id ?? entry.subjectId ?? "",
+    subjectId: isCustom ? OTHER_SUBJECT_ID : (subject?.id ?? entry.subjectId ?? ""),
+    customSubject: isCustom ? entry.subjectCode : "",
     days: entry.days,
     startMin: entry.startMin,
     endMin: entry.endMin,

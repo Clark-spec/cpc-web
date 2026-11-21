@@ -232,7 +232,7 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
 
   // 1. Role Scoping
   const roleScoping = useScheduleRoleScoping(user, role, master, draft);
-  const { scopedSchedules } = roleScoping;
+  const { autoPublish, scopedSchedules } = roleScoping;
 
   // 2. Conflicts
   const conflicts = useMemo<Conflict[]>(() => {
@@ -275,6 +275,7 @@ export function ScheduleAdminProvider({ children }: { children: ReactNode }) {
     armUndo,
     load,
     setSnapshot,
+    autoPublish,
     entriesBySection,
     selectedEntryId,
     setSelectedEntryId,

@@ -36,6 +36,7 @@ function normalizeComplaint(raw: any): StudentComplaint {
     status: normalizeStatus(raw?.status),
     anonymous: raw?.anonymous === true,
     attachmentName: raw?.attachmentName ?? null,
+    attachmentUrl: raw?.attachmentUrl ?? null,
     adminRemarks: String(raw?.adminRemarks ?? ""),
   };
 }

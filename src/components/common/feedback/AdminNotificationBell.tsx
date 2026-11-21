@@ -28,6 +28,8 @@ export function AdminNotificationBell() {
       await markNotificationRead(notification.id);
     }
     setOpen(false);
+    // Clearance links already carry ?request=<id>; ClearanceAdminProvider
+    // reads that deep link when the route mounts and focuses the right row.
     navigate(notification.href ?? "/admin/dashboard");
   };
 

@@ -3,6 +3,7 @@ import {
   applyRequestUpdate,
   downloadDocument,
   getErrorMessage,
+  getDocumentBlob,
   getServiceRequest,
   type RequestId,
   type ServiceRequest,
@@ -11,6 +12,7 @@ import {
 import { RequestTimeline } from "@/components/features/student/service-requests/RequestTimeline";
 import { StatusBadge } from "@/components/features/student/service-requests/StatusBadge";
 import { formatDateTime, formatFileSize } from "@/components/features/student/service-requests/format";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 
 type RequestDetailsModalProps = {
   requestId: RequestId;
@@ -110,6 +112,9 @@ export function RequestDetailsModal({
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewing, setPreviewing] = useState(false);
 
   // Fold in the tracking page's live patch, but never let a stale patch
   // overwrite data that was fetched after it.
@@ -147,6 +152,11 @@ export function RequestDetailsModal({
   }, [requestId]);
 
   useEffect(() => {
+    if (!previewSrc) return;
+    return () => URL.revokeObjectURL(previewSrc);
+  }, [previewSrc]);
+
+  useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
@@ -171,6 +181,24 @@ export function RequestDetailsModal({
       setDownloadError(getErrorMessage(downloadFailure));
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function handlePreview() {
+    if (!request?.document) return;
+    setPreviewing(true);
+    setPreviewError(null);
+    try {
+      const blob = await getDocumentBlob(request.id);
+      if (!blob.type.startsWith("image/")) {
+        setPreviewError("This attachment is not an image.");
+        return;
+      }
+      setPreviewSrc(URL.createObjectURL(blob));
+    } catch (previewFailure) {
+      setPreviewError(getErrorMessage(previewFailure));
+    } finally {
+      setPreviewing(false);
     }
   }
 
@@ -292,6 +320,16 @@ export function RequestDetailsModal({
                         {formatFileSize(request.document.size)}
                       </p>
                     </div>
+                    {request.document.mime.startsWith("image/") && (
+                      <button
+                        type="button"
+                        onClick={() => void handlePreview()}
+                        disabled={previewing}
+                        className="rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page disabled:opacity-60"
+                      >
+                        {previewing ? "Opening…" : "Preview"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={handleDownload}
@@ -308,6 +346,9 @@ export function RequestDetailsModal({
                 )}
                 {downloadError && (
                   <p className="mt-1 font-poppins text-[10px] text-sr-danger">{downloadError}</p>
+                )}
+                {previewError && (
+                  <p className="mt-1 font-poppins text-[10px] text-sr-danger">{previewError}</p>
                 )}
               </div>
 
@@ -368,6 +409,16 @@ export function RequestDetailsModal({
           )}
         </div>
       </div>
+      {previewSrc && request?.document && (
+        <ImagePreviewModal
+          open={Boolean(previewSrc)}
+          onClose={() => setPreviewSrc(null)}
+          src={previewSrc}
+          alt={request.document.name}
+          title="Uploaded student ID"
+          meta={request.document.name}
+        />
+      )}
     </div>
   );
 }

@@ -1,9 +1,12 @@
 import {
   SCHEDULE_DRAFT_KEY,
   SCHEDULE_PUBLISHED_KEY,
+  STUDENT_SECTION_REGISTRY_KEY,
   studentNotificationsKey,
 } from "@/lib/scheduleStorage";
 import { apiClient } from "@/lib/apiClient";
+import { STUDENT_ACCOUNTS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
+import { SECTION_IDS } from "@/services/scheduleStudent/mockSchedules";
 import type { AppNotification } from "@/types/clearance";
 import type { SectionId, ScheduleEntry } from "@/types/schedule";
 import type {
@@ -69,65 +72,99 @@ export function diffPublishedAgainstDraft(
   return diffs;
 }
 
+function normalizeSection(value?: string | null, course?: string | null): SectionId | null {
+  let text = (value ?? "").trim().toUpperCase();
+  if (text === "") return null;
+  if (course && !text.includes("-")) text = `${course.trim().toUpperCase()}-${text}`;
+  text = text
+    .replace(/\s+/g, "-")
+    .replace(/-(\d)-([A-Z])/g, "-$1$2")
+    .replace(/-+/g, "-");
+  return SECTION_IDS.find((section) => section.toUpperCase() === text) ?? null;
+}
+
+/**
+ * Every known student account, with the section used by the student schedules
+ * page. The bell reads `cpc:notifications:<studentId>`, so a notification is
+ * written only for students whose own section appears in the publish diff.
+ */
+function studentTargets(): Array<{ id: string; section: SectionId }> {
+  const targets = new Map<string, { id: string; section: SectionId }>();
+  const add = (id: string | null | undefined, section: SectionId | null) => {
+    if (id && section) targets.set(id, { id, section });
+  };
+
+  add(DEMO_STUDENT_ID, DEMO_STUDENT_SECTION);
+  for (const account of STUDENT_ACCOUNTS) {
+    add(account.studentId, normalizeSection(`${account.course}-${account.section}`));
+  }
+
+  const registry = readJson<Record<string, string>>(STUDENT_SECTION_REGISTRY_KEY, {});
+  for (const [id, section] of Object.entries(registry)) {
+    add(id, normalizeSection(section));
+  }
+
+  try {
+    const raw = window.sessionStorage.getItem("cpc_user");
+    if (raw) {
+      const user = JSON.parse(raw) as {
+        role?: string;
+        studentNumber?: string;
+        id?: string;
+        section?: string;
+        course?: string;
+      };
+      if (user.role === "student") {
+        add(user.studentNumber ?? user.id, normalizeSection(user.section, user.course));
+      }
+    }
+  } catch {}
+
+  const stored = readJson<{ studentId?: string; section?: string; course?: string } | null>(
+    STUDENT_PROFILE_KEY,
+    null,
+  );
+  add(stored?.studentId, normalizeSection(stored?.section, stored?.course));
+
+  return Array.from(targets.values());
+}
+
 export function notifyStudents(
   diffs: SectionPublishDiff[],
   message: string | undefined,
   version: number,
 ): void {
-  const changedSections = new Set(diffs.map((diff) => diff.section));
-  const candidateIds = new Set<string>([DEMO_STUDENT_ID]);
-  let targetSection: SectionId = DEMO_STUDENT_SECTION;
+  const changed = new Map<SectionId, SectionPublishDiff>();
+  for (const diff of diffs) changed.set(diff.section, diff);
+  if (changed.size === 0) return;
 
-  try {
-    const rawUser = typeof window !== "undefined" ? window.sessionStorage.getItem("cpc_user") : null;
-    if (rawUser) {
-      const u = JSON.parse(rawUser);
-      if (u.studentNumber) candidateIds.add(u.studentNumber);
-      if (u.id) candidateIds.add(u.id);
-      if (u.section) targetSection = u.section;
-    }
-  } catch {}
-
-  const stored = readJson<{ studentId?: string; section?: string } | null>(
-    STUDENT_PROFILE_KEY,
-    null,
-  );
-  if (stored?.studentId) candidateIds.add(stored.studentId);
-  if (stored?.section) targetSection = stored.section as SectionId;
-
-  // Only skip notification if no diffs touch the student's own section
-  if (diffs.length > 0 && !changedSections.has(targetSection)) {
-    return;
-  }
-
-  const noteMessage = message ?? `Your ${targetSection} class schedule was updated to version ${version}.`;
-  const note: AppNotification = {
-    id: newId(),
-    message: noteMessage,
-    type: "success",
-    createdAt: nowIso(),
-    read: false,
-    href: `/academics/class-schedules?section=${targetSection}`,
-  };
-
-  for (const studentId of candidateIds) {
-    const key = studentNotificationsKey(studentId);
+  let notified = 0;
+  for (const student of studentTargets()) {
+    const diff = changed.get(student.section);
+    if (diff === undefined) continue;
+    const changes = [
+      diff.added.length > 0 ? `${diff.added.length} class${diff.added.length === 1 ? "" : "es"} added` : "",
+      diff.edited.length > 0 ? `${diff.edited.length} class${diff.edited.length === 1 ? "" : "es"} updated` : "",
+      diff.removed.length > 0 ? `${diff.removed.length} class${diff.removed.length === 1 ? "" : "es"} removed` : "",
+    ].filter(Boolean);
+    const note: AppNotification = {
+      id: newId(),
+      message:
+        message ??
+        `Your ${student.section} class schedule changed (v${version}): ${changes.join(", ")}.`,
+      type: "success",
+      createdAt: nowIso(),
+      read: false,
+      href: `/academics/class-schedules?section=${encodeURIComponent(student.section)}`,
+    };
+    const key = studentNotificationsKey(student.id);
     const feed = readJson<AppNotification[]>(key, []);
     writeJson(key, [note, ...feed].slice(0, MAX_FEED));
+    notified += 1;
   }
 
-  // Also push to default global notifications feed for student bell
-  const globalKey = "cpc.notifications.v1";
-  const globalFeed = readJson<AppNotification[]>(globalKey, []);
-  writeJson(globalKey, [note, ...globalFeed].slice(0, MAX_FEED));
-
-  // Announce clearance/notification change channel if available
-  if (typeof BroadcastChannel !== "undefined") {
-    try {
-      const clearanceChannel = new BroadcastChannel("cpc-clearance");
-      clearanceChannel.postMessage({ reason: "notification", at: nowIso() });
-      clearanceChannel.close();
-    } catch {}
+  if (notified > 0) {
+    window.dispatchEvent(new CustomEvent("cpc:student:notification"));
   }
 }
 

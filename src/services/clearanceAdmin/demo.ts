@@ -8,6 +8,7 @@ import type {
   ClearanceRequestRow,
   OfficeId,
 } from "@/types/clearance";
+import { clearanceNotificationTarget } from "@/lib/programs";
 import { OFFICE_LABELS } from "@/components/features/admin/clearance/officeChecks";
 import {
   DEFAULT_PERIOD,
@@ -50,13 +51,33 @@ export async function sendReminders(staffName: string): Promise<number> {
   }
 
   for (const [office, officeRows] of byOffice) {
-    pushAdminNotification(
-      `Reminder sent to ${OFFICE_LABELS[office]}: ${officeRows.length} request${
-        officeRows.length === 1 ? "" : "s"
-      } still awaiting signature.`,
-      "info",
-      `/admin/clearance-requests?office=${office}&status=requested`,
-    );
+    // Dean reminders are split per program so only that college's dean is pinged.
+    const groups = new Map<
+      string,
+      {
+        target: NonNullable<ReturnType<typeof clearanceNotificationTarget>>;
+        rows: ClearanceRequestRow[];
+      }
+    >();
+    for (const row of officeRows) {
+      const target = clearanceNotificationTarget(office, row.program);
+      if (!target) continue;
+      const key = `${target.targetRole}:${target.department ?? ""}`;
+      const group = groups.get(key) ?? { target, rows: [] };
+      group.rows.push(row);
+      groups.set(key, group);
+    }
+
+    for (const { target, rows } of groups.values()) {
+      pushAdminNotification(
+        `Reminder sent to ${OFFICE_LABELS[office]}: ${rows.length} request${
+          rows.length === 1 ? "" : "s"
+        } still awaiting signature.`,
+        "info",
+        `/admin/clearance-requests?office=${office}&status=requested`,
+        target,
+      );
+    }
   }
 
   for (const row of rows.filter((entry) => entry.isOverdue)) {
@@ -148,11 +169,15 @@ export async function simulateStudentRequest(
   ]);
   writeRecords(next);
 
-  pushAdminNotification(
-    `New request from ${record.studentName} (${record.section}) to ${OFFICE_LABELS[target.office]}`,
-    "info",
-    queueHref(requestId),
-  );
+  const notificationTarget = clearanceNotificationTarget(target.office, record.program);
+  if (notificationTarget) {
+    pushAdminNotification(
+      `New request from ${record.studentName} (${record.section}) to ${OFFICE_LABELS[target.office]}`,
+      "info",
+      queueHref(requestId),
+      notificationTarget,
+    );
+  }
   pushActivity(
     studentActivity(
       record,
@@ -215,11 +240,15 @@ export async function simulateStudentCancel(
     },
   ]);
   writeRecords(next);
-  pushAdminNotification(
-    `${record.studentName} cancelled a ${OFFICE_LABELS[parsed.office]} request`,
-    "info",
-    "/admin/clearance-requests",
-  );
+  const notificationTarget = clearanceNotificationTarget(parsed.office, record.program);
+  if (notificationTarget) {
+    pushAdminNotification(
+      `${record.studentName} cancelled a ${OFFICE_LABELS[parsed.office]} request`,
+      "info",
+      "/admin/clearance-requests",
+      notificationTarget,
+    );
+  }
   announceClearanceChange("student-cancel");
 
   return wait(true, WRITE_DELAY);

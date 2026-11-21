@@ -15,6 +15,7 @@ import {
   readRecords,
 } from "@/services/clearanceAdmin";
 import { buildOfficeChecks } from "@/components/features/admin/clearance/officeChecks";
+import { programMatches } from "@/lib/programs";
 import { wait } from "./storage";
 
 export function studentEmail(name: string): string {
@@ -79,13 +80,10 @@ export function visibleRequests(user: AdminUser): ClearanceRequest[] {
   const all = readAdminRequests();
   if (user.role === "admin") return all;
   const byOffice = all.filter((request) => request.office === user.office);
-  if (user.office === "dean" && user.homePrograms && user.homePrograms.length > 0) {
+  const programs = user.homePrograms;
+  if (user.role.startsWith("dean_") && programs && programs.length > 0) {
     return byOffice.filter((request) =>
-      user.homePrograms!.some((prog) => {
-        const pLower = prog.toLowerCase();
-        const rLower = (request.program ?? "").toLowerCase();
-        return rLower.includes(pLower) || pLower.includes(rLower);
-      }),
+      programs.some((program) => programMatches(request.program, program)),
     );
   }
   return byOffice;
