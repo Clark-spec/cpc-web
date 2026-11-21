@@ -556,12 +556,11 @@ export function checkClearanceStatus(studentId: string): {
   offices: Array<{ office: string; label: string; status: string; signer?: string }>;
 } {
   const requiredOffices = [
-    { office: "instructor", label: "Program Adviser" },
     { office: "dean", label: "Dean" },
     { office: "library", label: "College Library" },
+    { office: "registrar", label: "Registrar's Office" },
     { office: "accounting", label: "Accounting Office" },
     { office: "sao", label: "Student Affairs Office" },
-    { office: "registrar", label: "Registrar's Office" },
   ];
 
   // Read the student's own Online Clearance record. A missing record or
@@ -584,7 +583,7 @@ export function checkClearanceStatus(studentId: string): {
               signer: saved?.signerName,
             };
           });
-          return { cleared: offices.every((office) => office.status === "signed"), offices };
+          return { cleared: offices.length === 5 && offices.every((office) => office.status === "signed"), offices };
         }
       }
     } catch {}

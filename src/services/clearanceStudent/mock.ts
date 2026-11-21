@@ -1,9 +1,7 @@
 import type {
-  ClearanceHistoryItem,
   ClearanceState,
   OfficeId,
   OfficeSignature,
-  SaoEvent,
   StudentProfile,
   Subject,
 } from "@/types/clearance";
@@ -36,47 +34,30 @@ export const mockSubjects: Subject[] = [
   { name: "Quantitative Methods", units: 3, instructor: "Dr. M. Santos" },
 ];
 
-export const mockEvents: SaoEvent[] = [
-  { title: "Brigada Balik Eskwela", attended: true },
-  { title: "Foundation Day", attended: true },
-  { title: "Monday – BSIT and BEED", attended: true },
-  { title: "Mass – Foundation Day", attended: true },
-  { title: "SSG Day Trash Galore", attended: true },
-  { title: "I-CARE Seminar – Officers", attended: true },
-  {
-    title: "Exhibit (Index Card)",
-    attended: false,
-    note: "Your attendance sheet for Exhibit (Index Card) has not been submitted to the SAO / SSG Adviser yet.",
-  },
-];
-
 /** The six signatories, in the order they appear on Form 3. */
 export const officeOrder: OfficeId[] = [
-  "instructor",
   "dean",
-  "library",
-  "registrar",
-  "accounting",
   "sao",
+  "library",
+  "accounting",
+  "registrar",
 ];
 
 /** Staff member assigned to each office (used by the demo staff panel). */
 export const officeSignerNames: Record<OfficeId, string> = {
-  instructor: "Prof. R. Dela Cruz",
-  dean: "Dr. M. Santos",
-  library: "Ms. A. Villanueva",
-  registrar: "Mrs. L. Reyes",
-  accounting: "Mr. J. Cruz",
-  sao: "Prof. L. Fernandez",
+  dean: "",
+  sao: "",
+  library: "",
+  accounting: "",
+  registrar: "",
 };
 
 const officeLabels: Record<OfficeId, string> = {
-  instructor: "Instructor",
   dean: "Dean",
-  library: "Library",
-  registrar: "Registrar",
-  accounting: "Accounting",
   sao: "SAO / SSG Adviser",
+  library: "Library",
+  accounting: "Accounting",
+  registrar: "Registrar",
 };
 
 /**
@@ -91,49 +72,11 @@ export function createInitialOffices(): OfficeSignature[] {
   }));
 }
 
-/** A signed office used by the mock history rows. */
-function historySignature(office: OfficeId, date: string): OfficeSignature {
-  return {
-    office,
-    label: officeLabels[office],
-    status: "signed",
-    signerName: officeSignerNames[office],
-    requestedAt: `${date}T08:00:00.000Z`,
-    respondedAt: `${date}T09:00:00.000Z`,
-    // History rows have no stored image; the UI falls back to a handwriting
-    // style rendering of the signer name. Real records would carry the image.
-  };
-}
-
-/** Previous terms shown in the history table. */
-export const mockHistory: ClearanceHistoryItem[] = [
-  {
-    academicYear: "2025-2026",
-    semester: "1st Semester",
-    status: "Cleared",
-    dateCleared: "2026-01-12",
-    signatures: officeOrder.map((office) => historySignature(office, "2026-01-10")),
-  },
-  {
-    academicYear: "2024-2025",
-    semester: "2nd Semester",
-    status: "Cleared",
-    dateCleared: "2025-06-05",
-    signatures: officeOrder.map((office) => historySignature(office, "2025-06-03")),
-  },
-  {
-    academicYear: "2024-2025",
-    semester: "1st Semester",
-    status: "Cleared",
-    dateCleared: "2025-01-10",
-    signatures: officeOrder.map((office) => historySignature(office, "2025-01-08")),
-  },
-];
-
 export function createInitialState(): ClearanceState {
   return {
     offices: createInitialOffices(),
-    history: mockHistory,
+    saoEvents: [],
+    history: [],
     dateCleared: null,
   };
 }

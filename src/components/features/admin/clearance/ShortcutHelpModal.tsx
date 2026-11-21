@@ -16,7 +16,6 @@ const SHORTCUTS: Array<{ keys: string[]; label: string }> = [
   { keys: ["Space"], label: "Select the highlighted row" },
   { keys: ["?"], label: "Open this shortcut list" },
   { keys: ["Esc"], label: "Close a dialog or the review panel" },
-  { keys: ["Ctrl", "Shift", "D"], label: "Toggle demo mode" },
 ];
 
 const KBD =

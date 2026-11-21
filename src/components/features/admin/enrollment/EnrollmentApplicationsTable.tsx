@@ -59,8 +59,7 @@ type EnrollmentApplicationsTableProps = {
 };
 
 /**
- * Searchable, filterable applicant queue. All records come from the local
- * sample store and the section says so explicitly in its footer.
+ * Searchable, filterable applicant queue backed by saved application records.
  */
 export function EnrollmentApplicationsTable({
   applications,

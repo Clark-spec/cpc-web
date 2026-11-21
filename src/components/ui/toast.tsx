@@ -27,6 +27,7 @@ type ToastItem = {
   title?: string;
   message: string;
   action?: ToastAction;
+  replaceKey?: string;
   duration: number;
   paused: boolean;
   leaving: boolean;
@@ -202,6 +203,7 @@ export function ToastProvider({ children, position = "bottom" }: ToastProviderPr
         title: options.title,
         message: options.message ?? "",
         action: options.action,
+        replaceKey: options.replaceKey,
         duration,
         paused: false,
         leaving: false,
@@ -210,10 +212,23 @@ export function ToastProvider({ children, position = "bottom" }: ToastProviderPr
       remaining.current.set(id, duration);
       startedAt.current.set(id, Date.now());
       measureHeader();
-      setToasts((current) => [...current.slice(-(MAX_VISIBLE - 1)), item]);
+      setToasts((current) => {
+        const replaced = options.replaceKey
+          ? current.filter((existing) => existing.replaceKey !== options.replaceKey)
+          : current;
+        for (const existing of current) {
+          if (options.replaceKey && existing.replaceKey === options.replaceKey) {
+            clearTimer(existing.id);
+            remaining.current.delete(existing.id);
+            startedAt.current.delete(existing.id);
+            paused.current.delete(existing.id);
+          }
+        }
+        return [...replaced.slice(-(MAX_VISIBLE - 1)), item];
+      });
       if (duration > 0) schedule(id);
     },
-    [measureHeader, schedule],
+    [clearTimer, measureHeader, schedule],
   );
 
   const dismissToast = useCallback((id: string) => beginClose(id), [beginClose]);
@@ -238,16 +253,18 @@ export function ToastProvider({ children, position = "bottom" }: ToastProviderPr
   useEffect(() => {
     if (!isTop) return;
     measureHeader();
-    const header = document.querySelector("header");
+    const header = document.querySelector("[data-portal-header]");
     const resizeObserver = new ResizeObserver(measureHeader);
     if (header) resizeObserver.observe(header);
     const mutationObserver = new MutationObserver(measureHeader);
     mutationObserver.observe(document.body, { childList: true });
     window.addEventListener("resize", measureHeader);
+    window.addEventListener("scroll", measureHeader, { passive: true });
     return () => {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
       window.removeEventListener("resize", measureHeader);
+      window.removeEventListener("scroll", measureHeader);
     };
   }, [isTop, measureHeader]);
 

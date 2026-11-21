@@ -17,21 +17,16 @@ import {
 import { CLEARANCE_NOTIFICATIONS_KEY, CLEARANCE_STORAGE_KEY } from "@/lib/clearanceStorage";
 import { ADMIN_NOTIFICATIONS_KEY } from "@/services/admin/storage";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
-import { PENDING_PROFILE_CORRECTIONS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import {
-  generateSampleRequests as generateSampleRequestsService,
-  getAdminNotifications,
   getClearanceRequests,
   getDashboardStats,
   getEnrollmentOverview,
   getRecentActivity,
-  markNotificationsRead as markNotificationsReadService,
-  resetDemoData as resetDemoDataService,
 } from "@/services/admin";
-import { deleteAdminNotification as deleteAdminNotificationService } from "@/services/admin/notifications";
 import { normalizeDepartment } from "@/services/enrollmentWorkflow/service";
 import type { DepartmentCode } from "@/types/enrollmentWorkflow";
 import {
+  deleteAllAdminNotificationsApi,
   deleteAdminNotificationApi,
   fetchAdminNotificationFeed,
   markAdminNotificationsReadApi,
@@ -70,14 +65,18 @@ type AdminDataContextValue = AdminDataState & {
   markAllNotificationsRead: () => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   deleteNotification: (id: string) => void;
-  generateSamples: () => Promise<void>;
-  resetDemo: () => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
 };
 
 export function isNotificationVisibleToRole(
   notification: AdminNotification,
   role: AdminRole,
 ): boolean {
+  // The backend returns a staff member's own feed, so office notifications
+  // (including department-scoped Dean requests) are already targeted before
+  // they reach this client.
+  if (notification.source === "clearance" || notification.source === "enrollment-signature") return true;
+
   // A clearance notification belongs to exactly one staff account — even the
   // global roles must not see another office's request. Other modules keep
   // their existing role visibility rules.
@@ -132,23 +131,14 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [profileCorrectionsCount, setProfileCorrectionsCount] = useState(
-    PENDING_PROFILE_CORRECTIONS,
-  );
+  const [profileCorrectionsCount, setProfileCorrectionsCount] = useState(0);
 
   const loadNotifications = useCallback(async (): Promise<AdminNotification[]> => {
-    let remote: AdminNotification[] = [];
     try {
-      remote = await fetchAdminNotificationFeed();
+      return await fetchAdminNotificationFeed();
     } catch {
-      // Backend unreachable: keep the demo bell working off local storage.
+      return [];
     }
-    const local = await getAdminNotifications();
-    const map = new Map<string, AdminNotification>();
-    for (const n of [...local, ...remote]) {
-      if (!map.has(n.id)) map.set(n.id, n);
-    }
-    return Array.from(map.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, []);
 
   const load = useCallback(
@@ -202,29 +192,35 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   // staff bell polls the feed while the tab is visible.
   const syncNotifications = useCallback(async () => {
     try {
-      let remote: AdminNotification[] = [];
       try {
-        remote = await fetchAdminNotificationFeed();
+        const notifications = await fetchAdminNotificationFeed();
+        setState((current) => ({ ...current, notifications }));
       } catch {
-        // Backend unreachable
+        setState((current) => ({ ...current, notifications: [] }));
       }
-      const local = await getAdminNotifications();
-      const map = new Map<string, AdminNotification>();
-      for (const n of [...local, ...remote]) {
-        if (!map.has(n.id)) map.set(n.id, n);
-      }
-      const notifications = Array.from(map.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      setState((current) => ({ ...current, notifications }));
     } catch {
       // Keep the last known feed; the next tick retries.
     }
   }, []);
 
+  const syncClearanceRequests = useCallback(async () => {
+    if (!user) return;
+    try {
+      const requests = await getClearanceRequests(user);
+      setState((current) => ({ ...current, requests }));
+    } catch {
+      // Keep the current count while offline; the next visible poll retries.
+    }
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
 
     const poll = () => {
-      if (document.visibilityState === "visible") void syncNotifications();
+      if (document.visibilityState === "visible") {
+        void syncNotifications();
+        void syncClearanceRequests();
+      }
     };
     const timer = window.setInterval(poll, 10_000);
     document.addEventListener("visibilitychange", poll);
@@ -233,7 +229,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", poll);
     };
-  }, [syncNotifications, user]);
+  }, [syncClearanceRequests, syncNotifications, user]);
 
   useEffect(() => {
     // Initial fetch: the service is the external store, so this is the
@@ -279,7 +275,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     try {
       await markAdminNotificationsReadApi(idsToMark);
     } catch {
-      await markNotificationsReadService(idsToMark);
+      // Keep the server feed authoritative when offline.
     }
     setState((current) => ({
       ...current,
@@ -295,7 +291,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     try {
       await markAdminNotificationsReadApi([id]);
     } catch {
-      await markNotificationsReadService([id]);
+      // Keep the server feed authoritative when offline.
     }
     setState((current) => ({
       ...current,
@@ -309,28 +305,22 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     void deleteAdminNotificationApi(id).catch(() => {
       // Nothing to restore: the local copy is the fallback source.
     });
-    deleteAdminNotificationService(id);
     setState((current) => ({
       ...current,
       notifications: current.notifications.filter((n) => n.id !== id),
     }));
   }, []);
 
-  const generateSamples = useCallback(async () => {
-    await generateSampleRequestsService();
-    await load("silent");
-  }, [load]);
-
-  const resetDemo = useCallback(async () => {
-    await resetDemoDataService();
-    await load("initial");
-  }, [load]);
+  const deleteAllNotifications = useCallback(async () => {
+    await deleteAllAdminNotificationsApi();
+    setState((current) => ({ ...current, notifications: [] }));
+  }, []);
 
   const badges = useMemo<AdminBadgeCounts>(
     () => ({
-      enrollment: state.stats?.pendingEnrollments ?? 126,
+      enrollment: state.stats?.pendingEnrollments ?? 0,
       clearance: state.requests.filter((request) => request.status === "pending").length,
-      complaints: state.stats?.activeComplaints ?? 12,
+      complaints: state.stats?.activeComplaints ?? 0,
       profileCorrections: profileCorrectionsCount,
     }),
     [profileCorrectionsCount, state.requests, state.stats],
@@ -356,22 +346,20 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       markAllNotificationsRead,
       markNotificationRead,
       deleteNotification,
-      generateSamples,
-      resetDemo,
+      deleteAllNotifications,
     }),
     [
       badges,
       error,
       filteredNotifications,
-      generateSamples,
       loading,
       markAllNotificationsRead,
       markNotificationRead,
       deleteNotification,
+      deleteAllNotifications,
       profileCorrectionsCount,
       refresh,
       refreshing,
-      resetDemo,
       state,
       unreadNotifications,
     ],

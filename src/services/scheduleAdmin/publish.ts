@@ -5,7 +5,6 @@ import {
   studentNotificationsKey,
 } from "@/lib/scheduleStorage";
 import { apiClient } from "@/lib/apiClient";
-import { STUDENT_ACCOUNTS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import { SECTION_IDS } from "@/services/scheduleStudent/mockSchedules";
 import type { AppNotification } from "@/types/clearance";
 import type { SectionId, ScheduleEntry } from "@/types/schedule";
@@ -17,8 +16,6 @@ import type {
   SectionPublishDiff,
 } from "@/types/scheduleAdmin";
 import {
-  DEMO_STUDENT_ID,
-  DEMO_STUDENT_SECTION,
   MAX_FEED,
   MAX_PUBLISHED_ARCHIVE,
   STUDENT_PROFILE_KEY,
@@ -93,11 +90,6 @@ function studentTargets(): Array<{ id: string; section: SectionId }> {
   const add = (id: string | null | undefined, section: SectionId | null) => {
     if (id && section) targets.set(id, { id, section });
   };
-
-  add(DEMO_STUDENT_ID, DEMO_STUDENT_SECTION);
-  for (const account of STUDENT_ACCOUNTS) {
-    add(account.studentId, normalizeSection(`${account.course}-${account.section}`));
-  }
 
   const registry = readJson<Record<string, string>>(STUDENT_SECTION_REGISTRY_KEY, {});
   for (const [id, section] of Object.entries(registry)) {

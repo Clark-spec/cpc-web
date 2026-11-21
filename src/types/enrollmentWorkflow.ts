@@ -22,6 +22,7 @@ export type StudentStanding = "regular" | "irregular";
 
 export interface MasterlistRecord {
   studentIdNo: string;
+  section?: string;
   name: string;
   department: DepartmentCode;
   course: string;
@@ -63,6 +64,9 @@ export interface WorkflowStep {
   updatedBy?: string;
   updatedAt?: string;
   remarks?: string;
+  signatureImage?: string;
+  signatureMethod?: "draw" | "type" | "upload";
+  signatureLabel?: string;
 }
 
 export interface EnrollmentSubjectItem {
@@ -170,4 +174,5 @@ export interface StudentEnrollmentSession {
   signatureRequests?: Partial<Record<"screening" | "guidance" | "clinic" | "registrar" | "accounting", string>>;
   screeningFeePaidAt?: string;
   screeningFeeVerifiedBy?: string;
+  clearance?: { offices: Array<{ office: string; status: string }> };
 }

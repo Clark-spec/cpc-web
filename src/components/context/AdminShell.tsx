@@ -8,7 +8,7 @@ import { SidebarProvider } from "@/components/context/SidebarContext";
 import type { AdminRole } from "@/types/admin";
 import AdminLoginPage from "@/pages/auth/admin";
 
-/** Sends unauthenticated staff to the mock login screen. */
+/** Sends unauthenticated staff to the staff sign-in screen. */
 export function RequireAdmin({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAdminAuth();
 

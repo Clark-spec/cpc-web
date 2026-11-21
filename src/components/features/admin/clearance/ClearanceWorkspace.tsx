@@ -1,219 +1,104 @@
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
+import { useState } from "react";
+import { Check, Clock3, PenLine, RefreshCw, X } from "lucide-react";
 import { ErrorCard } from "@/components/common/feedback/ErrorCard";
-import { useHotkeys } from "@/hooks/useHotkeys";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { ApproveSignModal } from "@/components/features/admin/clearance/ApproveSignModal";
-import { BulkActionBar } from "@/components/features/admin/clearance/BulkActionBar";
-import { ClearanceBanner } from "@/components/features/admin/clearance/ClearanceBanner";
-import { ClearanceDemoPanel } from "@/components/features/admin/clearance/ClearanceDemoPanel";
-import { ClearanceKpiStrip } from "@/components/features/admin/clearance/ClearanceKpiStrip";
-import { ClearancePeriodCard } from "@/components/features/admin/clearance/ClearancePeriodCard";
-import { OfficeLoadChart } from "@/components/features/admin/clearance/OfficeLoadChart";
-import { QueueBoard } from "@/components/features/admin/clearance/QueueBoard";
-import { QueueTable } from "@/components/features/admin/clearance/QueueTable";
-import { QueueToolbar } from "@/components/features/admin/clearance/QueueToolbar";
 import { RejectModal } from "@/components/features/admin/clearance/RejectModal";
-import { RevokeModal } from "@/components/features/admin/clearance/RevokeModal";
-import { SavedSignaturesPanel } from "@/components/features/admin/clearance/SavedSignaturesPanel";
-import { ShortcutHelpModal } from "@/components/features/admin/clearance/ShortcutHelpModal";
-import { StudentPreviewDrawer } from "@/components/features/admin/clearance/StudentPreviewDrawer";
-import { StudentReviewPanel } from "@/components/features/admin/clearance/StudentReviewPanel";
-import type { ClearanceRequestRow, OfficeId } from "@/components/features/admin/clearance/types";
+import { OFFICE_LABELS } from "@/components/features/admin/clearance/officeChecks";
+import type { ClearanceRequestRow } from "@/components/features/admin/clearance/types";
 
-/**
- * Rows 1–5 of the staff clearance page (spec "PAGE LAYOUT").
- *
- * (3) Nothing here is stored locally: the queue, the KPI strip and the workload
- * chart all read the same rows derived from the shared `cpc:clearance:records`
- * array, so a signature written by either portal repaints all three at once.
- * The page only owns dialog/panel visibility — the modal components call the
- * context's `approve` / `reject` / `revoke` themselves.
- */
 export function ClearanceWorkspace() {
-  const {
-    error,
-    filters,
-    isSuperAdmin,
-    loading,
-    refresh,
-    selectRow,
-    selectedRow,
-    setFilter,
-    stepRequest,
-  } = useClearanceAdmin();
-
-  const searchRef = useRef<HTMLInputElement>(null);
-
-  /* Row 4: the panel is an inline sticky aside at xl and a drawer below it. */
-  const [dismissedId, setDismissedId] = useState<string | null>(null);
-  const [signaturesOpen, setSignaturesOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [approveRow, setApproveRow] = useState<ClearanceRequestRow | null>(null);
+  const { error, loading, refresh, refreshing, visibleRows, rows, filters, setFilter, staff, isSuperAdmin } = useClearanceAdmin();
+  const [reviewRow, setReviewRow] = useState<ClearanceRequestRow | null>(null);
+  const [signRow, setSignRow] = useState<ClearanceRequestRow | null>(null);
   const [rejectRow, setRejectRow] = useState<ClearanceRequestRow | null>(null);
-  const [revokeRow, setRevokeRow] = useState<ClearanceRequestRow | null>(null);
+  const openReview = (row: ClearanceRequestRow) => setReviewRow(row);
+  const handleReject = (row: ClearanceRequestRow) => { setReviewRow(null); setRejectRow(row); };
+  const statusOptions = [
+    { value: "requested" as const, label: "Pending", count: rows.filter((row) => row.status === "requested").length },
+    { value: "signed" as const, label: "Signed", count: rows.filter((row) => row.status === "signed").length },
+    { value: "rejected" as const, label: "Rejected", count: rows.filter((row) => row.status === "rejected").length },
+    { value: "all" as const, label: "All", count: rows.length },
+  ];
+  const statusLabel = statusOptions.find((option) => option.value === filters.status)?.label ?? "Pending";
 
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth < 1280 : false,
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mql = window.matchMedia("(max-width: 1279px)");
-    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    setIsMobile(mql.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-
-  const dialogOpen =
-    signaturesOpen || previewOpen || helpOpen || approveRow !== null || rejectRow !== null;
-
-  /*
-   * Derived, never synced: the drawer follows the selection, and only the row
-   * the staff member explicitly closed stays hidden until they pick it again.
-   */
-  const panelVisible = selectedRow !== null && dismissedId !== selectedRow.id;
-
-  useHotkeys(
-    {
-      j: () => stepRequest(-1),
-      k: () => stepRequest(1),
-      a: () => {
-        if (selectedRow) setApproveRow(selectedRow);
-      },
-      r: () => {
-        if (selectedRow) setRejectRow(selectedRow);
-      },
-      "/": (event) => {
-        event.preventDefault();
-        searchRef.current?.focus();
-      },
-      "?": () => setHelpOpen(true),
-    },
-    !dialogOpen,
-  );
-
-  function openPanel(id: string) {
-    selectRow(id);
-    setDismissedId((current) => (current === id ? null : current));
-  }
-
-  function closePanel() {
-    if (selectedRow) setDismissedId(selectedRow.id);
-  }
-
-  function handleSign(row: ClearanceRequestRow) {
-    openPanel(row.id);
-    setApproveRow(row);
-  }
-
-  function handleReject(row: ClearanceRequestRow) {
-    openPanel(row.id);
-    setRejectRow(row);
-  }
-
-  function handleRevoke(row: ClearanceRequestRow) {
-    openPanel(row.id);
-    setRevokeRow(row);
-  }
-
-  return (
-    <div className="relative space-y-6 pb-20">
-      {/* Ambient soft glow elements for glassmorphism depth */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-16 -left-16 h-80 w-80 rounded-full bg-cpc-blue-accent/5 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/3 -right-16 h-96 w-96 rounded-full bg-cpc-navy/4 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-10 left-1/4 h-72 w-72 rounded-full bg-emerald-500/4 blur-3xl"
-      />
-      <ClearanceBanner
-        onPreviewStudent={() => setPreviewOpen(true)}
-        onOpenSignatures={() => setSignaturesOpen(true)}
-      />
-
-      <ClearanceDemoPanel />
-
-      <ClearanceKpiStrip />
-
-      <QueueToolbar searchInputRef={searchRef} />
-
-      {error && !loading ? (
-        <ErrorCard message={error} onRetry={() => void refresh()} />
-      ) : (
-        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-12">
-          <section
-            aria-label="Request queue"
-            className="min-w-0 xl:col-span-7 2xl:col-span-8"
-          >
-            {filters.view === "board" ? (
-              <QueueBoard onSelect={openPanel} onSign={handleSign} onReject={handleReject} />
-            ) : (
-              <QueueTable onSelect={openPanel} onSign={handleSign} onReject={handleReject} />
-            )}
-          </section>
-
-          <aside
-            role="complementary"
-            aria-label="Student review"
-            className="hidden xl:col-span-5 xl:block 2xl:col-span-4"
-          >
-            <div className="sticky top-24">
-              <StudentReviewPanel
-                onSign={handleSign}
-                onReject={handleReject}
-                onRevoke={handleRevoke}
-              />
-            </div>
-          </aside>
-        </div>
-      )}
-
-      {isMobile && panelVisible && selectedRow && (
-        <div className="xl:hidden">
-          <button
-            type="button"
-            aria-label="Close review panel"
-            onClick={closePanel}
-            className="fixed inset-0 z-[65] cursor-pointer bg-cpc-navy/40"
-          />
-          <StudentReviewPanel
-            sheet
-            onClose={closePanel}
-            onSign={handleSign}
-            onReject={handleReject}
-            onRevoke={handleRevoke}
-          />
-        </div>
-      )}
-
-      {/* Row 5 — the period card is admin-only, so the chart takes both columns otherwise. */}
-      <div className={cn("grid grid-cols-1 items-start gap-6", isSuperAdmin && "xl:grid-cols-2")}>
-        <OfficeLoadChart
-          onSelectOffice={(office: OfficeId) => setFilter("office", office)}
-        />
-        <ClearancePeriodCard />
+  return <div className="space-y-5 pb-10">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><p className="text-xs font-semibold uppercase tracking-wider text-blue-700">{isSuperAdmin ? "All offices" : staff.title || "My office"}</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900">Clearance Requests</h1>
+          <p className="mt-1 text-sm text-slate-600">Review clearance requests for your office and digitally sign pending requests.</p></div>
+        <button type="button" onClick={() => void refresh()} disabled={refreshing} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</button>
       </div>
+    </section>
 
-      <BulkActionBar />
+    {error && !loading ? <ErrorCard message={error} onRetry={() => void refresh()} /> : <div className="w-full min-w-0">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <header className="border-b border-slate-200 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2"><h2 className="font-bold text-slate-900">{statusLabel} requests</h2><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">{visibleRows.length}</span></div>
+            <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter clearance requests by status">
+              {statusOptions.map((option) => {
+                const activeClass = option.value === "requested"
+                  ? "border-amber-600 bg-amber-600 text-white"
+                  : option.value === "signed"
+                    ? "border-emerald-600 bg-emerald-600 text-white"
+                    : option.value === "rejected"
+                      ? "border-rose-600 bg-rose-600 text-white"
+                      : "border-blue-700 bg-blue-700 text-white";
+                const inactiveClass = option.value === "requested"
+                  ? "border-amber-200 bg-white text-amber-800 hover:bg-amber-50"
+                  : option.value === "signed"
+                    ? "border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50"
+                    : option.value === "rejected"
+                      ? "border-rose-200 bg-white text-rose-800 hover:bg-rose-50"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50";
+                return <button key={option.value} type="button" role="tab" aria-selected={filters.status === option.value} onClick={() => setFilter("status", option.value)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${filters.status === option.value ? activeClass : inactiveClass}`}>
+                {option.label}<span className={`rounded-full px-1.5 py-0.5 text-[10px] ${filters.status === option.value ? "bg-white/20" : "bg-slate-100/80"}`}>{option.count}</span>
+                </button>;
+              })}
+            </div>
+          </div>
+        </header>
+        {loading ? <p className="p-8 text-center text-sm text-slate-500">Loading requests…</p> : visibleRows.length === 0 ? <div className="p-10 text-center"><Check className="mx-auto h-8 w-8 text-emerald-600"/><h3 className="mt-3 font-semibold text-slate-900">No {statusLabel.toLowerCase()} requests</h3><p className="mt-1 text-sm text-slate-500">Requests in this status will appear here.</p></div> : <ul className="divide-y divide-slate-100">
+          {visibleRows.map((row) => <li key={row.id}>
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <button type="button" onClick={() => openReview(row)} className="min-w-0 text-left">
+                <span className="block truncate font-semibold text-slate-900">{row.studentName || "Student"}</span>
+                <span className="mt-1 block text-xs text-slate-600">ID {row.studentId} · {row.section || "Section not listed"}</span>
+                <span className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${row.status === "requested" ? "text-amber-700" : row.status === "signed" ? "text-emerald-700" : "text-rose-700"}`}>{row.status === "requested" ? <Clock3 className="h-3.5 w-3.5"/> : row.status === "signed" ? <Check className="h-3.5 w-3.5"/> : <X className="h-3.5 w-3.5"/>}{OFFICE_LABELS[row.office]} · {row.status === "requested" ? "Pending signature" : row.status === "signed" ? "Signed" : "Rejected"}</span>
+              </button>
+              <div className="flex shrink-0 gap-2">
+                <button type="button" onClick={() => openReview(row)} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800">{row.status === "requested" ? <><PenLine className="h-3.5 w-3.5"/>Review & sign</> : "View details"}</button>
+                {row.status === "requested" && <button type="button" onClick={() => handleReject(row)} aria-label={`Return ${row.studentName}'s request`} className="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-50"><X className="h-4 w-4"/></button>}
+              </div>
+            </div>
+          </li>)}
+        </ul>}
+      </section>
+    </div>}
 
-      <ApproveSignModal
-        row={approveRow}
-        open={approveRow !== null}
-        onClose={() => setApproveRow(null)}
-      />
-      <RejectModal row={rejectRow} open={rejectRow !== null} onClose={() => setRejectRow(null)} />
-      <RevokeModal row={revokeRow} open={revokeRow !== null} onClose={() => setRevokeRow(null)} />
-      <SavedSignaturesPanel open={signaturesOpen} onClose={() => setSignaturesOpen(false)} />
-      <StudentPreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} />
-      <ShortcutHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
-    </div>
-  );
+    {reviewRow && <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setReviewRow(null); }}>
+      <section role="dialog" aria-modal="true" aria-labelledby="clearance-review-title" className="my-auto w-full max-w-xl rounded-2xl bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 sm:p-6">
+          <div><p className="text-xs font-bold uppercase tracking-wider text-blue-700">{OFFICE_LABELS[reviewRow.office]} · {reviewRow.status === "requested" ? "Pending" : reviewRow.status === "signed" ? "Signed" : "Rejected"}</p><h2 id="clearance-review-title" className="mt-1 text-xl font-bold text-slate-900">{reviewRow.status === "requested" ? "Review clearance request" : "Clearance request details"}</h2><p className="mt-1 text-sm text-slate-500">{reviewRow.status === "requested" ? "Check the student details before signing." : "Review this request's saved status and signature details."}</p></div>
+          <button type="button" aria-label="Close review" onClick={() => setReviewRow(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5"/></button>
+        </header>
+        <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-6">
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Student name</p><p className="mt-1 font-semibold text-slate-900">{reviewRow.studentName || "Student"}</p></div>
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Student ID</p><p className="mt-1 font-semibold text-slate-900">{reviewRow.studentId}</p></div>
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Program & section</p><p className="mt-1 font-semibold text-slate-900">{reviewRow.program || "—"} · {reviewRow.section || "—"}</p></div>
+          <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">Term</p><p className="mt-1 font-semibold text-slate-900">{reviewRow.term} · {reviewRow.academicYear}</p></div>
+          {reviewRow.studentNote && <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 sm:col-span-2"><p className="text-xs font-semibold text-blue-800">Student note</p><p className="mt-1 text-sm text-slate-700">{reviewRow.studentNote}</p></div>}
+          <div className={`flex items-center gap-2 rounded-xl p-4 text-sm sm:col-span-2 ${reviewRow.status === "requested" ? "border border-amber-200 bg-amber-50 text-amber-900" : reviewRow.status === "signed" ? "border border-emerald-200 bg-emerald-50 text-emerald-900" : "border border-rose-200 bg-rose-50 text-rose-900"}`}>{reviewRow.status === "requested" ? <Clock3 className="h-4 w-4 shrink-0"/> : reviewRow.status === "signed" ? <Check className="h-4 w-4 shrink-0"/> : <X className="h-4 w-4 shrink-0"/>}{reviewRow.status === "requested" ? "The student is waiting for your office to review this request." : reviewRow.status === "signed" ? `Signed digitally by ${reviewRow.signerName || "your office"}.` : `This request was rejected${reviewRow.remarks ? `: ${reviewRow.remarks}` : "."}`}</div>
+        </div>
+        <footer className="flex flex-col-reverse gap-2 border-t border-slate-200 p-5 sm:flex-row sm:justify-end sm:p-6">
+          {reviewRow.status === "requested" && <><button type="button" onClick={() => handleReject(reviewRow)} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Return request</button>
+          <button type="button" onClick={() => { setSignRow(reviewRow); setReviewRow(null); }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"><PenLine className="h-4 w-4"/>Approve & continue to signature</button></>}
+        </footer>
+      </section>
+    </div>}
+    <ApproveSignModal row={signRow} open={signRow !== null} onClose={() => setSignRow(null)} />
+    <RejectModal row={rejectRow} open={rejectRow !== null} onClose={() => setRejectRow(null)} />
+  </div>;
 }

@@ -3,6 +3,7 @@ import { getCsrfToken } from "@/services/auth";
 import { clearAdminBackendSession, ensureAdminSession, readAdminRole } from "@/services/complaints/admin-session";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 import type { EnrollmentSignatureOffice } from "./service";
+import type { EnrollmentSubjectItem } from "@/types/enrollmentWorkflow";
 
 type Envelope<T> = { code: number; message?: string; data?: T };
 
@@ -34,6 +35,28 @@ export async function loadMyEnrollmentSession(): Promise<StudentEnrollmentSessio
   }
 }
 
+export async function confirmEnrollmentVerificationInDatabase(): Promise<StudentEnrollmentSession> {
+  const csrf = await getCsrfToken();
+  const response = await apiClient.post<Envelope<{ session: StudentEnrollmentSession }>>(
+    "/enrollment/v1/sessions/verify",
+    {},
+    { headers: { "x-csrf-token": csrf } },
+  );
+  if (!response.data.data?.session) throw new ApiError(response.data.message || "Student verification could not be saved.");
+  return response.data.data.session;
+}
+
+export async function saveEnrollmentDraftToDatabase(subjects: EnrollmentSubjectItem[], clearanceComplete = false): Promise<StudentEnrollmentSession> {
+  const csrf = await getCsrfToken();
+  const response = await apiClient.put<Envelope<{ session: StudentEnrollmentSession }>>(
+    "/enrollment/v1/sessions/draft",
+    { subjects, clearanceComplete },
+    { headers: { "x-csrf-token": csrf } },
+  );
+  if (!response.data.data?.session) throw new ApiError(response.data.message || "The Study Load draft could not be saved.");
+  return response.data.data.session;
+}
+
 export async function submitEnrollmentToDatabase(session: StudentEnrollmentSession): Promise<StudentEnrollmentSession> {
   const csrf = await getCsrfToken();
   const response = await apiClient.post<Envelope<{ session: StudentEnrollmentSession }>>(
@@ -56,6 +79,17 @@ export async function requestSignatureFromDatabase(studentId: string, office: En
   return response.data.data.session;
 }
 
+export async function cancelSignatureRequestFromDatabase(studentId: string, office: EnrollmentSignatureOffice): Promise<StudentEnrollmentSession> {
+  const csrf = await getCsrfToken();
+  const response = await apiClient.post<Envelope<{ session: StudentEnrollmentSession }>>(
+    `/enrollment/v1/sessions/${encodeURIComponent(studentId)}/cancel-request`,
+    { office },
+    { headers: { "x-csrf-token": csrf } },
+  );
+  if (!response.data.data?.session) throw new ApiError(response.data.message || "The signature request could not be cancelled.");
+  return response.data.data.session;
+}
+
 export async function getOfficeSignatureRequests(office: EnrollmentSignatureOffice): Promise<StudentEnrollmentSession[]> {
   return withAdminToken(async (token) => {
     const response = await apiClient.get<Envelope<{ sessions: StudentEnrollmentSession[] }>>(
@@ -70,12 +104,13 @@ export async function signEnrollmentInDatabase(
   studentId: string,
   office: EnrollmentSignatureOffice,
   feePaid = false,
+  signature?: { imageBase64: string; method: "draw" | "type" | "upload"; label?: string },
 ): Promise<StudentEnrollmentSession> {
   const csrf = await getCsrfToken();
   return withAdminToken(async (token) => {
     const response = await apiClient.post<Envelope<{ session: StudentEnrollmentSession }>>(
       `/enrollment/v1/sessions/${encodeURIComponent(studentId)}/sign`,
-      { office, feePaid },
+      { office, feePaid, signature },
       adminConfig(token, csrf),
     );
     if (!response.data.data?.session) throw new ApiError(response.data.message || "The signature could not be saved.");

@@ -2,13 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   Award,
-  BookOpen,
   CalendarOff,
   CheckCircle2,
   Clock3,
-  CreditCard,
   FileText,
-  GraduationCap,
   Loader2,
   RotateCcw,
   Send,
@@ -33,35 +30,30 @@ const OFFICE_INFO: Record<
   OfficeId,
   { label: string; description: string; icon: LucideIcon }
 > = {
-  instructor: {
-    label: "Instructor",
-    description: "Clears subject grades & course responsibilities",
-    icon: GraduationCap,
-  },
   dean: {
     label: "Dean",
     description: "Validates curriculum requirements & graduation standing",
     icon: Award,
-  },
-  library: {
-    label: "Library",
-    description: "Audits borrowed book returns & library clearance",
-    icon: BookOpen,
   },
   registrar: {
     label: "Registrar",
     description: "Audits academic records, credentials & prerequisites",
     icon: FileText,
   },
-  accounting: {
-    label: "Accounting",
-    description: "Validates statement of account & remaining fee balances",
-    icon: CreditCard,
-  },
   sao: {
     label: "SAO / SSG Adviser",
     description: "Verifies mandatory event attendances & index card",
     icon: Users,
+  },
+  library: {
+    label: "Library",
+    description: "Verifies the student's library account and outstanding obligations",
+    icon: FileText,
+  },
+  accounting: {
+    label: "Accounting",
+    description: "Verifies the student's accounting record and outstanding obligations",
+    icon: CheckCircle2,
   },
 };
 

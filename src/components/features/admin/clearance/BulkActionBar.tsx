@@ -71,7 +71,7 @@ export function BulkActionBar() {
       actionable.filter((row) => {
         const record = records.find((entry) => entry.studentId === row.studentId);
         if (!record) return false;
-        return countIssues(buildOfficeChecks(row.office, record, staff.name)) > 0;
+        return countIssues(buildOfficeChecks(row.office, record)) > 0;
       }).length,
     [actionable, records, staff.name],
   );

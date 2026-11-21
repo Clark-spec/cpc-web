@@ -14,9 +14,9 @@ import {
   readPeriod,
   readRecords,
 } from "@/services/clearanceAdmin";
+import { getClearanceRecordsFromDatabase } from "@/services/clearanceAdmin/database";
 import { buildOfficeChecks } from "@/components/features/admin/clearance/officeChecks";
 import { programMatches } from "@/lib/programs";
-import { wait } from "./storage";
 
 export function studentEmail(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -46,9 +46,9 @@ export function toShellRequest(
     program: row.program,
     section: row.section,
     yearLevel: row.yearLevel,
-    email: studentEmail(row.studentName),
+    email: "",
     office: row.office,
-    requestedAt: row.requestedAt ?? record.completedAt ?? new Date().toISOString(),
+    requestedAt: row.requestedAt ?? row.respondedAt ?? "",
     studentNote: row.studentNote,
     status: shellStatus(row.status),
     respondedAt: row.respondedAt,
@@ -91,9 +91,16 @@ export function visibleRequests(user: AdminUser): ClearanceRequest[] {
 
 /** Role-aware clearance queue, newest request first. */
 export async function getClearanceRequests(user: AdminUser): Promise<ClearanceRequest[]> {
-  const requests = visibleRequests(user).sort((a, b) =>
+  const records = await getClearanceRecordsFromDatabase();
+  const byId = new Map(records.map((record) => [record.studentId, record]));
+  const all = deriveRows(records, 3).flatMap((row) => {
+    const record = byId.get(row.studentId);
+    return record ? [toShellRequest(row, record)] : [];
+  });
+  const scoped = user.role === "admin" ? all : all.filter((request) => request.office === user.office);
+  const requests = scoped.sort((a, b) =>
     b.requestedAt.localeCompare(a.requestedAt),
   );
-  return wait(requests);
+  return requests;
 }
 

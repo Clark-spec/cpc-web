@@ -8,19 +8,45 @@ import {
   getStudentSession,
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
+import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 
 export function CtaSection() {
   const { user } = useAuth();
   const studentId = user?.studentNumber || "2024-00012";
+  const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId);
 
   const [session, setSession] = useState(() => getStudentSession(studentId));
+  const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
+  const [databaseError, setDatabaseError] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeToEnrollmentQueue(() => {
-      setSession(getStudentSession(studentId));
-    });
-    return unsub;
-  }, [studentId]);
+    const refresh = () => {
+      if (!isDatabaseStudent) {
+        setSession(getStudentSession(studentId));
+        return;
+      }
+      void loadMyEnrollmentSession().then((saved) => {
+        if (saved?.student.studentIdNo === studentId) {
+          setSession(saved);
+          setDatabaseError(false);
+        } else {
+          throw new Error("Enrollment record was not found.");
+        }
+      }).catch(() => setDatabaseError(true)).finally(() => setLoadingDatabase(false));
+    };
+    refresh();
+    const unsub = subscribeToEnrollmentQueue(refresh);
+    const timer = window.setInterval(refresh, 10000);
+    return () => { unsub(); window.clearInterval(timer); };
+  }, [isDatabaseStudent, studentId]);
+
+  if (loadingDatabase && isDatabaseStudent) {
+    return <section aria-label="Enrollment status" className="w-full bg-white px-5 py-12 text-center font-poppins text-sm text-cpc-heading-soft">Loading your current enrollment status…</section>;
+  }
+
+  if (databaseError && isDatabaseStudent) {
+    return <section role="alert" aria-label="Enrollment status unavailable" className="w-full bg-white px-5 py-12 text-center font-poppins text-sm text-cpc-heading-soft">Your current enrollment status could not be loaded. Reconnect to the server and reload this page.</section>;
+  }
 
   const isEnrolled = ["screening", "guidance", "clinic", "accounting", "registrar"]
     .every((office) => session.steps[office as "screening" | "guidance" | "clinic" | "accounting" | "registrar"].status === "APPROVED");
@@ -47,7 +73,7 @@ export function CtaSection() {
               <>
                 You are Enrolled for
                 <br />
-                Academic Year 2026-2027
+                {session.form.term}
               </>
             ) : hasTicket ? (
               <>
@@ -66,7 +92,7 @@ export function CtaSection() {
 
           <p className="mt-[12px] text-[14px] leading-[23px] font-normal text-[#1f2a6b] lg:text-[15px] lg:leading-[24px]">
             {isEnrolled ? (
-              "Your Certificate of Registration (COR) has been issued. Check your timetable and classes."
+              `All five offices have digitally signed your Study Load for ${session.form.term}.`
             ) : hasTicket ? (
               `Ticket ${session.ticket?.number} is ready. Follow your schedule for Clinic, Accounting, and Registrar.`
             ) : isUnderReview ? (

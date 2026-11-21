@@ -71,6 +71,11 @@ export async function fetchAdminNotificationFeed(): Promise<AdminNotification[]>
     read: Boolean(row.read),
     href: row.href ?? undefined,
     targetRole: row.officeId ?? undefined,
+    source: row.title?.toLowerCase().startsWith("signature requested:") || row.title?.toLowerCase().startsWith("signature signed:") || row.title?.toLowerCase().startsWith("signature request cancelled:")
+      ? "enrollment-signature"
+      : row.title?.toLowerCase().startsWith("clearance")
+        ? "clearance"
+        : undefined,
   }));
 }
 
@@ -105,5 +110,13 @@ export async function deleteAdminNotificationApi(id: string): Promise<void> {
       `/notifications/v1/${encodeURIComponent(id)}`,
       adminConfig(token, { headers: { "x-csrf-token": csrf } }),
     ),
+  );
+}
+
+/** Clears only the notification feed belonging to the authenticated staff account. */
+export async function deleteAllAdminNotificationsApi(): Promise<void> {
+  const csrf = await getCsrfToken();
+  await withAdminToken((token) =>
+    apiClient.delete("/notifications/v1", adminConfig(token, { headers: { "x-csrf-token": csrf } })),
   );
 }

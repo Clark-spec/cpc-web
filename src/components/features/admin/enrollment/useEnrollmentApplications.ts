@@ -1,8 +1,6 @@
 import { useMemo, useSyncExternalStore } from "react";
 import {
   activityMessageFor,
-  buildInitialActivity,
-  buildSampleApplications,
   getNewThisWeek,
   getProgramBreakdown,
   getStatusCounts,
@@ -19,18 +17,15 @@ type EnrollmentStore = {
 };
 
 /**
- * One in-memory store shared by every enrollment page, so a decision made on
- * "For Review" is still reflected when the user opens "Approved". The seed is
- * deterministic sample data; real continuing-student workflow submissions are
- * injected via `pushWorkflowApplication` when Guidance approves them.
+ * One in-memory store shared by every enrollment page. It starts empty; only
+ * real workflow submissions are added.
  */
 let store: EnrollmentStore | null = null;
 const listeners = new Set<() => void>();
 
 function getStore(): EnrollmentStore {
   if (!store) {
-    const applications = buildSampleApplications();
-    store = { applications, activity: buildInitialActivity(applications) };
+    store = { applications: [], activity: [] };
   }
   return store;
 }

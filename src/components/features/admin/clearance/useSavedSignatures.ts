@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   addSavedSignature,
   deleteSavedSignature,
+  loadSavedSignatures,
   readSavedSignatures,
   updateSavedSignature,
 } from "@/services/clearanceAdmin";
@@ -33,8 +34,18 @@ export function useSavedSignatures(staffId: string): {
     setSignatures(readSavedSignatures(staffId));
   }
 
+  useEffect(() => {
+    let active = true;
+    void loadSavedSignatures(staffId).then((saved) => {
+      if (active) setSignatures(saved);
+    }).catch(() => {
+      // Keep this browser's cached signatures visible if the server is offline.
+    });
+    return () => { active = false; };
+  }, [staffId]);
+
   const reload = useCallback(() => {
-    setSignatures(readSavedSignatures(staffId));
+    void loadSavedSignatures(staffId).then(setSignatures).catch(() => setSignatures(readSavedSignatures(staffId)));
   }, [staffId]);
 
   const add = useCallback(

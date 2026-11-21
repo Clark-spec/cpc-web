@@ -20,21 +20,37 @@ import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database"
 export function EnrollmentStatusCard() {
   const { user } = useAuth();
   const studentId = user?.studentNumber || "2024-00012";
+  const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId);
 
   const [session, setSession] = useState(() => getStudentSession(studentId));
+  const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
+  const [databaseError, setDatabaseError] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
-      setSession(getStudentSession(studentId));
+      if (!isDatabaseStudent) {
+        setSession(getStudentSession(studentId));
+        return;
+      }
       void loadMyEnrollmentSession().then((saved) => {
-        if (saved?.student.studentIdNo === studentId) setSession(saved);
-      }).catch(() => undefined);
+        if (saved?.student.studentIdNo !== studentId) throw new Error("Enrollment record was not found.");
+        setSession(saved);
+        setDatabaseError(false);
+      }).catch(() => setDatabaseError(true)).finally(() => setLoadingDatabase(false));
     };
     refresh();
-    const unsub = subscribeToEnrollmentQueue(refresh);
+    const unsub = isDatabaseStudent ? () => {} : subscribeToEnrollmentQueue(refresh);
     const timer = window.setInterval(refresh, 10000);
     return () => { unsub(); window.clearInterval(timer); };
-  }, [studentId]);
+  }, [isDatabaseStudent, studentId]);
+
+  if (loadingDatabase) {
+    return <div role="status" className="enroll-card p-6 text-center font-poppins text-sm text-cpc-heading-soft">Loading enrollment status…</div>;
+  }
+
+  if (databaseError && isDatabaseStudent) {
+    return <div role="alert" className="enroll-card p-6 text-center font-poppins text-sm text-cpc-heading-soft">Your enrollment status could not be loaded. Reconnect to the server and reload this page.</div>;
+  }
 
   const ticket = session.ticket;
   const signatureSteps = [
@@ -52,7 +68,9 @@ export function EnrollmentStatusCard() {
   const pendingSignatures = (firstThreeComplete ? lastTwo : firstThree)
     .filter(({ key }) => session.steps[key].status !== "APPROVED");
   const requestedPending = pendingSignatures.filter(({ key }) => session.signatureRequests?.[key]);
-  const clearanceComplete = checkClearanceStatus(studentId).cleared;
+  const clearanceComplete = isDatabaseStudent
+    ? Boolean(session.clearance?.offices?.length === 5 && session.clearance.offices.every((office) => office.status === "signed"))
+    : checkClearanceStatus(studentId).cleared || session.steps.clearance.status === "APPROVED";
   const currentStep = isEnrolled
     ? "Enrollment complete"
     : submitted
@@ -88,7 +106,7 @@ export function EnrollmentStatusCard() {
           {isEnrolled ? (
             <Badge tone="success">Enrolled Officially</Badge>
           ) : ticket ? (
-            <Badge tone="info" pulse>
+            <Badge tone="info">
               Queue Ticket Active
             </Badge>
           ) : (
@@ -139,6 +157,7 @@ export function EnrollmentStatusCard() {
               const step = session.steps[key];
               return <div key={key} className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3 text-[11px]">
                 <p className="font-bold text-cpc-navy-text">{label}</p>
+                {step.signatureImage && <img src={step.signatureImage} alt={`Digital signature of ${step.updatedBy || "Authorized Officer"}`} className="mt-2 h-10 max-w-32 rounded border border-emerald-200 bg-white object-contain p-1" />}
                 <p className="mt-1 italic text-emerald-800">Digitally signed by {step.updatedBy || "Authorized Officer"}</p>
                 {step.updatedAt && <p className="text-emerald-700">{new Date(step.updatedAt).toLocaleString()}</p>}
               </div>;

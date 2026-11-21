@@ -30,14 +30,13 @@ const TOOLTIP_BORDER = "#aebbea";
 const TOOLTIP_TEXT = "#1b2f9e";
 const TOOLTIP_CURSOR = "rgba(43, 75, 209, 0.06)";
 
-/** Six categories must stay readable, so the axis uses the short office name. */
+/** Five categories must stay readable, so the axis uses the short office name. */
 const AXIS_LABELS: Record<OfficeId, string> = {
-  instructor: "Instructor",
   dean: "Dean",
-  library: "Library",
-  registrar: "Registrar",
-  accounting: "Accounting",
   sao: "SAO/SSG",
+  library: "Library",
+  accounting: "Accounting",
+  registrar: "Registrar",
 };
 
 const TICK_STYLE = {

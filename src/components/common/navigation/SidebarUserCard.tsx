@@ -122,7 +122,7 @@ export function SidebarUserCard({ collapsed, onNavigate }: SidebarUserCardProps)
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleLogout}
         title="Log out of the admin portal?"
-        description="You'll be returned to the mock login screen. Your demo data stays saved."
+        description="You'll be returned to the staff sign-in screen."
         confirmLabel="Log out"
         danger
       />

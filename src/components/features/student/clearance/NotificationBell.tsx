@@ -5,12 +5,11 @@ import { formatRelativeTime } from "@/lib/format";
 import type { AppNotification, OfficeId } from "@/types/clearance";
 
 const OFFICE_IDS: OfficeId[] = [
-  "instructor",
   "dean",
-  "library",
-  "registrar",
-  "accounting",
   "sao",
+  "library",
+  "accounting",
+  "registrar",
 ];
 
 function isOfficeId(value: string | undefined): value is OfficeId {

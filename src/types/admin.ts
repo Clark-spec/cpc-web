@@ -151,8 +151,8 @@ export type AdminNotification = {
   href?: string;
   department?: string;
   targetRole?: AdminRole | string;
-  /** Set by the online-clearance module for office-specific notifications. */
-  source?: "clearance";
+  /** Marks notifications whose recipient scope is enforced by the backend. */
+  source?: "clearance" | "enrollment-signature";
 };
 
 export type SignatureMethod = "draw" | "type" | "upload";

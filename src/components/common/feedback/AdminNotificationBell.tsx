@@ -4,7 +4,9 @@ import { useNavigate } from "react-router";
 import { Bell, Trash2 } from "lucide-react";
 import { useAdminData } from "@/components/context/AdminDataContext";
 import { NotificationPanel } from "@/components/common/feedback/NotificationPanel";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { useToast } from "@/components/ui/toast";
 import type { AdminNotification } from "@/types/admin";
 
 export function AdminNotificationBell() {
@@ -15,10 +17,14 @@ export function AdminNotificationBell() {
     markAllNotificationsRead,
     markNotificationRead,
     deleteNotification,
+    deleteAllNotifications,
   } = useAdminData();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminNotification | null>(null);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(wrapperRef, () => setOpen(false), open && !deleteTarget);
@@ -31,6 +37,20 @@ export function AdminNotificationBell() {
     // Clearance links already carry ?request=<id>; ClearanceAdminProvider
     // reads that deep link when the route mounts and focuses the right row.
     navigate(notification.href ?? "/admin/dashboard");
+  };
+
+  const handleDeleteAll = async () => {
+    setDeletingAll(true);
+    try {
+      await deleteAllNotifications();
+      toast("Notifications deleted", "success");
+      setConfirmDeleteAll(false);
+      setOpen(false);
+    } catch {
+      toast("Notifications could not be deleted. Please try again.", "error");
+    } finally {
+      setDeletingAll(false);
+    }
   };
 
   return (
@@ -77,10 +97,25 @@ export function AdminNotificationBell() {
             onItemClick={(notification) => void openNotification(notification)}
             onLoadMore={() => {}}
             onDelete={(notification) => setDeleteTarget(notification)}
+            onDeleteAll={() => {
+              setOpen(false);
+              setConfirmDeleteAll(true);
+            }}
             onClose={() => setOpen(false)}
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteAll}
+        onClose={() => setConfirmDeleteAll(false)}
+        onConfirm={() => void handleDeleteAll()}
+        title="Delete all notifications?"
+        description="This removes all notifications from your staff account only. It will not affect students, other staff, or other deans."
+        confirmLabel="Delete all"
+        danger
+        busy={deletingAll}
+      />
 
       {/* Delete Confirmation Modal */}
       {deleteTarget &&

@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/toast";
 import { useNotifications } from "@/components/context/NotificationContext";
 import type { AppNotification, NotificationType } from "@/components/context/NotificationContext";
 import { NotificationPanel } from "@/components/common/feedback/NotificationPanel";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 
 const DEFAULT_TYPE_ICONS: Record<NotificationType, LucideIcon> = {
   info: Info,
@@ -84,10 +85,12 @@ export function NotificationBell({
     markAllRead,
     markRead,
     deleteNotification,
+    deleteAllNotifications,
     loadMore,
   } = useNotifications();
   const [open, setOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AppNotification | null>(null);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -172,6 +175,9 @@ export function NotificationBell({
     );
     if (!newest) return;
     if (Date.now() - new Date(newest.createdAt).getTime() > TOAST_FRESHNESS_MS) return;
+    // Study Load request actions already show immediate feedback. The matching
+    // server notification should update the bell, not produce a second toast.
+    if (newest.title?.startsWith("Request sent to ") || newest.title?.startsWith("Request cancelled: ")) return;
     toast(newest.message, newest.type);
   }, [notifications, open, toast]);
 
@@ -255,6 +261,10 @@ export function NotificationBell({
                 onItemClick={handleItemClick}
                 onLoadMore={() => void loadMore()}
                 onDelete={(notification) => setDeleteTarget(notification)}
+                onDeleteAll={() => {
+                  setOpen(false);
+                  setConfirmDeleteAll(true);
+                }}
                 onClose={close}
                 typeIcons={typeIcons}
                 formatTime={formatTime}
@@ -267,6 +277,20 @@ export function NotificationBell({
         )}
 
       {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        open={confirmDeleteAll}
+        onClose={() => setConfirmDeleteAll(false)}
+        onConfirm={() => {
+          void deleteAllNotifications();
+          setConfirmDeleteAll(false);
+          setOpen(false);
+        }}
+        title="Delete all notifications?"
+        description="This removes all notifications from your student account. It will not affect anyone else's notifications."
+        confirmLabel="Delete all"
+        danger
+      />
+
       {deleteTarget &&
         createPortal(
           <div

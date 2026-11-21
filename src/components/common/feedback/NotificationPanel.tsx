@@ -71,6 +71,7 @@ export type NotificationPanelProps = {
   onItemClick: (notification: PanelNotification) => void;
   onLoadMore: () => void;
   onDelete?: (notification: PanelNotification) => void;
+  onDeleteAll?: () => void;
   onClose?: () => void;
   typeIcons?: Record<PanelNotificationType, LucideIcon>;
   formatTime?: (value: string) => string;
@@ -98,6 +99,7 @@ export function NotificationPanel({
   onItemClick,
   onLoadMore,
   onDelete,
+  onDeleteAll,
   onClose,
   typeIcons = TYPE_ICONS,
   formatTime = formatRelativeTime,
@@ -276,15 +278,29 @@ export function NotificationPanel({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={onMarkAllRead}
-          disabled={unreadCount === 0}
-          className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1 font-poppins text-[10px] font-semibold text-cpc-blue-accent transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-default disabled:text-cpc-heading-soft"
-        >
-          <CheckCheck className="h-3.5 w-3.5" aria-hidden />
-          Mark all as read
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={onMarkAllRead}
+            disabled={unreadCount === 0}
+            className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 font-poppins text-[10px] font-semibold text-cpc-blue-accent transition-colors hover:bg-cpc-section-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-default disabled:text-cpc-heading-soft"
+          >
+            <CheckCheck className="h-3.5 w-3.5" aria-hidden />
+            Mark all as read
+          </button>
+          {onDeleteAll && (
+            <button
+              type="button"
+              onClick={onDeleteAll}
+              disabled={notifications.length === 0}
+              aria-label="Delete all notifications"
+              title="Delete all notifications"
+              className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-cpc-heading-soft transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 disabled:cursor-default disabled:opacity-40"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">

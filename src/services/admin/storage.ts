@@ -1,7 +1,6 @@
 export const ADMIN_ACTIVITY_KEY = "cpc.admin.activity.v1";
 export const ADMIN_NOTIFICATIONS_KEY = "cpc.admin.notifications.v1";
 export const ADMIN_SESSION_KEY = "cpc.admin.session.v1";
-export const ADMIN_DEMO_MODE_KEY = "cpc.admin.demo-mode.v1";
 export const ADMIN_SIDEBAR_KEY = "cpc.admin.sidebar.collapsed.v1";
 
 export const READ_DELAY = 400;

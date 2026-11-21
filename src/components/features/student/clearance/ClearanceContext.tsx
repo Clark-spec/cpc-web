@@ -18,15 +18,11 @@ import {
   CLEARANCE_STORAGE_KEY,
 } from "@/lib/clearanceStorage";
 import { createInitialState, mockStudent } from "@/services/clearanceStudent/mock";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   cancelRequest as cancelRequestService,
-  demoApprove as demoApproveService,
-  demoReject as demoRejectService,
   getClearance,
   requestSignature as requestSignatureService,
   requestSignatures as requestSignaturesService,
-  resetClearance as resetClearanceService,
 } from "@/services/clearanceStudent/service";
 import { useNotifications } from "@/components/features/student/clearance/NotificationContext";
 import type {
@@ -40,6 +36,7 @@ import type {
 type ClearanceContextValue = {
   student: StudentProfile;
   offices: OfficeSignature[];
+  saoEvents: ClearanceState["saoEvents"];
   history: ClearanceHistoryItem[];
   dateCleared: string | null;
   referenceNumber: string;
@@ -47,22 +44,14 @@ type ClearanceContextValue = {
   isCleared: boolean;
   /** False while the admin keeps the clearance period closed (shared record). */
   periodOpen: boolean;
-  demoMode: boolean;
-  toggleDemoMode: () => void;
   requestSignature: (officeId: OfficeId, note?: string) => Promise<void>;
   requestAll: (officeIds: OfficeId[]) => Promise<void>;
   cancelRequest: (officeId: OfficeId) => Promise<void>;
-  /** Demo staff panel actions (stand in for the admin side). */
-  demoApprove: (officeId: OfficeId) => Promise<void>;
-  demoReject: (officeId: OfficeId, remarks: string) => Promise<void>;
-  resetDemo: () => Promise<void>;
   highlightedOffice: OfficeId | null;
   focusOffice: (officeId: OfficeId) => void;
 };
 
 const ClearanceContext = createContext<ClearanceContextValue | null>(null);
-
-const DEMO_MODE_KEY = "cpc.online-clearance.demo-mode";
 
 /** Shown wherever a request action is disabled while the period is closed. */
 export const CLEARANCE_CLOSED_MESSAGE = "Clearance period is closed";
@@ -74,11 +63,9 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [state, setState] = useState<ClearanceState>(createInitialState);
   const [loading, setLoading] = useState(true);
-  // Demo mode survives a reload so testers do not have to toggle it again.
-  const [demoMode, setDemoMode] = useLocalStorage<boolean>(DEMO_MODE_KEY, false);
   const [highlightedOffice, setHighlightedOffice] = useState<OfficeId | null>(null);
   const highlightTimer = useRef<number | null>(null);
-  const { notify, resetNotifications } = useNotifications();
+  const { notify } = useNotifications();
 
   const student = useMemo<StudentProfile>(() => {
     if (user && user.role === "student") {
@@ -126,8 +113,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Admin/staff signatures and the period switch are written to the same keys
-  // from another tab or BroadcastChannel in the same session.
+  // Refresh database-backed office decisions across separate devices.
   useEffect(() => {
     const refresh = () => {
       void getClearance()
@@ -151,14 +137,16 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     }
 
     window.addEventListener("storage", onStorage);
+    const poll = window.setInterval(refresh, 10000);
     return () => {
+      window.clearInterval(poll);
       window.removeEventListener("storage", onStorage);
       channel?.close();
     };
   }, []);
 
   const isCleared = useMemo(
-    () => state.offices.length > 0 && state.offices.every((office) => office.status === "signed"),
+    () => state.offices.length === 5 && state.offices.every((office) => office.status === "signed"),
     [state.offices],
   );
 
@@ -192,6 +180,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         showSuccess(
           "Signature request sent",
           `${office.label} will review your clearance and sign it digitally.`,
+          { replaceKey: "student-clearance-signature-request" },
         );
       }
     },
@@ -258,66 +247,6 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
    * The card displays the image, progress recomputes, and the final approval
    * unlocks the confirmation slip.
    */
-  const demoApprove = useCallback(
-    async (officeId: OfficeId) => {
-      const next = await demoApproveService(officeId);
-      setState(next);
-      const office = findOffice(next, officeId);
-      if (!office) return;
-
-      notify({
-        message: `${office.label} signed your clearance.`,
-        type: "success",
-        officeId,
-      });
-
-      if (next.offices.every((item) => item.status === "signed")) {
-        notify({
-          message: "Your clearance is complete. You can now download your confirmation.",
-          type: "success",
-        });
-      }
-    },
-    [notify],
-  );
-
-  const demoReject = useCallback(
-    async (officeId: OfficeId, remarks: string) => {
-      const next = await demoRejectService(officeId, remarks);
-      setState(next);
-      const office = findOffice(next, officeId);
-      if (office) {
-        notify({
-          message: `${office.label} needs action: ${office.remarks ?? remarks}`,
-          type: "warning",
-          officeId,
-        });
-      }
-    },
-    [notify],
-  );
-
-  const resetDemo = useCallback(async () => {
-    const next = await resetClearanceService();
-    setState(next);
-    resetNotifications();
-    setDemoMode(false);
-    showInfo("Demo data reset", "Everything is back to the initial clearance state.");
-  }, [resetNotifications, setDemoMode]);
-
-  const toggleDemoMode = useCallback(() => {
-    // Compute the next value before updating so the toast is not dispatched
-    // from inside a state updater (React warns about that).
-    const next = !demoMode;
-    setDemoMode(next);
-    showInfo(
-      next ? "Demo mode on" : "Demo mode off",
-      next
-        ? "Staff actions are now available so you can test the signature flow."
-        : "The staff demo panel is hidden.",
-    );
-  }, [demoMode, setDemoMode]);
-
   const focusOffice = useCallback((officeId: OfficeId) => {
     setHighlightedOffice(officeId);
     if (highlightTimer.current !== null) window.clearTimeout(highlightTimer.current);
@@ -328,20 +257,16 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     () => ({
       student,
       offices: state.offices,
+      saoEvents: state.saoEvents,
       history: state.history,
       dateCleared: state.dateCleared,
       referenceNumber: state.referenceNumber ?? student.referenceNumber,
       loading,
       isCleared,
       periodOpen: state.periodOpen ?? true,
-      demoMode,
-      toggleDemoMode,
       requestSignature,
       requestAll,
       cancelRequest,
-      demoApprove,
-      demoReject,
-      resetDemo,
       highlightedOffice,
       focusOffice,
     }),
@@ -350,14 +275,9 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       state,
       loading,
       isCleared,
-      demoMode,
-      toggleDemoMode,
       requestSignature,
       requestAll,
       cancelRequest,
-      demoApprove,
-      demoReject,
-      resetDemo,
       highlightedOffice,
       focusOffice,
     ],

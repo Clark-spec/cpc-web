@@ -24,37 +24,78 @@ import {
   saveStudentSession,
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
-import { loadMyEnrollmentSession, submitEnrollmentToDatabase } from "@/services/enrollmentWorkflow/database";
+import { loadMyEnrollmentSession, saveEnrollmentDraftToDatabase, submitEnrollmentToDatabase } from "@/services/enrollmentWorkflow/database";
+import { loadMyClearanceRecord } from "@/services/clearanceStudent/database";
 import { CURRICULUM_CATALOG } from "@/services/enrollmentWorkflow/seedData";
 import type { EnrollmentSubjectItem } from "@/types/enrollmentWorkflow";
+import type { ClearanceRecord } from "@/types/clearance";
+
+function clearanceStatusFromRecord(record: ClearanceRecord) {
+  const fallback = checkClearanceStatus(record.studentId);
+  const offices = fallback.offices.map((required) => {
+    const saved = record.offices.find((office) => office.office === required.office);
+    return {
+      ...required,
+      status: saved?.status ?? "not_requested",
+      signer: saved?.signerName,
+    };
+  });
+  return {
+    cleared: offices.length === 5 && offices.every((office) => office.status === "signed"),
+    offices,
+  };
+}
 
 export function StudentEnrollmentFormView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const studentId = user?.studentNumber || "2024-00012";
+  const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId);
 
   const [session, setSession] = useState(() => getStudentSession(studentId));
   const [selectedSubjects, setSelectedSubjects] = useState<EnrollmentSubjectItem[]>(session.form.subjects);
   const [submitting, setSubmitting] = useState(false);
-  const clearanceData = checkClearanceStatus(studentId);
+  const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
+  const [databaseLoadError, setDatabaseLoadError] = useState(false);
+  const [clearanceData, setClearanceData] = useState(() => checkClearanceStatus(studentId));
 
   useEffect(() => {
     const refresh = () => {
-      setSession(getStudentSession(studentId));
-      void loadMyEnrollmentSession().then((saved) => {
-        if (saved?.student.studentIdNo === studentId) {
-          setSession(saved);
-          setSelectedSubjects(saved.form.subjects);
+      if (!isDatabaseStudent) {
+        const local = getStudentSession(studentId);
+        setSession(local);
+        setSelectedSubjects(local.form.subjects);
+        setClearanceData(checkClearanceStatus(studentId));
+        return;
+      }
+      void Promise.all([loadMyEnrollmentSession(), loadMyClearanceRecord()]).then(async ([saved, clearanceRecord]) => {
+        if (saved?.student.studentIdNo !== studentId) throw new Error("Registrar enrollment record was not found.");
+        setDatabaseLoadError(false);
+        const currentClearance = clearanceStatusFromRecord(clearanceRecord);
+        setClearanceData(currentClearance);
+        setSession(saved);
+        let subjects = saved.form.subjects;
+        if (subjects.length === 0 && saved.form.standing === "regular") {
+          subjects = CURRICULUM_CATALOG[saved.student.department]?.[saved.student.yearLevel] ?? [];
         }
-      }).catch(() => undefined);
+        setSelectedSubjects(subjects);
+        if (subjects.length > 0 && saved.form.subjects.length === 0 && saved.steps.verification.status === "APPROVED") {
+          const drafted = await saveEnrollmentDraftToDatabase(subjects, currentClearance.cleared);
+          setSession(drafted);
+          saveStudentSession(drafted);
+        }
+      }).catch((error) => {
+        setDatabaseLoadError(true);
+        alert(error instanceof Error ? error.message : "Enrollment data could not be loaded from the database.");
+      }).finally(() => setLoadingDatabase(false));
     };
     refresh();
     const unsub = subscribeToEnrollmentQueue(refresh);
     const timer = window.setInterval(refresh, 10000);
     return () => { unsub(); window.clearInterval(timer); };
-  }, [studentId]);
+  }, [isDatabaseStudent, studentId]);
 
-  const isClearanceApproved = clearanceData.cleared;
+  const isClearanceApproved = clearanceData.cleared || session.steps.clearance.status === "APPROVED";
   const isFormSubmitted = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
   const isFormResubmit = session.form.status === "RESUBMIT";
   const signatureSteps = [
@@ -84,7 +125,16 @@ export function StudentEnrollmentFormView() {
 
   const handleApproveClearance = () => {
     if (!isClearanceApproved) return;
-    approveClearanceStep(studentId);
+    const updated = approveClearanceStep(studentId);
+    setSession(updated);
+    if (isDatabaseStudent) {
+      void saveEnrollmentDraftToDatabase(selectedSubjects, true).then((saved) => {
+        setSession(saved);
+        saveStudentSession(saved);
+      }).catch((error) => {
+        alert(error instanceof Error ? error.message : "Clearance progress could not be saved.");
+      });
+    }
     setActiveTab("form");
   };
 
@@ -95,15 +145,29 @@ export function StudentEnrollmentFormView() {
       return;
     }
     const updated = [...selectedSubjects, subject];
-    setSelectedSubjects(updated);
-    saveEnrollmentFormSubjects(studentId, updated);
+    void persistStudyLoad(updated);
   };
 
   const handleRemoveSubject = (code: string) => {
     const updated = selectedSubjects.filter((s) => s.code !== code);
-    setSelectedSubjects(updated);
-    saveEnrollmentFormSubjects(studentId, updated);
+    void persistStudyLoad(updated);
   };
+
+  async function persistStudyLoad(subjects: EnrollmentSubjectItem[]) {
+    setSelectedSubjects(subjects);
+    if (!isDatabaseStudent) {
+      const updated = saveEnrollmentFormSubjects(studentId, subjects);
+      setSession(updated);
+      return;
+    }
+    try {
+      const saved = await saveEnrollmentDraftToDatabase(subjects, clearanceData.cleared);
+      setSession(saved);
+      saveStudentSession(saved);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "The Study Load draft could not be saved. Please try again.");
+    }
+  }
 
   const handleSubmitForm = async () => {
     if (selectedSubjects.length === 0) {
@@ -125,6 +189,14 @@ export function StudentEnrollmentFormView() {
       setSubmitting(false);
     }
   };
+
+  if (loadingDatabase) {
+    return <div role="status" className="mx-auto max-w-4xl px-4 py-16 text-center font-poppins text-sm text-cpc-heading-soft">Loading your enrollment data from the database…</div>;
+  }
+
+  if (databaseLoadError && isDatabaseStudent) {
+    return <div role="alert" className="mx-auto max-w-3xl px-4 py-16 text-center font-poppins"><h1 className="text-lg font-bold text-cpc-navy-text">Enrollment data unavailable</h1><p className="mt-2 text-sm text-cpc-heading-soft">The Registrar record and saved Study Load could not be loaded. Reconnect to the server and reload this page.</p></div>;
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 font-poppins">
@@ -219,7 +291,7 @@ export function StudentEnrollmentFormView() {
                   <p className="text-[11px] text-cpc-muted-blue">{office.signer ?? "Officer"}</p>
                 </div>
                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${office.status === "signed" ? "bg-emerald-100 text-emerald-800" : office.status === "requested" ? "bg-amber-100 text-amber-800" : office.status === "rejected" ? "bg-rose-100 text-rose-800" : "bg-slate-100 text-slate-700"}`}>
-                  {office.status === "signed" ? <><CheckCircle2 className="h-3 w-3" /> Signed</> : office.status === "requested" ? <><Clock className="h-3 w-3" /> Request Sent</> : office.status === "rejected" ? <><AlertCircle className="h-3 w-3" /> Needs Update</> : <><AlertCircle className="h-3 w-3" /> Not Signed</>}
+                  {office.status === "signed" ? <><CheckCircle2 className="h-3 w-3" /> Signed</> : office.status === "requested" ? <><Clock className="h-3 w-3" /> Pending</> : office.status === "rejected" ? <><AlertCircle className="h-3 w-3" /> Rejected</> : <><AlertCircle className="h-3 w-3" /> Not Sent</>}
                 </span>
               </div>
             ))}
@@ -394,10 +466,13 @@ export function StudentEnrollmentFormView() {
                     <div key={key} className={`min-h-20 rounded-xl border p-3 ${signed ? "border-emerald-200 bg-emerald-50/70" : "border-dashed border-cpc-input-border bg-slate-50/60"}`}>
                       <p className="text-[11px] font-bold text-cpc-navy-text">{label}</p>
                       {signed ? (
-                        <p className="mt-2 text-[11px] font-semibold italic text-emerald-800">
+                        <div className="mt-2 flex items-center gap-2">
+                          {step.signatureImage && <img src={step.signatureImage} alt={`Digital signature of ${step.updatedBy || "Authorized Officer"}`} className="h-9 max-w-28 rounded border border-emerald-200 bg-white object-contain p-1" />}
+                          <p className="text-[11px] font-semibold italic text-emerald-800">
                           Digitally signed by {step.updatedBy || "Authorized Officer"}
                           {step.updatedAt && <span className="mt-0.5 block not-italic font-normal text-emerald-700">{new Date(step.updatedAt).toLocaleString()}</span>}
-                        </p>
+                          </p>
+                        </div>
                       ) : (
                         <p className="mt-2 text-[11px] text-cpc-muted-blue">Awaiting digital signature</p>
                       )}

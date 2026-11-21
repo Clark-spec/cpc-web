@@ -21,6 +21,8 @@ export type ShowToastOptions = {
   message?: string;
   /** Milliseconds. `0` keeps the toast until the student dismisses it. */
   duration?: number;
+  /** Replace an existing toast in the same flow with the latest update. */
+  replaceKey?: string;
   action?: ToastAction;
 };
 

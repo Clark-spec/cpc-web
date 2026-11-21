@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { CheckCircle2, Info, Loader2, PenLine, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Info, Loader2, PenLine, ShieldCheck, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { cn } from "@/lib/cn";
 import { OFFICE_LABELS } from "@/components/features/admin/clearance/officeChecks";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { SignaturePadModal } from "@/components/features/admin/clearance/SignaturePadModal";
-import type { ClearanceRequestRow, SignatureDraft } from "@/components/features/admin/clearance/types";
+import type { ClearanceRequestRow, SavedSignature, SignatureDraft } from "@/components/features/admin/clearance/types";
 
 const METHOD_LABELS: Record<SignatureDraft["method"], string> = {
   draw: "Drawn",
@@ -44,7 +45,7 @@ export function ApproveSignModal({ row, open, onClose }: ApproveSignModalProps) 
 }
 
 function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: () => void }) {
-  const { approve, busy, defaultSignature, records, savedSignatures, staff } =
+  const { approve, busy, defaultSignature, deleteSignature, records, savedSignatures, staff } =
     useClearanceAdmin();
 
   const [source, setSource] = useState<Source>(() => (defaultSignature ? "saved" : "new"));
@@ -53,6 +54,8 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
   const [padOpen, setPadOpen] = useState(false);
   const [internalRemarks, setInternalRemarks] = useState("");
   const [certified, setCertified] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<SavedSignature | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const chosenSaved = savedSignatures.find((signature) => signature.id === savedId) ?? null;
   const effectiveSaved = chosenSaved ?? defaultSignature;
@@ -70,7 +73,7 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
 
   const previewImage = draft?.imageBase64 ?? "";
 
-  /** True when signing this row completes all six offices for the student. */
+  /** True when signing this row completes all five offices for the student. */
   const record = records.find((entry) => entry.studentId === row.studentId);
   const remainingUnsigned = record
     ? record.offices.filter((office) => office.status !== "signed")
@@ -87,6 +90,20 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
       internalRemarks: internalRemarks.trim() || undefined,
     });
     if (signed) onClose();
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await deleteSignature(pendingDelete.id);
+      const remaining = savedSignatures.filter((signature) => signature.id !== pendingDelete.id);
+      setSavedId(remaining[0]?.id ?? "");
+      if (remaining.length === 0) setSource("new");
+    } finally {
+      setDeleting(false);
+      setPendingDelete(null);
+    }
   };
 
   return (
@@ -196,6 +213,19 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+            {source === "saved" && effectiveSaved && (
+              <div className="mt-2 pl-7">
+                <button
+                  type="button"
+                  onClick={() => setPendingDelete(effectiveSaved)}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-poppins text-[10px] font-semibold text-rose-700 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 disabled:opacity-50"
+                >
+                  <Trash2 className="h-3 w-3" aria-hidden />
+                  Delete selected signature
+                </button>
               </div>
             )}
           </div>
@@ -330,6 +360,28 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
           setCaptured(next);
           setSource("new");
         }}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => void confirmDelete()}
+        title="Delete this saved signature?"
+        description={
+          pendingDelete ? (
+            <span>
+              “{pendingDelete.label}” will be removed from your saved signatures. Signatures already
+              applied to clearance records will remain.
+            </span>
+          ) : (
+            <span />
+          )
+        }
+        confirmLabel="Delete signature"
+        cancelLabel="Keep it"
+        danger
+        busy={deleting}
+        id="approve-sign-delete-signature-title"
       />
     </div>
   );

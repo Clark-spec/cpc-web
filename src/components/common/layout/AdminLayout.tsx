@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router";
-import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import "@/styles/admin.css";
-import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { useSidebar } from "@/components/context/SidebarContext";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { CommandPalette } from "@/components/common/feedback/CommandPalette";
@@ -17,8 +15,6 @@ import { AdminNavbar } from "@/components/common/navigation/AdminNavbar";
  */
 export function AdminLayout() {
   const { collapsed } = useSidebar();
-  const { toggleDemoMode, demoMode } = useAdminAuth();
-  const { toast } = useToast();
   const { pathname } = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -26,14 +22,6 @@ export function AdminLayout() {
     "ctrl+k": (event) => {
       event.preventDefault();
       setSearchOpen(true);
-    },
-    "ctrl+shift+d": (event) => {
-      event.preventDefault();
-      toggleDemoMode();
-      toast(
-        demoMode ? "Demo mode turned off." : "Demo mode turned on. Use the Demo menu to switch roles.",
-        "info",
-      );
     },
   });
 

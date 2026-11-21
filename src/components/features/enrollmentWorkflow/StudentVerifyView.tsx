@@ -26,7 +26,8 @@ import {
 } from "@/services/enrollmentWorkflow/service";
 import type { MasterlistRecord } from "@/types/enrollmentWorkflow";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
-import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
+import { confirmEnrollmentVerificationInDatabase, loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
+import { saveStudentSession as cacheEnrollmentSession } from "@/services/enrollmentWorkflow/service";
 
 export function StudentVerifyView() {
   const { user } = useAuth();
@@ -47,9 +48,13 @@ export function StudentVerifyView() {
   useEffect(() => {
     let active = true;
     const unsub = subscribeToEnrollmentQueue(() => {
-      if (isDatabaseStudent && !checkEligibility(studentId).record) return;
-      setSession(getStudentSession(studentId));
+      if (!isDatabaseStudent) setSession(getStudentSession(studentId));
       setCorrections(getCorrectionRequests().filter((r) => r.studentId === studentId));
+      if (isDatabaseStudent) {
+        void loadMyEnrollmentSession().then((saved) => {
+          if (saved?.student.studentIdNo === studentId) setSession(saved);
+        }).catch(() => undefined);
+      }
     });
     if (isDatabaseStudent) {
       setRecordLoading(true);
@@ -63,10 +68,13 @@ export function StudentVerifyView() {
             return;
           }
           cacheContinuingStudentRecord(record);
-          setSession(getStudentSession(studentId));
           void loadMyEnrollmentSession().then((saved) => {
-            if (active && saved?.student.studentIdNo === studentId) setSession(saved);
-          }).catch(() => undefined);
+            if (!active || !saved || saved.student.studentIdNo !== studentId) return;
+            cacheEnrollmentSession(saved);
+            setSession(saved);
+          }).catch(() => {
+            if (active) setRecordLoadError(true);
+          });
           setCorrections(getCorrectionRequests().filter((r) => r.studentId === studentId));
         })
         .catch(() => {
@@ -106,12 +114,28 @@ export function StudentVerifyView() {
 
   const latestCorrection = corrections[0];
   const isVerified = session?.steps.verification.status === "APPROVED";
+  const isStudyLoadSubmitted = session?.form.status === "SUBMITTED" || session?.form.status === "APPROVED";
   const isOfficiallyEnrolled = Boolean(session && ["screening", "guidance", "clinic", "accounting", "registrar"]
     .every((office) => session.steps[office as "screening" | "guidance" | "clinic" | "accounting" | "registrar"].status === "APPROVED"));
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!session) return;
-    confirmVerification(studentId);
+    if (isDatabaseStudent) {
+      setRecordLoading(true);
+      try {
+        const saved = await confirmEnrollmentVerificationInDatabase();
+        cacheEnrollmentSession(saved);
+        setSession(saved);
+        navigate("/student/enrollment-form");
+      } catch (error) {
+        setRecordLoadError(true);
+        alert(error instanceof Error ? error.message : "Your verification could not be saved. Please try again.");
+      } finally {
+        setRecordLoading(false);
+      }
+      return;
+    }
+    setSession(confirmVerification(studentId));
     navigate("/student/enrollment-form");
   };
 
@@ -336,6 +360,15 @@ export function StudentVerifyView() {
               <Link to="/online-enrollment/status" className="ml-auto inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-800">
                 View Enrollment Status <ArrowRight className="h-4 w-4" />
               </Link>
+            ) : isStudyLoadSubmitted ? (
+              <div className="ml-auto flex flex-col items-start gap-2 sm:items-end">
+                <p className="text-xs font-medium text-cpc-heading-soft">
+                  Your Study Load is submitted. Registrar verification is locked while the offices review your signatures.
+                </p>
+                <Link to="/student/queue" className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700">
+                  View Signature Progress <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             ) : (
               <>
                 <button

@@ -12,7 +12,6 @@ import {
 import { useSearchParams } from "react-router";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { useAdminData } from "@/components/context/AdminDataContext";
-import { ADMIN_USERS } from "@/lib/navigation";
 import {
   DEFAULT_FILTERS,
   filterAndSortRows,
@@ -98,7 +97,8 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   const { refresh: refreshAdminData } = useAdminData();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const staff = user ?? ADMIN_USERS.admin;
+  const staff = user;
+  if (!staff) throw new Error("Staff sign-in is required to load clearance requests.");
   const isSuperAdmin = staff.role === "admin";
   const homeOffice = isSuperAdmin ? null : staff.office;
   const homePrograms = isSuperAdmin ? null : (staff.homePrograms ?? null);
@@ -192,6 +192,13 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   const { live, lastSyncedAt, markSynced } = useStorageSync((reason) => {
     void load(reason === "manual" ? "refresh" : "silent");
   });
+
+  // Database changes can come from a different device, where browser storage
+  // events cannot fire. Periodically refresh the shared queue for staff.
+  useEffect(() => {
+    const timer = window.setInterval(() => { void load("silent"); }, 10000);
+    return () => window.clearInterval(timer);
+  }, [load]);
 
   useEffect(() => {
     const next = paramsFromFilters(effectiveFilters);
@@ -321,17 +328,9 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
 
   // Period & Demo
   const periodAndDemo = useClearancePeriodAndDemo({
-    staff,
-    homeOffice,
-    rows,
-    selectedId,
     setPeriodState,
-    setCheckedIds,
-    setSelectedId,
-    setBusy: decisions.setBusy,
     markSynced,
     refreshAdminData,
-    afterDecision: decisions.afterDecision,
   });
 
   const refresh = useCallback(
@@ -358,7 +357,7 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
   const selectedChecks = useMemo(
     () =>
       selectedRecord && selectedRow
-        ? buildOfficeChecks(selectedRow.office, selectedRecord, staff.name)
+        ? buildOfficeChecks(selectedRow.office, selectedRecord)
         : [],
     [selectedRecord, selectedRow, staff.name],
   );
@@ -419,10 +418,6 @@ export function ClearanceAdminProvider({ children }: { children: ReactNode }) {
       deleteSignature: signatures.deleteSignature,
       makeDefaultSignature: signatures.makeDefaultSignature,
       setPeriod: periodAndDemo.updatePeriod,
-      sendReminders: periodAndDemo.notifyOffices,
-      simulateStudentRequest: periodAndDemo.runStudentRequest,
-      simulateStudentCancel: periodAndDemo.runStudentCancel,
-      resetDemo: periodAndDemo.resetDemo,
       refresh,
     }),
     [

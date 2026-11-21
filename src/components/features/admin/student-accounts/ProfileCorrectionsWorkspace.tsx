@@ -8,7 +8,6 @@ import { ProfileCorrectionsTable } from "@/components/features/admin/student-acc
 import { ProfileCorrectionsToolbar } from "@/components/features/admin/student-accounts/ProfileCorrectionsToolbar";
 import { SummaryCard } from "@/components/features/admin/student-accounts/SummaryCard";
 import { CORRECTION_STATUS_LABELS } from "@/components/features/admin/student-accounts/labels";
-import { PROFILE_CORRECTION_REQUESTS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import type {
   CorrectionDecision,
   CorrectionFilters,
@@ -30,9 +29,7 @@ const DEFAULT_FILTERS: CorrectionFilters = {
 export function ProfileCorrectionsWorkspace() {
   const { toast } = useToast();
   const { setProfileCorrectionsCount } = useAdminData();
-  const [rows, setRows] = useState<ProfileCorrectionRequest[]>(
-    PROFILE_CORRECTION_REQUESTS,
-  );
+  const [rows, setRows] = useState<ProfileCorrectionRequest[]>([]);
   const [filters, setFilters] = useState<CorrectionFilters>(DEFAULT_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 

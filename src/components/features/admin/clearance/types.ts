@@ -221,13 +221,9 @@ export type ClearanceAdminContextValue = {
   deleteSignature: (id: string) => Promise<void>;
   makeDefaultSignature: (id: string) => Promise<void>;
 
-  /* period & reminders */
+  /* period */
   setPeriod: (patch: Partial<ClearancePeriod>) => Promise<void>;
-  sendReminders: () => Promise<number>;
 
   /* housekeeping */
   refresh: (reason?: "manual" | "student") => Promise<void>;
-  simulateStudentRequest: () => Promise<void>;
-  simulateStudentCancel: () => Promise<void>;
-  resetDemo: () => Promise<void>;
 };

@@ -21,6 +21,7 @@ export function PortalHeader({ bell }: PortalHeaderProps) {
 
   return (
     <header
+      data-portal-header
       className={cn(
         "sticky top-0 z-50 transition-transform duration-300 ease-out",
         hidden && "-translate-y-full",

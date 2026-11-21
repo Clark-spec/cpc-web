@@ -5,6 +5,8 @@ import { useToast } from "@/components/ui/toast";
 import { getCsrfToken } from "@/services/auth";
 import { ensureAdminSession } from "@/services/complaints/admin-session";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { cacheContinuingStudentRecord } from "@/services/enrollmentWorkflow/service";
+import type { MasterlistRecord } from "@/types/enrollmentWorkflow";
 
 type StudentAccountRow = { id: string; name: string; studentNumber: string; section: string | null };
 type Envelope<T> = { data?: T; message?: string };
@@ -22,13 +24,19 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
     setSaving(true);
     try {
       const [token, csrf] = await Promise.all([ensureAdminSession(user?.role), getCsrfToken()]);
-      const response = await apiClient.post<Envelope<{ student: StudentAccountRow; defaultPassword: string }>>(
+      const response = await apiClient.post<Envelope<{
+        student: StudentAccountRow;
+        defaultPassword: string;
+        continuingRecord?: MasterlistRecord;
+      }>>(
         "/students/v1/accounts",
         { name, section },
         { headers: { Authorization: `Bearer ${token}`, "x-csrf-token": csrf } },
       );
       const created = response.data?.data?.student;
       if (!created) throw new Error(response.data?.message ?? "Student account was not created.");
+      const continuingRecord = response.data?.data?.continuingRecord;
+      if (continuingRecord) cacheContinuingStudentRecord(continuingRecord);
       onCreated?.();
       setName("");
       setSection("");

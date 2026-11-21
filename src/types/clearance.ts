@@ -4,19 +4,18 @@
  *
  * SHARED-STORAGE CONTRACT: the student portal and the admin portal read and
  * write the same localStorage records (`cpc:clearance:records`, one
- * ClearanceRecord per studentId, always six offices). A student request flips
+ * ClearanceRecord per studentId, always five offices). A student request flips
  * an office to "requested"; a staff decision writes status, signerName,
  * signatureImage, remarks and respondedAt back onto the same office, and the
  * other portal picks the change up from the `storage` event.
  */
 
 export type OfficeId =
-  | "instructor"
   | "dean"
+  | "sao"
   | "library"
-  | "registrar"
   | "accounting"
-  | "sao";
+  | "registrar";
 
 /** Lifecycle of a single office's signature request. */
 export type RequestStatus = "not_requested" | "requested" | "signed" | "rejected";
@@ -86,10 +85,12 @@ export interface StudentProfile {
 /** Everything the service persists for the clearance itself. */
 export interface ClearanceState {
   offices: OfficeSignature[];
+  /** SAO attendance records loaded from the student's saved clearance. */
+  saoEvents: SaoEvent[];
   history: ClearanceHistoryItem[];
   /** ISO date-time the clearance was completed, or null while in progress. */
   dateCleared: string | null;
-  /** From the shared record once all six offices have signed. */
+  /** From the shared record once all five offices have signed. */
   referenceNumber?: string;
   /** False while the registrar keeps the clearance period closed. */
   periodOpen?: boolean;
@@ -108,7 +109,7 @@ export interface ClearanceRecord {
   yearLevel: string;
   term: string;
   academicYear: string;
-  /** Always six entries, in Form 3 order. */
+  /** Always five entries, in Form 3 order. */
   offices: OfficeSignature[];
   subjects: Subject[];
   saoEvents: SaoEvent[];

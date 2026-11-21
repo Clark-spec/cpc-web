@@ -79,14 +79,8 @@ export function useClearanceDecisions({
           signerName: staff.name,
           staffId: staff.id,
         });
-        if (outcome.snapshots.length === 0) {
-          toast("That request has already been handled.", "warning");
-          await load("silent");
-          return false;
-        }
-
         await afterDecision();
-        armUndo({
+        if (outcome.snapshots.length) armUndo({
           message: `Signed ${row.studentName} · ${OFFICE_LABELS[row.office]}`,
           snapshots: outcome.snapshots,
           revert,
@@ -117,14 +111,8 @@ export function useClearanceDecisions({
       setBusy(true);
       try {
         const outcome = await rejectRequest(row.id, { remarks, signerName: staff.name });
-        if (outcome.snapshots.length === 0) {
-          toast("That request has already been handled.", "warning");
-          await load("silent");
-          return false;
-        }
-
         await afterDecision();
-        armUndo({
+        if (outcome.snapshots.length) armUndo({
           message: `Returned ${row.studentName}'s request`,
           snapshots: outcome.snapshots,
           revert,
@@ -150,14 +138,8 @@ export function useClearanceDecisions({
       setBusy(true);
       try {
         const outcome = await revokeRequest(row.id, { reason, actorName: staff.name });
-        if (outcome.snapshots.length === 0) {
-          toast("That request is not signed yet.", "warning");
-          await load("silent");
-          return false;
-        }
-
         await afterDecision();
-        armUndo({
+        if (outcome.snapshots.length) armUndo({
           message: `Revoked the ${OFFICE_LABELS[row.office]} signature`,
           snapshots: outcome.snapshots,
           revert,
@@ -194,14 +176,9 @@ export function useClearanceDecisions({
           staffId: staff.id,
           signerName: staff.name,
         });
-        if (outcome.snapshots.length === 0) {
-          toast("Pick one of your saved signatures first.", "warning");
-          return false;
-        }
-
         await afterDecision();
         clearChecked();
-        armUndo({
+        if (outcome.snapshots.length) armUndo({
           message: `Signed ${outcome.snapshots.length} request${
             outcome.snapshots.length === 1 ? "" : "s"
           }`,
@@ -241,7 +218,7 @@ export function useClearanceDecisions({
         const outcome = await bulkRejectService(ids, { remarks, signerName: staff.name });
         await afterDecision();
         clearChecked();
-        armUndo({
+        if (outcome.snapshots.length) armUndo({
           message: `Returned ${outcome.snapshots.length} request${
             outcome.snapshots.length === 1 ? "" : "s"
           }`,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellRing, CalendarDays, Loader2 } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,12 +28,9 @@ function pluralDays(count: number): string {
  * so nothing here is optimistic and no value is invented locally.
  */
 export function ClearancePeriodCard() {
-  const { isSuperAdmin, loading, busy, period, setPeriod, sendReminders } =
-    useClearanceAdmin();
+  const { isSuperAdmin, loading, period, setPeriod } = useClearanceAdmin();
 
   const [saving, setSaving] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [remindedOffices, setRemindedOffices] = useState<number | null>(null);
 
   if (!isSuperAdmin) return null;
 
@@ -47,16 +44,6 @@ export function ClearancePeriodCard() {
       await setPeriod(patch);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleReminders = async () => {
-    setSending(true);
-    try {
-      const notified = await sendReminders();
-      setRemindedOffices(notified);
-    } finally {
-      setSending(false);
     }
   };
 
@@ -200,38 +187,6 @@ export function ClearancePeriodCard() {
             </select>
           </div>
 
-          {/* --- reminders ----------------------------------------------------- */}
-          <div className="space-y-2 border-t border-cpc-tile-border/60 pt-3">
-            <button
-              type="button"
-              onClick={() => void handleReminders()}
-              disabled={sending || busy}
-              className="cpc-btn cpc-btn-primary cpc-btn-block"
-            >
-              {sending || busy ? (
-                <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />
-              ) : (
-                <BellRing className="h-4 w-4" aria-hidden />
-              )}
-              {sending || busy ? "Sending reminders..." : "Send reminder to pending offices"}
-            </button>
-
-            <p
-              role="status"
-              aria-live="polite"
-              className="font-poppins text-[11px] leading-relaxed text-cpc-heading-soft"
-            >
-              {saving
-                ? "Saving period settings..."
-                : remindedOffices === null
-                  ? "Reminders notify every office still holding a request and re-notify students past the SLA."
-                  : remindedOffices === 0
-                    ? "Reminders went to 0 offices — nothing is pending right now."
-                    : `Reminders went to ${remindedOffices} office${
-                        remindedOffices === 1 ? "" : "s"
-                      }.`}
-            </p>
-          </div>
         </div>
       )}
     </section>

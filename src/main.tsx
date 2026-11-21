@@ -53,6 +53,7 @@ import AcademicCalendarAdminPage from "@/pages/admin/academic-calendar";
 import ComingSoonPage from "@/pages/admin/coming-soon";
 import DashboardPage from "@/pages/admin/dashboard";
 import EnrollmentApplicationsPage from "@/pages/admin/enrollment/applications";
+import EnrollmentClearanceRequestsPage from "@/pages/admin/enrollment/clearance-requests";
 import ServiceRequestManagementPage from "@/pages/admin/service-requests";
 import AllStudentsAdminPage from "@/pages/admin/students";
 import ProfileCorrectionsAdminPage from "@/pages/admin/students/profile-corrections";
@@ -96,6 +97,7 @@ const GUIDANCE_ROLES = ["admin", "guidance"] as const;
 const CLINIC_ROLES = ["admin", "clinic"] as const;
 const ACCOUNTING_ROLES = ["admin", "accounting"] as const;
 const REGISTRAR_ROLES = ["admin", "registrar"] as const;
+const ENROLLMENT_SIGNATURE_ROLES = ["admin", "registrar", "dean_cs", "dean_edu", "dean_hm", "guidance", "clinic", "accounting"] as const;
 
 export function AppRoutes() {
   return (
@@ -115,6 +117,14 @@ export function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
+        <Route
+          path="enrollment/clearance-requests"
+          element={
+            <RequireAdminRole roles={ENROLLMENT_SIGNATURE_ROLES}>
+              <EnrollmentClearanceRequestsPage />
+            </RequireAdminRole>
+          }
+        />
         <Route path="support/complaints" element={<ComplaintsAdminPage />} />
         <Route
           path="academics/class-schedules"

@@ -1,9 +1,7 @@
 import { ClearanceBody } from "@/components/features/student/clearance/ClearanceBody";
 import { ClearanceHero } from "@/components/features/student/clearance/ClearanceHero";
-import { DemoModeBanner } from "@/components/features/student/clearance/DemoModeBanner";
-import { DemoModeControls } from "@/components/features/student/clearance/DemoModeControls";
 
-/** Clearance hero plus the demo controls and the clearance cards. */
+/** Clearance hero and the clearance cards. */
 export function ClearanceMain() {
   return (
     <main className="relative min-h-screen w-full bg-cpc-section-light/35">
@@ -24,9 +22,6 @@ export function ClearanceMain() {
       <ClearanceHero />
 
       <div className="relative mx-auto w-full max-w-[1360px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {/* Demo controls (the staff panel itself floats bottom-right). */}
-        <DemoModeControls />
-        <DemoModeBanner />
         <ClearanceBody />
       </div>
     </main>

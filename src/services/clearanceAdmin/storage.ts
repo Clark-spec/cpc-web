@@ -28,6 +28,13 @@ import {
   wait,
   writeJson,
 } from "./primitives";
+import {
+  createSavedSignatureInDatabase,
+  deleteSavedSignatureFromDatabase,
+  getClearanceRecordsFromDatabase,
+  getSavedSignaturesFromDatabase,
+  updateSavedSignatureInDatabase,
+} from "./database";
 
 /* ---------------------------------------------------------------- records */
 
@@ -41,7 +48,11 @@ export function readRecords(): ClearanceRecord[] {
       )
     : [];
 
-  return records;
+  return records.map((record) => ({
+    ...record,
+    // Drop the retired instructor signature from records created by the old UI.
+    offices: record.offices.filter((office) => String(office.office) !== "instructor"),
+  }));
 }
 
 export function writeRecords(records: ClearanceRecord[]): void {
@@ -50,7 +61,7 @@ export function writeRecords(records: ClearanceRecord[]): void {
 
 /** Real API: `GET /clearance/records`. */
 export async function getRecords(): Promise<ClearanceRecord[]> {
-  return wait(readRecords());
+  return getClearanceRecordsFromDatabase();
 }
 
 /* ----------------------------------------------------------------- period */
@@ -242,6 +253,28 @@ export function writeSavedSignatures(staffId: string, list: SavedSignature[]): v
   writeJson(savedSignaturesKey(staffId), list);
 }
 
+/** Loads server signatures and migrates any signatures stored in this browser. */
+export async function loadSavedSignatures(staffId: string): Promise<SavedSignature[]> {
+  let remote = await getSavedSignaturesFromDatabase();
+  const local = readSavedSignatures(staffId);
+  for (const entry of local) {
+    if (remote.some((saved) => saved.imageBase64 === entry.imageBase64)) continue;
+    remote = await createSavedSignatureInDatabase({
+      imageBase64: entry.imageBase64,
+      method: entry.method,
+      label: entry.label,
+      isDefault: false,
+    });
+  }
+  const preferred = local.find((entry) => entry.isDefault);
+  const preferredRemote = preferred && remote.find((entry) => entry.imageBase64 === preferred.imageBase64);
+  if (preferredRemote && !preferredRemote.isDefault) {
+    remote = await updateSavedSignatureInDatabase(preferredRemote.id, { isDefault: true });
+  }
+  writeSavedSignatures(staffId, remote);
+  return remote;
+}
+
 /** Sync write so "save this signature" costs no extra round trip. */
 export function storeSignature(
   staffId: string,
@@ -275,7 +308,12 @@ export async function addSavedSignature(
   staffId: string,
   input: NewSignatureInput,
 ): Promise<SavedSignature> {
-  return wait(storeSignature(staffId, input), WRITE_DELAY);
+  const list = await createSavedSignatureInDatabase(input);
+  writeSavedSignatures(staffId, list);
+  announceClearanceChange("signatures");
+  const created = list.find((entry) => entry.imageBase64 === input.imageBase64 && entry.label === (input.label.trim() || "Signature"));
+  if (!created) throw new Error("Saved signature was stored, but could not be loaded.");
+  return created;
 }
 
 /** Real API: `PATCH /staff/:staffId/signatures/:id`. */
@@ -284,14 +322,10 @@ export async function updateSavedSignature(
   id: string,
   patch: Partial<Pick<SavedSignature, "label" | "isDefault">>,
 ): Promise<SavedSignature[]> {
-  const list = readSavedSignatures(staffId).map((entry) => {
-    if (entry.id === id) return { ...entry, ...patch };
-    return patch.isDefault ? { ...entry, isDefault: false } : entry;
-  });
-
+  const list = await updateSavedSignatureInDatabase(id, patch);
   writeSavedSignatures(staffId, list);
   announceClearanceChange("signatures");
-  return wait(list, WRITE_DELAY);
+  return list;
 }
 
 /** Real API: `DELETE /staff/:staffId/signatures/:id`. */
@@ -299,13 +333,9 @@ export async function deleteSavedSignature(
   staffId: string,
   id: string,
 ): Promise<SavedSignature[]> {
-  const list = readSavedSignatures(staffId).filter((entry) => entry.id !== id);
-  if (list.length > 0 && !list.some((entry) => entry.isDefault)) {
-    list[0] = { ...list[0], isDefault: true };
-  }
-
+  const list = await deleteSavedSignatureFromDatabase(id);
   writeSavedSignatures(staffId, list);
   announceClearanceChange("signatures");
-  return wait(list, WRITE_DELAY);
+  return list;
 }
 

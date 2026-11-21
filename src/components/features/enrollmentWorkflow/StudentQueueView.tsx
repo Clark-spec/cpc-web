@@ -20,7 +20,7 @@ import {
   subscribeToEnrollmentQueue,
   type EnrollmentSignatureOffice,
 } from "@/services/enrollmentWorkflow/service";
-import { loadMyEnrollmentSession, requestSignatureFromDatabase } from "@/services/enrollmentWorkflow/database";
+import { cancelSignatureRequestFromDatabase, loadMyEnrollmentSession, requestSignatureFromDatabase } from "@/services/enrollmentWorkflow/database";
 
 const REQUEST_CARDS: Array<{
   office: EnrollmentSignatureOffice;
@@ -62,25 +62,31 @@ const REQUEST_CARDS: Array<{
 
 export function StudentQueueView() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { showToast } = useToast();
   const studentId = user?.studentNumber || "2024-00012";
+  const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId);
   const [session, setSession] = useState(() => getStudentSession(studentId));
   const [sending, setSending] = useState<EnrollmentSignatureOffice | null>(null);
+  const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
+  const [databaseError, setDatabaseError] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
-      setSession(getStudentSession(studentId));
+      if (!isDatabaseStudent) {
+        setSession(getStudentSession(studentId));
+        return;
+      }
       void loadMyEnrollmentSession().then((saved) => {
-        if (saved?.student.studentIdNo === studentId) {
-          setSession(saved);
-        }
-      }).catch(() => undefined);
+        if (saved?.student.studentIdNo !== studentId) throw new Error("Enrollment record was not found.");
+        setSession(saved);
+        setDatabaseError(false);
+      }).catch(() => setDatabaseError(true)).finally(() => setLoadingDatabase(false));
     };
     refresh();
     const unsub = subscribeToEnrollmentQueue(refresh);
     const timer = window.setInterval(refresh, 10000);
     return () => { unsub(); window.clearInterval(timer); };
-  }, [studentId]);
+  }, [isDatabaseStudent, studentId]);
 
   const firstThreeSigned = ["screening", "guidance", "clinic"]
     .every((office) => session.steps[office as EnrollmentSignatureOffice].status === "APPROVED");
@@ -100,9 +106,46 @@ export function StudentQueueView() {
       const saved = await requestSignatureFromDatabase(studentId, office);
       saveStudentSession(saved);
       setSession(saved);
-      toast("Your signature request was sent to the assigned office.", "success");
+      const officeName = REQUEST_CARDS.find((card) => card.office === office)?.title ?? office;
+      showToast({
+        type: "success",
+        title: "Signature request sent",
+        message: `Your request was sent to ${officeName}.`,
+        replaceKey: "student-enrollment-signature-feedback",
+      });
     } catch (error) {
-      toast(error instanceof Error ? error.message : "The signature request could not be sent.", "error");
+      showToast({
+        type: "error",
+        title: "Request not sent",
+        message: error instanceof Error ? error.message : "The signature request could not be sent.",
+        replaceKey: "student-enrollment-signature-feedback",
+      });
+    } finally {
+      setSending(null);
+    }
+  }
+
+  async function handleCancel(office: EnrollmentSignatureOffice) {
+    if (!session.signatureRequests?.[office] || sending) return;
+    setSending(office);
+    try {
+      const saved = await cancelSignatureRequestFromDatabase(studentId, office);
+      saveStudentSession(saved);
+      setSession(saved);
+      const officeName = REQUEST_CARDS.find((card) => card.office === office)?.title ?? office;
+      showToast({
+        type: "success",
+        title: "Request cancelled",
+        message: `Your request to ${officeName} was cancelled. The office has been notified.`,
+        replaceKey: "student-enrollment-signature-feedback",
+      });
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "Cancellation failed",
+        message: error instanceof Error ? error.message : "The signature request could not be cancelled.",
+        replaceKey: "student-enrollment-signature-feedback",
+      });
     } finally {
       setSending(null);
     }
@@ -117,6 +160,14 @@ export function StudentQueueView() {
     return canRequest[office]
       ? { label: "Ready to request", className: "bg-blue-50 text-cpc-blue-accent" }
       : { label: "Waiting for earlier steps", className: "bg-slate-100 text-slate-600" };
+  }
+
+  if (loadingDatabase) {
+    return <div role="status" className="mx-auto max-w-5xl px-4 py-16 text-center font-poppins text-sm text-cpc-heading-soft">Loading your enrollment requests…</div>;
+  }
+
+  if (databaseError) {
+    return <div role="alert" className="mx-auto max-w-3xl px-4 py-16 text-center font-poppins"><h1 className="text-lg font-bold text-cpc-navy-text">Enrollment data unavailable</h1><p className="mt-2 text-sm text-cpc-heading-soft">Reconnect to the server and reload this page to view your saved Study Load and signature requests.</p></div>;
   }
 
   return (
@@ -180,15 +231,27 @@ export function StudentQueueView() {
                 </p>
               )}
 
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => void handleRequest(card.office)}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cpc-blue-accent px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:shadow-none"
-              >
-                {signed ? <CheckCircle2 className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
-                {signed ? "Signed" : sending === card.office ? "Sending request…" : alreadyRequested ? "Request Sent" : "Request Signature"}
-              </button>
+              <div className="mt-4 space-y-2">
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => void handleRequest(card.office)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cpc-blue-accent px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:shadow-none"
+                >
+                  {signed ? <CheckCircle2 className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
+                  {signed ? "Signed" : sending === card.office && !alreadyRequested ? "Sending request…" : alreadyRequested ? "Request Sent" : "Request Signature"}
+                </button>
+                {alreadyRequested && !signed && (
+                  <button
+                    type="button"
+                    disabled={sending !== null}
+                    onClick={() => void handleCancel(card.office)}
+                    className="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {sending === card.office ? "Cancelling request…" : "Cancel Request"}
+                  </button>
+                )}
+              </div>
             </article>
           );
         })}

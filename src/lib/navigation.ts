@@ -16,7 +16,6 @@ import {
   CalendarRange,
   CheckCircle2,
   ClipboardList,
-  ExternalLink,
   Eye,
   FileCheck,
   FileStack,
@@ -131,7 +130,7 @@ export const ROLE_OFFICES: Record<AdminRole, OfficeId | null> = {
   library: "library",
   accounting: "accounting",
   sao: "sao",
-  instructor: "instructor",
+  instructor: null,
   guidance: null,
   clinic: null,
 };
@@ -209,7 +208,7 @@ export const ADMIN_USERS: Record<AdminRole, AdminUser> = {
     id: "instructor",
     name: "Prof. Ramon Dela Cruz",
     role: "instructor",
-    office: "instructor",
+    office: null,
     initials: "RD",
     title: "Instructor",
   },
@@ -254,11 +253,11 @@ export const NAV_SECTIONS: NavSection[] = [
         children: [
           {
             type: "link",
-            id: "screening-committee",
-            label: "Screening Committee",
-            to: "/committee/screening",
-            icon: GraduationCap,
-            roles: ["admin", "registrar", ...DEAN_ROLES],
+            id: "enrollment-clearance-requests",
+            label: "Request Signatures",
+            to: "/admin/enrollment/clearance-requests",
+            icon: ShieldCheck,
+            roles: ["admin", "registrar", ...DEAN_ROLES, "guidance", "clinic", "accounting"],
           },
           {
             type: "link",
@@ -310,14 +309,6 @@ export const NAV_SECTIONS: NavSection[] = [
           },
           {
             type: "link",
-            id: "live-tv-display",
-            label: "Public TV Queue",
-            to: "/display",
-            icon: ExternalLink,
-            roles: ["admin", "registrar", ...DEAN_ROLES, "guidance", "clinic", "accounting"],
-          },
-          {
-            type: "link",
             id: "applications",
             label: "All Applications",
             to: "/admin/enrollment/applications",
@@ -340,14 +331,6 @@ export const NAV_SECTIONS: NavSection[] = [
             icon: CheckCircle2,
             roles: ["admin", "registrar"],
           },
-          {
-            type: "link",
-            id: "public-display-nav",
-            label: "Live TV Queue Board",
-            to: "/display",
-            icon: ExternalLink,
-            roles: ALL_ROLES,
-          },
         ],
       },
       {
@@ -360,7 +343,7 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             type: "link",
             id: "clearance",
-            label: "Clearance Requests",
+            label: "Online Clearance Requests",
             to: "/admin/clearance-requests",
             icon: ShieldCheck,
             roles: ALL_ROLES,

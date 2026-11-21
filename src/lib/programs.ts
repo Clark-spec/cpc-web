@@ -23,10 +23,12 @@ export type ClearanceNotificationTarget = {
     | "dean_edu"
     | "dean_hm"
     | "instructor"
-    | "library"
+    | "guidance"
     | "registrar"
-    | "accounting"
-    | "sao";
+    | "clinic"
+    | "sao"
+    | "library"
+    | "accounting";
   /** Set for dean requests so the dean check also validates the program. */
   department?: ProgramCode;
 };
@@ -38,11 +40,10 @@ const DEAN_ROLE_BY_PROGRAM: Record<ProgramCode, ClearanceNotificationTarget["tar
 };
 
 const OFFICE_ROLE: Record<Exclude<OfficeId, "dean">, ClearanceNotificationTarget["targetRole"]> = {
-  instructor: "instructor",
-  library: "library",
   registrar: "registrar",
-  accounting: "accounting",
   sao: "sao",
+  library: "library",
+  accounting: "accounting",
 };
 
 const PROGRAM_CODES: Record<string, string> = {

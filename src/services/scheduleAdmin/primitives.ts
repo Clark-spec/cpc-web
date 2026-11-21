@@ -1,5 +1,4 @@
 import { SCHEDULE_CHANNEL_NAME } from "@/lib/scheduleStorage";
-import type { SectionId } from "@/types/schedule";
 
 export const READ_DELAY = 400;
 export const WRITE_DELAY = 400;
@@ -7,9 +6,7 @@ export const MAX_HISTORY = 120;
 export const MAX_PUBLISHED_ARCHIVE = 8;
 export const MAX_FEED = 30;
 
-/** The demo learner whose bell this portal writes into; a real session supplies the id. */
-export const DEMO_STUDENT_ID = "12345678";
-export const DEMO_STUDENT_SECTION: SectionId = "BSIT-3A";
+/** Student profile cache used to associate the signed-in session with a section. */
 export const STUDENT_PROFILE_KEY = "cpc.student-profile.v1";
 
 export function wait<T>(value: T, ms = READ_DELAY): Promise<T> {

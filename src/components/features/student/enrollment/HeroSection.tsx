@@ -1,15 +1,32 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowRight, CheckCircle2, Clock, Ticket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/context/useAuth";
 import { getStudentSession } from "@/services/enrollmentWorkflow/service";
+import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 
 export function HeroSection() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const studentId =
     user?.studentNumber || (user?.role === "student" ? "STU-2026-0042" : undefined);
-  const session = studentId ? getStudentSession(studentId) : null;
+  const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId ?? "");
+  const [session, setSession] = useState(() => studentId && !isDatabaseStudent ? getStudentSession(studentId) : null);
+  useEffect(() => {
+    if (!studentId) return;
+    if (!isDatabaseStudent) {
+      setSession(getStudentSession(studentId));
+      return;
+    }
+    let active = true;
+    const refresh = () => void loadMyEnrollmentSession().then((saved) => {
+      if (active && saved?.student.studentIdNo === studentId) setSession(saved);
+    }).catch(() => undefined);
+    refresh();
+    const timer = window.setInterval(refresh, 10000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [isDatabaseStudent, studentId]);
   const isSubmitted =
     session && (session.form.status === "SUBMITTED" || session.form.status === "APPROVED");
   const ticket = session?.ticket;
@@ -28,7 +45,7 @@ export function HeroSection() {
                 <span className="enroll-hero-headline-accent"> In Progress</span>
               </h2>
               <p className="enroll-hero-description">
-                Welcome back, <strong className="text-cpc-navy-deep">{session.student.name}</strong> ({session.student.course} · Year {session.student.yearLevel}). Your enrollment application ({session.form.totalUnits} units) has been submitted for 1st Semester 2026–2027.
+                Welcome back, <strong className="text-cpc-navy-deep">{session.student.name}</strong> ({session.student.course} · Year {session.student.yearLevel}). Your Study Load ({session.form.totalUnits} units) was submitted for {session.form.term}.
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <button
@@ -85,8 +102,7 @@ export function HeroSection() {
                   <line x1="8" y1="2" x2="8" y2="6" />
                   <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                <span>Enrollment for 1st Semester, A.Y. 2026-2027 is now open</span>
-                <Badge tone="success" size="sm">Open</Badge>
+                <span>{session ? `Current enrollment term: ${session.form.term}` : "Confirm your Registrar record to view your enrollment term."}</span>
               </div>
             </>
           )}
@@ -94,16 +110,6 @@ export function HeroSection() {
 
         <div className="relative flex min-h-[380px] items-center justify-center py-4 lg:min-h-[420px]">
           <div className="relative z-10 flex w-full max-w-md flex-col gap-5">
-            <div className="enroll-floating-card enroll-card w-fit self-end rounded-full px-4 py-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-enroll-text">Slots filling fast:</span>
-                <span className="text-xs font-bold text-cpc-navy">82% enrolled</span>
-              </div>
-              <div className="mt-1 h-1 w-20 rounded-full bg-gray-200">
-                <div className="h-1 rounded-full bg-enroll-warning" style={{ width: "82%" }} />
-              </div>
-            </div>
-
             <div className="enroll-floating-card enroll-card p-4 sm:ml-6 sm:p-5">
               <div className="mb-4 flex items-center justify-between gap-2">
                 <h4 className="enroll-card-title mb-0 text-sm">Enrollment Progress</h4>

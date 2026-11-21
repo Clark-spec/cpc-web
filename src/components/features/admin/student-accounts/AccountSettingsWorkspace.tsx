@@ -6,7 +6,6 @@ import { AccountActionModal } from "@/components/features/admin/student-accounts
 import { AccountSecurityCard } from "@/components/features/admin/student-accounts/AccountSecurityCard";
 import { AccountSettingsTable } from "@/components/features/admin/student-accounts/AccountSettingsTable";
 import { AccountSettingsToolbar } from "@/components/features/admin/student-accounts/AccountSettingsToolbar";
-import { STUDENT_ACCOUNTS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import type {
   AccountActionKind,
   AccountFilters,
@@ -29,7 +28,7 @@ type PendingAction = {
 /** Route: /admin/students/account-settings — login access management. */
 export function AccountSettingsWorkspace() {
   const { toast } = useToast();
-  const [rows, setRows] = useState<StudentAccount[]>(STUDENT_ACCOUNTS);
+  const [rows, setRows] = useState<StudentAccount[]>([]);
   const [filters, setFilters] = useState<AccountFilters>(DEFAULT_FILTERS);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
