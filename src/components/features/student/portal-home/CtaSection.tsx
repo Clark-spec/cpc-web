@@ -22,7 +22,8 @@ export function CtaSection() {
     return unsub;
   }, [studentId]);
 
-  const isEnrolled = session.steps.registrar.status === "APPROVED";
+  const isEnrolled = ["screening", "guidance", "clinic", "accounting", "registrar"]
+    .every((office) => session.steps[office as "screening" | "guidance" | "clinic" | "accounting" | "registrar"].status === "APPROVED");
   const hasTicket = Boolean(session.ticket);
   const isUnderReview = session.form.status === "SUBMITTED" && !hasTicket;
   const isVerified = session.steps.verification.status === "APPROVED" && !isUnderReview && !hasTicket && !isEnrolled;

@@ -36,7 +36,6 @@ import {
   fetchAdminNotificationFeed,
   markAdminNotificationsReadApi,
 } from "@/services/admin/notificationFeed";
-import { reconcileAllEnrollmentNotifications } from "@/services/notifications/studentNotificationService";
 import type {
   ActivityItem,
   AdminBadgeCounts,
@@ -228,7 +227,6 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Initial fetch: the service is the external store, so this is the
     // sanctioned "subscribe on mount" case for this provider.
-    reconcileAllEnrollmentNotifications();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load("initial");
   }, [load]);

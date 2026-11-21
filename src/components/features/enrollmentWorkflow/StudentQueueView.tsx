@@ -16,10 +16,11 @@ import { useAuth } from "@/components/context/useAuth";
 import { useToast } from "@/components/ui/toast";
 import {
   getStudentSession,
-  requestEnrollmentSignature,
+  saveStudentSession,
   subscribeToEnrollmentQueue,
   type EnrollmentSignatureOffice,
 } from "@/services/enrollmentWorkflow/service";
+import { loadMyEnrollmentSession, requestSignatureFromDatabase } from "@/services/enrollmentWorkflow/database";
 
 const REQUEST_CARDS: Array<{
   office: EnrollmentSignatureOffice;
@@ -67,26 +68,38 @@ export function StudentQueueView() {
   const [sending, setSending] = useState<EnrollmentSignatureOffice | null>(null);
 
   useEffect(() => {
-    setSession(getStudentSession(studentId));
-    return subscribeToEnrollmentQueue(() => setSession(getStudentSession(studentId)));
+    const refresh = () => {
+      setSession(getStudentSession(studentId));
+      void loadMyEnrollmentSession().then((saved) => {
+        if (saved?.student.studentIdNo === studentId) {
+          setSession(saved);
+        }
+      }).catch(() => undefined);
+    };
+    refresh();
+    const unsub = subscribeToEnrollmentQueue(refresh);
+    const timer = window.setInterval(refresh, 10000);
+    return () => { unsub(); window.clearInterval(timer); };
   }, [studentId]);
 
-  const hasDeanApproval = session.steps.screening.status === "APPROVED";
-  const hasGuidanceApproval = session.steps.guidance.status === "APPROVED";
-  const hasClinicApproval = session.steps.clinic.status === "APPROVED";
+  const firstThreeSigned = ["screening", "guidance", "clinic"]
+    .every((office) => session.steps[office as EnrollmentSignatureOffice].status === "APPROVED");
+  const formReadyForSignatures = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
   const canRequest: Record<EnrollmentSignatureOffice, boolean> = {
-    screening: session.form.status === "SUBMITTED" && !hasDeanApproval,
-    guidance: hasDeanApproval && !hasGuidanceApproval,
-    clinic: hasGuidanceApproval && !hasClinicApproval,
-    registrar: hasDeanApproval && hasGuidanceApproval && hasClinicApproval && session.steps.registrar.status !== "APPROVED",
-    accounting: hasDeanApproval && hasGuidanceApproval && hasClinicApproval && session.steps.accounting.status !== "APPROVED",
+    screening: formReadyForSignatures && session.steps.screening.status !== "APPROVED",
+    guidance: formReadyForSignatures && session.steps.guidance.status !== "APPROVED",
+    clinic: formReadyForSignatures && session.steps.clinic.status !== "APPROVED",
+    registrar: firstThreeSigned && session.steps.registrar.status !== "APPROVED",
+    accounting: firstThreeSigned && session.steps.accounting.status !== "APPROVED",
   };
 
   async function handleRequest(office: EnrollmentSignatureOffice) {
     if (!canRequest[office] || sending) return;
     setSending(office);
     try {
-      setSession(requestEnrollmentSignature(studentId, office));
+      const saved = await requestSignatureFromDatabase(studentId, office);
+      saveStudentSession(saved);
+      setSession(saved);
       toast("Your signature request was sent to the assigned office.", "success");
     } catch (error) {
       toast(error instanceof Error ? error.message : "The signature request could not be sent.", "error");
@@ -111,13 +124,13 @@ export function StudentQueueView() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 rounded-full bg-cpc-blue-accent/10 px-3.5 py-1.5 text-xs font-semibold text-cpc-blue-accent">
           <BadgeCheck className="h-4 w-4" />
-          Enrollment Steps 5–8 · Office Signatures
+          Enrollment Steps 1–5 · Office Signatures
         </div>
         <h1 className="mt-3 text-2xl font-bold tracking-tight text-cpc-navy-text sm:text-3xl">
           Request Enrollment Signatures
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-cpc-heading-soft">
-          Request each endorsement when it becomes available. Read the office instructions before sending a request.
+          Request the first three signatures in any order. Registrar and Accounting unlock after all three have signed.
         </p>
       </div>
 

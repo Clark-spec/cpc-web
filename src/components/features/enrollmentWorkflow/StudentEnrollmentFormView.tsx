@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import {
   AlertCircle,
@@ -21,8 +21,10 @@ import {
   checkClearanceStatus,
   getStudentSession,
   saveEnrollmentFormSubjects,
-  submitEnrollmentForm,
+  saveStudentSession,
+  subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
+import { loadMyEnrollmentSession, submitEnrollmentToDatabase } from "@/services/enrollmentWorkflow/database";
 import { CURRICULUM_CATALOG } from "@/services/enrollmentWorkflow/seedData";
 import type { EnrollmentSubjectItem } from "@/types/enrollmentWorkflow";
 
@@ -31,17 +33,42 @@ export function StudentEnrollmentFormView() {
   const navigate = useNavigate();
   const studentId = user?.studentNumber || "2024-00012";
 
-  const session = getStudentSession(studentId);
+  const [session, setSession] = useState(() => getStudentSession(studentId));
+  const [selectedSubjects, setSelectedSubjects] = useState<EnrollmentSubjectItem[]>(session.form.subjects);
+  const [submitting, setSubmitting] = useState(false);
   const clearanceData = checkClearanceStatus(studentId);
+
+  useEffect(() => {
+    const refresh = () => {
+      setSession(getStudentSession(studentId));
+      void loadMyEnrollmentSession().then((saved) => {
+        if (saved?.student.studentIdNo === studentId) {
+          setSession(saved);
+          setSelectedSubjects(saved.form.subjects);
+        }
+      }).catch(() => undefined);
+    };
+    refresh();
+    const unsub = subscribeToEnrollmentQueue(refresh);
+    const timer = window.setInterval(refresh, 10000);
+    return () => { unsub(); window.clearInterval(timer); };
+  }, [studentId]);
 
   const isClearanceApproved = clearanceData.cleared;
   const isFormSubmitted = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
   const isFormResubmit = session.form.status === "RESUBMIT";
+  const signatureSteps = [
+    { key: "screening", label: "1. Screening Committee & Dean" },
+    { key: "guidance", label: "2. Guidance Counselor" },
+    { key: "clinic", label: "3. Clinic" },
+    { key: "accounting", label: "4. Accounting" },
+    { key: "registrar", label: "5. Registrar" },
+  ] as const;
+  const fullySigned = signatureSteps.every(({ key }) => session.steps[key].status === "APPROVED");
 
   const isRegular = session.student.standing === "regular";
 
   // Subjects state for irregular students
-  const [selectedSubjects, setSelectedSubjects] = useState<EnrollmentSubjectItem[]>(session.form.subjects);
   const [activeTab, setActiveTab] = useState<"clearance" | "form">(
     isClearanceApproved ? "form" : "clearance",
   );
@@ -78,13 +105,25 @@ export function StudentEnrollmentFormView() {
     saveEnrollmentFormSubjects(studentId, updated);
   };
 
-  const handleSubmitForm = () => {
+  const handleSubmitForm = async () => {
     if (selectedSubjects.length === 0) {
       alert("Please select at least one subject before submitting.");
       return;
     }
-    submitEnrollmentForm(studentId);
-    navigate("/student/queue");
+    setSubmitting(true);
+    try {
+      const saved = await submitEnrollmentToDatabase({
+        ...session,
+        form: { ...session.form, subjects: selectedSubjects, totalUnits },
+      });
+      saveStudentSession(saved);
+      setSession(saved);
+      navigate("/student/queue");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "The Study Load could not be saved. Check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -345,6 +384,37 @@ export function StudentEnrollmentFormView() {
               </table>
             </div>
 
+            <div className="mt-6 border-t border-cpc-input-border/50 pt-5">
+              <h4 className="text-center text-xs font-semibold text-cpc-heading-soft">STEPS: (NOTE: Please affix your signature)</h4>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {signatureSteps.map(({ key, label }) => {
+                  const step = session.steps[key];
+                  const signed = step.status === "APPROVED";
+                  return (
+                    <div key={key} className={`min-h-20 rounded-xl border p-3 ${signed ? "border-emerald-200 bg-emerald-50/70" : "border-dashed border-cpc-input-border bg-slate-50/60"}`}>
+                      <p className="text-[11px] font-bold text-cpc-navy-text">{label}</p>
+                      {signed ? (
+                        <p className="mt-2 text-[11px] font-semibold italic text-emerald-800">
+                          Digitally signed by {step.updatedBy || "Authorized Officer"}
+                          {step.updatedAt && <span className="mt-0.5 block not-italic font-normal text-emerald-700">{new Date(step.updatedAt).toLocaleString()}</span>}
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-[11px] text-cpc-muted-blue">Awaiting digital signature</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {fullySigned && (
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p className="text-sm font-bold text-emerald-800">You are officially enrolled.</p>
+                  <Link to="/online-enrollment/status" className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800">
+                    View Enrollment Status <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              )}
+            </div>
+
             {/* If Irregular: Subject Catalog Selector */}
             {!isRegular && !isFormSubmitted && (
               <div className="mt-8 border-t border-cpc-input-border/60 pt-6">
@@ -390,7 +460,7 @@ export function StudentEnrollmentFormView() {
               {isFormSubmitted ? (
                 <div className="flex items-center gap-3">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                    <CheckCircle2 className="h-4 w-4" /> Study Load Submitted to Dean & Screening
+                    <CheckCircle2 className="h-4 w-4" /> Study Load submitted for office signatures
                   </span>
                   <Link
                     to="/student/queue"
@@ -403,11 +473,12 @@ export function StudentEnrollmentFormView() {
               ) : (
                 <button
                   type="button"
-                  onClick={handleSubmitForm}
-                  className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+                  onClick={() => void handleSubmitForm()}
+                  disabled={submitting}
+                  className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
-                  Submit Study Load
+                  {submitting ? "Saving Study Load…" : "Request Signature"}
                 </button>
               )}
             </div>

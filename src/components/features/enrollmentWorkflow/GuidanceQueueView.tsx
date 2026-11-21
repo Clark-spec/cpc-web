@@ -13,6 +13,7 @@ import {
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
 import type { EnrollmentFormRecord, QueueTicket } from "@/types/enrollmentWorkflow";
+import { EnrollmentSignatureInbox } from "./EnrollmentSignatureInbox";
 
 export function GuidanceQueueView() {
   const { user } = useAdminAuth();
@@ -34,6 +35,7 @@ export function GuidanceQueueView() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 font-poppins">
+      <EnrollmentSignatureInbox office="guidance" />
       {/* Header */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 rounded-full bg-cpc-blue-accent/10 px-3.5 py-1.5 text-xs font-semibold text-cpc-blue-accent">

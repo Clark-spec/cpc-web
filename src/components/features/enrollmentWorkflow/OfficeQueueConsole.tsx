@@ -22,6 +22,7 @@ import {
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
 import type { DepartmentCode, QueueOfficeId, QueueTicket, YearGroup } from "@/types/enrollmentWorkflow";
+import { EnrollmentSignatureInbox } from "./EnrollmentSignatureInbox";
 
 interface OfficeQueueConsoleProps {
   office: QueueOfficeId;
@@ -103,6 +104,7 @@ export function OfficeQueueConsole({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 font-poppins">
+      <EnrollmentSignatureInbox office={office} />
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

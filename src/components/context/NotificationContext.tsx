@@ -18,7 +18,6 @@ import {
   deleteAllNotificationsApi,
 } from "@/services/notifications";
 import { useSSE } from "@/hooks/useSSE";
-import { reconcileAllEnrollmentNotifications } from "@/services/notifications/studentNotificationService";
 import { useAuth } from "@/components/context/useAuth";
 import { studentNotificationsKey } from "@/lib/clearanceStorage";
 
@@ -98,8 +97,17 @@ function readStored(key: string): AppNotification[] {
 function readAllStudentStored(studentId?: string): AppNotification[] {
   if (!studentId) return [];
   return readStored(studentNotificationsKey(studentId))
+    .filter((notification) => !isLegacyTemporaryEnrollmentNotification(notification))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, MAX_NOTIFICATIONS);
+}
+
+function isLegacyTemporaryEnrollmentNotification(notification: AppNotification): boolean {
+  const message = notification.message.toLowerCase();
+  return message.includes("1st sem 2026-2027") ||
+    message.includes("forwarded for queue ticket issuance") ||
+    message.includes("your physical enrollment ticket #") ||
+    (notification.title === "Official Enrollment Confirmed!" && message.includes("1st semester 2026-2027"));
 }
 
 /**
@@ -190,7 +198,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [syncFeed]);
 
   useEffect(() => {
-    reconcileAllEnrollmentNotifications();
     const local = readAllStudentStored(currentStudentId);
     notificationsOwnerId.current = currentStudentId;
     setNotifications(local);

@@ -24,7 +24,6 @@ import { recordAdminNotification } from "@/services/admin/notifications";
 import { recordAdminActivity } from "@/services/admin/activity";
 import {
   recordStudentNotification,
-  reconcileAllEnrollmentNotifications,
 } from "@/services/notifications/studentNotificationService";
 
 const KEY_MASTERLIST = "cpc:enrollment:masterlist:v1";
@@ -498,9 +497,6 @@ export function getStudentSession(studentId: string): StudentEnrollmentSession {
       saveStudentSession(refreshed);
       return refreshed;
     }
-    if (sessions[studentId].form.status === "SUBMITTED" || sessions[studentId].form.status === "APPROVED") {
-      reconcileAllEnrollmentNotifications();
-    }
     return sessions[studentId];
   }
 
@@ -642,6 +638,9 @@ export function submitEnrollmentForm(studentId: string): StudentEnrollmentSessio
 
   // Unlock Step 3: Screening Committee
   session.steps.screening.status = "PENDING";
+  // The first three office endorsements may be requested independently.
+  session.steps.guidance.status = "PENDING";
+  session.steps.clinic.status = "PENDING";
   saveStudentSession(session);
 
   recordAuditLog({
@@ -659,29 +658,6 @@ export function submitEnrollmentForm(studentId: string): StudentEnrollmentSessio
     message: `Your subjects for ${session.form.term} (${session.form.totalUnits} units) have been submitted and are queued for Screening Committee review.`,
     type: "info",
     href: "/student/queue",
-  });
-
-  // Notify Admin & Screening Committee
-  {
-    const _dept = session.student.department as string;
-    const _targetRole =
-      _dept === "BSIT" ? "dean_cs" : _dept === "BEED" ? "dean_edu" : "dean_hm";
-    recordAdminNotification({
-      id: `admin-screening-new-${session.form.id || studentId}`,
-      title: "New Enrollment Form Submitted",
-      message: `${session.student.name} (${session.student.department}) submitted their enrollment form (${session.form.totalUnits} units). Queued for Screening Committee review.`,
-      type: "info",
-      href: "/committee/screening",
-      department: _dept,
-      targetRole: _targetRole,
-    });
-  }
-  recordAdminActivity({
-    type: "enrollment",
-    status: "new",
-    message: `${session.student.name} submitted enrollment form for screening (${session.student.course})`,
-    actor: session.student.name,
-    href: "/committee/screening",
   });
 
   // Immediately bridge into the Admin Applications table as "for-review"
@@ -729,10 +705,10 @@ export function getScreeningQueue(deanDepartment?: DepartmentCode | string): Enr
     const screeningStatus = session.steps?.screening?.status;
     const formStatus = session.form?.status;
 
-    // Qualifies for screening if screening is explicitly PENDING or form submitted without final screening decision
-    const isPendingScreening =
-      screeningStatus === "PENDING" ||
-      (formStatus === "SUBMITTED" && screeningStatus !== "APPROVED" && screeningStatus !== "RESUBMIT");
+    // Only show an application after the student explicitly requested this signature.
+    const isPendingScreening = Boolean(session.signatureRequests?.screening) &&
+      (formStatus === "SUBMITTED" || formStatus === "APPROVED") &&
+      screeningStatus !== "APPROVED" && screeningStatus !== "RESUBMIT";
 
     if (isPendingScreening) {
       const studentDept = normalizeDepartment(session.student.department || session.form?.department);
@@ -796,8 +772,8 @@ export function approveScreening(
   session.screeningFeePaidAt = session.steps.screening.updatedAt;
   session.screeningFeeVerifiedBy = actor;
 
-  // Unlock Step 4: Guidance
-  session.steps.guidance.status = "PENDING";
+  // Guidance and Clinic requests can be reviewed independently; preserve any
+  // signature that was already completed before this Dean review.
   saveStudentSession(session);
 
   recordAuditLog({
@@ -815,21 +791,6 @@ export function approveScreening(
     message: `Your enrollment subjects have been verified and approved by the Screening Committee. Forwarded for Guidance review.`,
     type: "success",
     href: "/student/queue",
-  });
-
-  recordAdminNotification({
-    title: "Screening Approved",
-    message: `${actor} approved subjects for ${session.student.name} (${session.student.department}). Queued for Guidance review.`,
-    type: "success",
-    href: "/guidance/queue",
-    targetRole: "guidance",
-  });
-  recordAdminActivity({
-    type: "enrollment",
-    status: "pending",
-    message: `${actor} approved course load for ${session.student.name}`,
-    actor,
-    href: "/guidance/queue",
   });
 
   return session;
@@ -910,7 +871,7 @@ export function getGuidanceQueue(): EnrollmentFormRecord[] {
   const sessions = getAllSessions();
   const forms: EnrollmentFormRecord[] = [];
   for (const session of Object.values(sessions)) {
-    if (session.steps.guidance.status === "PENDING") {
+    if (session.steps.guidance.status === "PENDING" && session.signatureRequests?.guidance) {
       forms.push(session.form);
     }
   }
@@ -951,13 +912,6 @@ export function approveGuidance(studentId: string, actor: string): QueueTicket {
     href: "/student/queue",
   });
 
-  recordAdminNotification({
-    title: "Queue Ticket Issued",
-    message: `Guidance issued ticket ${ticket.number} for ${session.student.name} (${session.student.department}). Scheduled on ${ticket.scheduleDate} (${ticket.timeBlock}).`,
-    type: "info",
-    href: "/clinic/queue",
-    targetRole: "clinic",
-  });
   recordAdminActivity({
     type: "enrollment",
     status: "pending",
@@ -1004,10 +958,11 @@ export function requestEnrollmentSignature(
   office: EnrollmentSignatureOffice,
 ): StudentEnrollmentSession {
   const session = getStudentSession(studentId);
+  const formReadyForSignatures = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
   const canRequest: Record<EnrollmentSignatureOffice, boolean> = {
-    screening: session.form.status === "SUBMITTED" && session.steps.screening.status !== "APPROVED",
-    guidance: session.steps.screening.status === "APPROVED" && session.steps.guidance.status !== "APPROVED",
-    clinic: session.steps.guidance.status === "APPROVED" && session.steps.clinic.status !== "APPROVED",
+    screening: formReadyForSignatures && session.steps.screening.status !== "APPROVED",
+    guidance: formReadyForSignatures && session.steps.guidance.status !== "APPROVED",
+    clinic: formReadyForSignatures && session.steps.clinic.status !== "APPROVED",
     registrar: session.steps.screening.status === "APPROVED" && session.steps.guidance.status === "APPROVED" && session.steps.clinic.status === "APPROVED" && session.steps.registrar.status !== "APPROVED",
     accounting: session.steps.screening.status === "APPROVED" && session.steps.guidance.status === "APPROVED" && session.steps.clinic.status === "APPROVED" && session.steps.accounting.status !== "APPROVED",
   };
@@ -1018,6 +973,8 @@ export function requestEnrollmentSignature(
   if (session.signatureRequests?.[office] && session.steps[office].status !== "RESUBMIT") {
     throw new Error("Your request has already been sent to this office.");
   }
+
+  if (session.steps[office].status === "LOCKED") session.steps[office].status = "PENDING";
 
   const officeDetails: Record<EnrollmentSignatureOffice, { label: string; targetRole: string; href: string }> = {
     screening: {
@@ -1235,10 +1192,10 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
 
   // If Clinic done, unlock Accounting; if Accounting done, unlock Registrar
   if (office === "clinic") {
-    session.steps.accounting.status = "PENDING";
-    session.steps.registrar.status = "PENDING";
+    if (session.steps.accounting.status !== "APPROVED") session.steps.accounting.status = "PENDING";
+    if (session.steps.registrar.status !== "APPROVED") session.steps.registrar.status = "PENDING";
   }
-  if (office === "accounting") session.steps.registrar.status = "PENDING";
+  if (office === "accounting" && session.steps.registrar.status !== "APPROVED") session.steps.registrar.status = "PENDING";
 
   saveStudentSession(session);
   saveQueueTickets(tickets);
@@ -1255,22 +1212,15 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
     // Notify Student
     recordStudentNotification(ticket.studentId, {
       title: "Clinic Health Assessment Cleared",
-      message: "Health check completed. Next station: Accounting (Station 2).",
+      message: "Your Clinic signature is complete. Check your Study Load for the remaining signature requests.",
       type: "success",
       href: "/student/queue",
     });
 
-    recordAdminNotification({
-      title: "Clinic Health Assessment Cleared",
-      message: `${ticket.studentName} (${ticket.number}) cleared health check. Next station: Accounting.`,
-      type: "info",
-      href: "/accounting/queue",
-      targetRole: "accounting",
-    });
     recordAdminActivity({
       type: "enrollment",
       status: "pending",
-      message: `${ticket.studentName} cleared Clinic health assessment`,
+      message: `${ticket.studentName} received the Clinic signature`,
       actor: actor ?? "Clinic Officer",
       href: "/accounting/queue",
     });
@@ -1278,18 +1228,11 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
     // Notify Student
     recordStudentNotification(ticket.studentId, {
       title: "Accounting Payment Validated",
-      message: "Tuition & fees validated. Next station: Registrar for COR (Station 3).",
+      message: "Your Accounting signature is complete. Check your Study Load for the enrollment status.",
       type: "success",
       href: "/student/queue",
     });
 
-    recordAdminNotification({
-      title: "Accounting Payment Validated",
-      message: `${ticket.studentName} (${ticket.number}) tuition & fees validated. Next station: Registrar for COR.`,
-      type: "info",
-      href: "/registrar/queue",
-      targetRole: "registrar",
-    });
     recordAdminActivity({
       type: "enrollment",
       status: "pending",
@@ -1297,19 +1240,23 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
       actor: actor ?? "Accounting Officer",
       href: "/registrar/queue",
     });
-  } else if (office === "registrar") {
-    // Notify Student
+  }
+
+  // Official enrollment requires all five digital signatures, regardless of which
+  // of the last two offices signs second.
+  const fullySigned = ["screening", "guidance", "clinic", "accounting", "registrar"]
+    .every((step) => session.steps[step as "screening" | "guidance" | "clinic" | "accounting" | "registrar"].status === "APPROVED");
+  if (fullySigned) {
     recordStudentNotification(ticket.studentId, {
       id: `official-enrolled-${ticket.studentId}`,
-      title: "Official Enrollment Confirmed!",
-      message: `Congratulations ${ticket.studentName}! You are officially enrolled for ${session.form.term}. Your Certificate of Registration (COR) is ready.`,
+      title: "You are officially enrolled",
+      message: `All five offices signed your Study Load. You are officially enrolled for ${session.form.term}.`,
       type: "success",
-      href: "/student/queue",
+      href: "/online-enrollment/status",
     });
-
     recordAdminNotification({
-      title: "Enrollment Finalized (COR Issued)",
-      message: `${ticket.studentName} (${ticket.number}) has completed enrollment! Certificate of Registration issued.`,
+      title: "Enrollment Signatures Complete",
+      message: `${ticket.studentName} (${ticket.number}) has all five required office signatures.`,
       type: "success",
       href: "/admin/enrollment/approved",
       targetRole: "registrar",
@@ -1317,17 +1264,11 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
     recordAdminActivity({
       type: "enrollment",
       status: "completed",
-      message: `COR issued for ${ticket.studentName} (${ticket.number})`,
-      actor: actor ?? "Registrar",
+      message: `All five office signatures completed for ${ticket.studentName} (${ticket.number})`,
+      actor: actor ?? "Enrollment Office",
       href: "/admin/enrollment/approved",
     });
-  }
 
-  // ── Bridge: flip admin enrollment status when Registrar completes Step 8 ──
-  // When the Registrar marks the student Done, the enrollment is fully complete.
-  // Update the admin applications table to "approved" so the Registrar dashboard
-  // reflects the real completion rather than keeping it in "for-review".
-  if (office === "registrar") {
     const dept = session.student.department;
     const programMap: Record<string, { name: string; code: "BSIT" | "BSBA" | "BEED" | "BSHM" }> = {
       BSIT: { name: "BS Information Technology", code: "BSIT" },
@@ -1345,7 +1286,7 @@ export function markDone(office: QueueOfficeId, ticketId: string, actor?: string
       yearLevel: yearLabel,
       email: session.student.email ?? `${session.student.studentIdNo}@student.cpc.edu.ph`,
       status: "approved",
-      note: "Continuing student — All F2F stations cleared. COR issued by Registrar.",
+      note: "Continuing student — all five office signatures completed.",
     });
   }
 

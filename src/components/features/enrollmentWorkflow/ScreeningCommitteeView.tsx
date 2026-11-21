@@ -14,6 +14,7 @@ import {
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
 import type { DepartmentCode, EnrollmentFormRecord } from "@/types/enrollmentWorkflow";
+import { EnrollmentSignatureInbox } from "./EnrollmentSignatureInbox";
 
 const DEPT_LABELS: Record<DepartmentCode, string> = {
   BSIT: "Computer Studies (BSIT)",
@@ -90,6 +91,7 @@ export function ScreeningCommitteeView() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 font-poppins">
+      <EnrollmentSignatureInbox office="screening" />
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

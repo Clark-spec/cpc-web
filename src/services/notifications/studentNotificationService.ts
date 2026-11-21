@@ -1,8 +1,4 @@
 import type { AppNotification } from "@/components/context/NotificationContext";
-import { recordAdminNotification } from "@/services/admin/notifications";
-import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
-
-const KEY_SESSIONS = "cpc:enrollment:sessions:v1";
 
 /**
  * Returns notifications from only the requested student's browser cache.
@@ -68,79 +64,3 @@ export function recordStudentNotification(
   window.dispatchEvent(new Event("cpc:student:notification"));
 }
 
-/**
- * Reconciles sessions to guarantee that if a student already submitted a form or
- * advanced in the enrollment workflow (e.g. Harry Styles), both student and admin
- * notification bells immediately show the appropriate notification!
- */
-export function reconcileAllEnrollmentNotifications(): void {
-  if (typeof window === "undefined") return;
-  try {
-    const raw = window.localStorage.getItem(KEY_SESSIONS);
-    if (!raw) return;
-    const sessions: Record<string, StudentEnrollmentSession> = JSON.parse(raw);
-
-    for (const session of Object.values(sessions)) {
-      if (!session || !session.student) continue;
-
-      const studentId = session.student.studentIdNo;
-      const studentName = session.student.name;
-      const dept = session.student.department;
-
-      // 1. Submitted Enrollment Form
-      if (session.form?.status === "SUBMITTED" || session.form?.status === "APPROVED") {
-        recordStudentNotification(studentId, {
-          id: `enrollment-submitted-${session.form?.id || studentId}`,
-          title: "Enrollment Form Submitted",
-          message: `Your subjects for 1st Sem 2026-2027 (${session.form?.totalUnits ?? 0} units) have been submitted and are queued for Screening Committee review.`,
-          type: "info",
-          href: "/student/queue",
-        });
-
-        recordAdminNotification({
-          title: "New Enrollment Form Submitted",
-          message: `${studentName} (${dept}) submitted their enrollment form (${session.form?.totalUnits ?? 0} units). Queued for Screening Committee review.`,
-          type: "info",
-          href: "/committee/screening",
-          department: dept,
-          targetRole: dept === "BSIT" ? "dean_cs" : dept === "BEED" ? "dean_edu" : "dean_hm",
-        });
-      }
-
-      // 2. Screening Approved
-      if (session.steps?.screening?.status === "APPROVED") {
-        recordStudentNotification(studentId, {
-          id: `screening-approved-${session.form?.id || studentId}`,
-          title: "Screening Review Approved",
-          message: `Your enrollment subjects have been verified and approved by the Screening Committee. Forwarded for queue ticket issuance.`,
-          type: "success",
-          href: "/student/queue",
-        });
-      }
-
-      // 3. Queue Ticket Issued
-      if (session.ticket) {
-        recordStudentNotification(studentId, {
-          id: `ticket-issued-${session.ticket.number}`,
-          title: "Queue Ticket Issued",
-          message: `Your physical enrollment ticket #${session.ticket.number} has been issued! Current station: Clinic (Station 1).`,
-          type: "info",
-          href: "/student/queue",
-        });
-      }
-
-      // 4. Official Enrollment Confirmed
-      if (session.steps?.registrar?.status === "APPROVED") {
-        recordStudentNotification(studentId, {
-          id: `official-enrolled-${studentId}`,
-          title: "Official Enrollment Confirmed!",
-          message: `Congratulations ${studentName}! You are officially enrolled for 1st Semester 2026-2027. Your Certificate of Registration (COR) is ready.`,
-          type: "success",
-          href: "/student/queue",
-        });
-      }
-    }
-  } catch {
-    // Ignore reconciliation failures
-  }
-}

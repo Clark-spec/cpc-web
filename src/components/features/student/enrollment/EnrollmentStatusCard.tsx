@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import {
   ArrowRight,
+  BadgeCheck,
   ExternalLink,
   QrCode,
   Ticket,
@@ -10,8 +11,10 @@ import { useAuth } from "@/components/context/useAuth";
 import { Badge } from "@/components/ui/badge";
 import {
   getStudentSession,
+  checkClearanceStatus,
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
+import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 
 /** Reference number, current state, progress rail, and live workflow status. */
 export function EnrollmentStatusCard() {
@@ -21,14 +24,55 @@ export function EnrollmentStatusCard() {
   const [session, setSession] = useState(() => getStudentSession(studentId));
 
   useEffect(() => {
-    const unsub = subscribeToEnrollmentQueue(() => {
+    const refresh = () => {
       setSession(getStudentSession(studentId));
-    });
-    return unsub;
+      void loadMyEnrollmentSession().then((saved) => {
+        if (saved?.student.studentIdNo === studentId) setSession(saved);
+      }).catch(() => undefined);
+    };
+    refresh();
+    const unsub = subscribeToEnrollmentQueue(refresh);
+    const timer = window.setInterval(refresh, 10000);
+    return () => { unsub(); window.clearInterval(timer); };
   }, [studentId]);
 
   const ticket = session.ticket;
-  const isEnrolled = session.steps.registrar.status === "APPROVED";
+  const signatureSteps = [
+    { key: "screening", label: "1. Screening Committee & Dean" },
+    { key: "guidance", label: "2. Guidance Counselor" },
+    { key: "clinic", label: "3. Clinic" },
+    { key: "accounting", label: "4. Accounting" },
+    { key: "registrar", label: "5. Registrar" },
+  ] as const;
+  const isEnrolled = signatureSteps.every(({ key }) => session.steps[key].status === "APPROVED");
+  const submitted = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
+  const firstThree = signatureSteps.slice(0, 3);
+  const lastTwo = signatureSteps.slice(3);
+  const firstThreeComplete = firstThree.every(({ key }) => session.steps[key].status === "APPROVED");
+  const pendingSignatures = (firstThreeComplete ? lastTwo : firstThree)
+    .filter(({ key }) => session.steps[key].status !== "APPROVED");
+  const requestedPending = pendingSignatures.filter(({ key }) => session.signatureRequests?.[key]);
+  const clearanceComplete = checkClearanceStatus(studentId).cleared;
+  const currentStep = isEnrolled
+    ? "Enrollment complete"
+    : submitted
+      ? firstThreeComplete ? "Step 4 · Final office signatures" : "Step 3 · Office signatures"
+      : session.steps.verification.status !== "APPROVED"
+        ? "Step 0 · Student verification"
+        : clearanceComplete
+          ? "Step 2 · Study Load"
+          : "Step 1 · Online Clearance";
+  const currentStepDetail = isEnrolled
+    ? "All five offices have signed your Study Load."
+    : submitted
+      ? requestedPending.length
+        ? `Waiting for: ${requestedPending.map(({ label }) => label.replace(/^\d\. /, "")).join(", ")}.`
+        : "Send the available office signature requests to continue."
+      : session.steps.verification.status !== "APPROVED"
+        ? "Confirm your Registrar record to continue."
+        : clearanceComplete
+          ? "Open your fixed Study Load and request signatures."
+          : "Complete all Online Clearance signatures first.";
 
   return (
     <div className="enroll-card p-6 sm:p-8 font-poppins">
@@ -64,6 +108,44 @@ export function EnrollmentStatusCard() {
           {session.student.yearLevel})
         </p>
       </div>
+
+      <div className={`mb-6 rounded-2xl border p-4 ${isEnrolled ? "border-emerald-200 bg-emerald-50" : "border-blue-100 bg-blue-50/70"}`}>
+        <p className={`text-[10px] font-bold uppercase tracking-wider ${isEnrolled ? "text-emerald-700" : "text-cpc-blue-accent"}`}>Current Step</p>
+        <h2 className={`mt-1 text-base font-bold ${isEnrolled ? "text-emerald-900" : "text-cpc-navy-text"}`}>{currentStep}</h2>
+        <p className={`mt-1 text-xs ${isEnrolled ? "text-emerald-800" : "text-cpc-heading-soft"}`}>{currentStepDetail}</p>
+      </div>
+
+      {isEnrolled && (
+        <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+          <BadgeCheck className="mx-auto h-8 w-8 text-emerald-700" />
+          <h2 className="mt-2 text-lg font-bold text-emerald-900">You are officially enrolled.</h2>
+          <p className="mt-1 text-xs text-emerald-800">All five required offices have digitally signed your Study Load.</p>
+        </div>
+      )}
+
+      {isEnrolled && (
+        <section className="mb-8 rounded-2xl border border-cpc-input-border/70 bg-white p-5">
+          <h3 className="text-sm font-bold text-cpc-navy-text">Completed Study Load · {session.form.term}</h3>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[520px] text-left text-xs">
+              <thead><tr className="border-b border-cpc-input-border/60 text-[10px] uppercase text-cpc-heading-soft"><th className="py-2">Subject Code</th><th className="py-2">Descriptive Title</th><th className="py-2">Time</th><th className="py-2">Units</th><th className="py-2">Instructor</th></tr></thead>
+              <tbody className="divide-y divide-cpc-input-border/40">
+                {session.form.subjects.map((subject) => <tr key={subject.code}><td className="py-2 font-bold text-cpc-blue-accent">{subject.code}</td><td className="py-2">{subject.title}</td><td className="py-2">{subject.schedule}</td><td className="py-2">{subject.units}</td><td className="py-2">{subject.instructor || "—"}</td></tr>)}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {signatureSteps.map(({ key, label }) => {
+              const step = session.steps[key];
+              return <div key={key} className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-3 text-[11px]">
+                <p className="font-bold text-cpc-navy-text">{label}</p>
+                <p className="mt-1 italic text-emerald-800">Digitally signed by {step.updatedBy || "Authorized Officer"}</p>
+                {step.updatedAt && <p className="text-emerald-700">{new Date(step.updatedAt).toLocaleString()}</p>}
+              </div>;
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Ticket Showcase if minted */}
       {ticket ? (

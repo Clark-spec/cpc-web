@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import {
   AlertTriangle,
   ArrowRight,
+  BadgeCheck,
   CheckCircle2,
   Clock,
   Edit3,
@@ -25,6 +26,7 @@ import {
 } from "@/services/enrollmentWorkflow/service";
 import type { MasterlistRecord } from "@/types/enrollmentWorkflow";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
+import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 
 export function StudentVerifyView() {
   const { user } = useAuth();
@@ -62,6 +64,9 @@ export function StudentVerifyView() {
           }
           cacheContinuingStudentRecord(record);
           setSession(getStudentSession(studentId));
+          void loadMyEnrollmentSession().then((saved) => {
+            if (active && saved?.student.studentIdNo === studentId) setSession(saved);
+          }).catch(() => undefined);
           setCorrections(getCorrectionRequests().filter((r) => r.studentId === studentId));
         })
         .catch(() => {
@@ -79,6 +84,18 @@ export function StudentVerifyView() {
     };
   }, [isDatabaseStudent, studentId]);
 
+  useEffect(() => {
+    if (!isDatabaseStudent) return;
+    let active = true;
+    const refresh = () => {
+      void loadMyEnrollmentSession().then((saved) => {
+        if (active && saved?.student.studentIdNo === studentId) setSession(saved);
+      }).catch(() => undefined);
+    };
+    const timer = window.setInterval(refresh, 10000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [isDatabaseStudent, studentId]);
+
   const { eligible, record, reason } = checkEligibility(studentId);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,6 +106,8 @@ export function StudentVerifyView() {
 
   const latestCorrection = corrections[0];
   const isVerified = session?.steps.verification.status === "APPROVED";
+  const isOfficiallyEnrolled = Boolean(session && ["screening", "guidance", "clinic", "accounting", "registrar"]
+    .every((office) => session.steps[office as "screening" | "guidance" | "clinic" | "accounting" | "registrar"].status === "APPROVED"));
 
   const handleConfirm = () => {
     if (!session) return;
@@ -143,6 +162,21 @@ export function StudentVerifyView() {
           Verify your student record against the Registrar masterlist before proceeding to clearance and subject selection.
         </p>
       </div>
+
+      {isOfficiallyEnrolled && (
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-emerald-700" />
+            <div>
+              <h2 className="text-base font-bold text-emerald-900">You are officially enrolled.</h2>
+              <p className="mt-1 text-xs text-emerald-800">All five offices have signed your Study Load. You can review the completed enrollment status below.</p>
+            </div>
+          </div>
+          <Link to="/online-enrollment/status" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-800">
+            View Enrollment Status <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
 
       {/* Ineligible Banner */}
       {!eligible && (
@@ -298,23 +332,31 @@ export function StudentVerifyView() {
 
           {/* Action Bar */}
           <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-cpc-input-border/50 pt-6">
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-cpc-input-border/80 bg-white px-4 py-2.5 text-xs font-semibold text-cpc-navy-text transition hover:border-cpc-blue-accent hover:text-cpc-blue-accent"
-            >
-              <Edit3 className="h-4 w-4" />
-              Request Detail Correction
-            </button>
+            {isOfficiallyEnrolled ? (
+              <Link to="/online-enrollment/status" className="ml-auto inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-800">
+                View Enrollment Status <ArrowRight className="h-4 w-4" />
+              </Link>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-cpc-input-border/80 bg-white px-4 py-2.5 text-xs font-semibold text-cpc-navy-text transition hover:border-cpc-blue-accent hover:text-cpc-blue-accent"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Request Detail Correction
+                </button>
 
-            <button
-              type="button"
-              onClick={handleConfirm}
-              className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
-            >
-              {isVerified ? "Continue to Clearance" : "Confirm Details & Proceed"}
-              <ArrowRight className="h-4 w-4" />
-            </button>
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                >
+                  {isVerified ? "Continue to Clearance" : "Confirm Details & Proceed"}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
