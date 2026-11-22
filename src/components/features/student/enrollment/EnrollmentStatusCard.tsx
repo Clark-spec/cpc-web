@@ -9,7 +9,9 @@ import {
   QrCode,
   Send,
   Ticket,
+  Download,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { useAuth } from "@/components/context/useAuth";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +21,104 @@ import {
 } from "@/services/enrollmentWorkflow/service";
 import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 import { EnrollmentStatusInfoCards } from "@/components/features/student/enrollment/EnrollmentStatusInfoCards";
+import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
+
+const ENROLLMENT_SIGNATURES = [
+  { key: "screening", label: "Dean & Screening Committee" },
+  { key: "guidance", label: "Guidance" },
+  { key: "clinic", label: "Clinic" },
+  { key: "registrar", label: "Registrar" },
+  { key: "accounting", label: "Accounting" },
+] as const;
+
+function downloadSignedStudyLoad(session: StudentEnrollmentSession) {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setTextColor(20, 42, 112);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.text("CORDOVA PUBLIC COLLEGE", pageWidth / 2, 14, { align: "center" });
+  doc.setFontSize(11);
+  doc.text("OFFICIALLY APPROVED STUDY LOAD", pageWidth / 2, 21, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.text(`Student: ${session.student.name}`, 14, 31);
+  doc.text(`Student ID: ${session.student.studentIdNo}`, 14, 36);
+  doc.text(`Program: ${session.student.course || session.student.department}`, 110, 31);
+  doc.text(`Section: ${session.form.section || session.student.section || "—"}`, 110, 36);
+  doc.text(`Term: ${session.form.term}`, 205, 31);
+
+  const left = 14;
+  const widths = [24, 72, 34, 18, 30, 27, 13, 48];
+  const headers = ["Code", "Subject", "Schedule", "Days", "Set A · F2F", "Set B · Online", "Units", "Instructor"];
+  const top = 44;
+  let x = left;
+  headers.forEach((header, index) => {
+    doc.setFillColor(31, 52, 126);
+    doc.rect(x, top, widths[index], 8, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    doc.text(header, x + 1.5, top + 5.2);
+    x += widths[index];
+  });
+  let y = top + 8;
+  session.form.subjects.filter((subject) => subject.status !== "dropped").forEach((subject, rowIndex) => {
+    const values = [subject.code, subject.title, subject.schedule, subject.days || "—", subject.roomSetA || subject.room || "—", subject.roomSetB || "ONLINE", String(subject.units), subject.instructor || "—"];
+    const rowHeight = 8;
+    x = left;
+    doc.setFillColor(rowIndex % 2 ? 246 : 255, rowIndex % 2 ? 248 : 255, rowIndex % 2 ? 253 : 255);
+    doc.setTextColor(35, 45, 75);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    values.forEach((value, index) => {
+      doc.rect(x, y, widths[index], rowHeight, "F");
+      const lines = doc.splitTextToSize(value, widths[index] - 3);
+      doc.text(lines.slice(0, 2), x + 1.5, y + (lines.length > 1 ? 3.2 : 5.1));
+      x += widths[index];
+    });
+    y += rowHeight;
+  });
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(20, 42, 112);
+  doc.text(`Total units: ${session.form.subjects.filter((subject) => subject.status !== "dropped").reduce((total, subject) => total + Number(subject.units || 0), 0)}`, left, y + 5);
+
+  const signatureTop = 151;
+  const cardGap = 2;
+  const cardWidth = (pageWidth - left * 2 - cardGap * (ENROLLMENT_SIGNATURES.length - 1)) / ENROLLMENT_SIGNATURES.length;
+  ENROLLMENT_SIGNATURES.forEach(({ key, label }, index) => {
+    const step = session.steps[key];
+    const cardX = left + index * (cardWidth + cardGap);
+    doc.setDrawColor(188, 203, 226);
+    doc.setFillColor(247, 250, 255);
+    doc.roundedRect(cardX, signatureTop, cardWidth, 39, 2, 2, "FD");
+    const image = step.signatureImage;
+    let signatureAdded = false;
+    if (image?.startsWith("data:image/")) {
+      const format = image.startsWith("data:image/jpeg") || image.startsWith("data:image/jpg") ? "JPEG" : "PNG";
+      try { doc.addImage(image, format, cardX + 3, signatureTop + 3, cardWidth - 6, 15, undefined, "FAST"); signatureAdded = true; } catch { /* Use the signer-name fallback if this image format is unsupported. */ }
+    }
+    if (!signatureAdded) {
+      doc.setTextColor(25, 44, 99);
+      doc.setFont("times", "italic");
+      doc.setFontSize(12);
+      doc.text(doc.splitTextToSize(step.updatedBy || "Authorized Officer", cardWidth - 5).slice(0, 1), cardX + 2.5, signatureTop + 14);
+    }
+    doc.setTextColor(25, 44, 99);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.3);
+    doc.text(doc.splitTextToSize(label, cardWidth - 5).slice(0, 2), cardX + 2.5, signatureTop + 22);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    doc.text(doc.splitTextToSize(`Digitally signed by ${step.updatedBy || "Authorized Officer"}`, cardWidth - 5).slice(0, 2), cardX + 2.5, signatureTop + 28);
+    doc.text(step.updatedAt ? new Date(step.updatedAt).toLocaleDateString() : "Approved", cardX + 2.5, signatureTop + 36);
+  });
+
+  const studentId = session.student.studentIdNo || "student";
+  doc.save(`CPC-Study-Load-${studentId}.pdf`);
+}
 
 /** Reference number, current state, progress rail, and live workflow status. */
 export function EnrollmentStatusCard() {
@@ -162,7 +262,12 @@ export function EnrollmentStatusCard() {
 
       {isEnrolled && (
         <section className="mb-8 rounded-2xl border border-cpc-input-border/70 bg-white p-5">
-          <h3 className="text-sm font-bold text-cpc-navy-text">Completed Study Load · {session.form.term} · {session.form.section || session.student.section}</h3>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-cpc-navy-text">Completed Study Load · {session.form.term} · {session.form.section || session.student.section}</h3>
+            <button type="button" onClick={() => downloadSignedStudyLoad(session)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+              <Download className="h-4 w-4" aria-hidden /> Download signed Study Load
+            </button>
+          </div>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-xs">
               <thead><tr className="border-b border-cpc-input-border/60 text-[10px] uppercase text-cpc-heading-soft"><th className="py-2">Subject Code</th><th className="py-2">Descriptive Title</th><th className="py-2">Time</th><th className="py-2">Days</th><th className="py-2">Set A · F2F</th><th className="py-2">Set B · Online</th><th className="py-2">Units</th><th className="py-2">Instructor</th></tr></thead>
