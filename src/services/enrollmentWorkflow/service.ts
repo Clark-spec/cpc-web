@@ -32,6 +32,10 @@ const KEY_SCHEDULES = "cpc:enrollment:schedules:v1";
 const KEY_QUEUE_TICKETS = "cpc:enrollment:queue_tickets:v1";
 const KEY_CORRECTIONS = "cpc:enrollment:corrections:v1";
 const KEY_AUDIT_LOG = "cpc:enrollment:audit_log:v1";
+const LEGACY_DEMO_STUDENT_IDS = new Set([
+  "2024-00012", "2024-00045", "2023-00088", "2024-00102", "2022-00501",
+  "STU-2026-0042", "STU-2026-0231", "2026-99999",
+]);
 
 const CHANNEL_NAME = "cpc-enrollment-queue";
 
@@ -120,7 +124,13 @@ export function getMasterlist(): MasterlistRecord[] {
       window.localStorage.setItem(KEY_MASTERLIST, JSON.stringify(SEED_MASTERLIST));
       return SEED_MASTERLIST;
     }
-    const stored: MasterlistRecord[] = JSON.parse(raw);
+    const parsed: MasterlistRecord[] = JSON.parse(raw);
+    const stored = parsed.filter(
+      (student: MasterlistRecord) => !LEGACY_DEMO_STUDENT_IDS.has(student.studentIdNo),
+    );
+    if (stored.length !== parsed.length) {
+      window.localStorage.setItem(KEY_MASTERLIST, JSON.stringify(stored));
+    }
     const existingIds = new Set(stored.map((s) => s.studentIdNo.toLowerCase()));
     const missing = SEED_MASTERLIST.filter((s) => !existingIds.has(s.studentIdNo.toLowerCase()));
     if (missing.length > 0) {
@@ -457,6 +467,12 @@ export function getAllSessions(): Record<string, StudentEnrollmentSession> {
     }
     const stored: Record<string, StudentEnrollmentSession> = JSON.parse(raw);
     let changed = false;
+    for (const id of LEGACY_DEMO_STUDENT_IDS) {
+      if (id in stored) {
+        delete stored[id];
+        changed = true;
+      }
+    }
     for (const [id, session] of Object.entries(SEED_SESSIONS)) {
       if (!stored[id]) {
         stored[id] = session;

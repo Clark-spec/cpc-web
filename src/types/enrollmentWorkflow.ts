@@ -174,7 +174,11 @@ export interface StudentEnrollmentSession {
   form: EnrollmentFormRecord;
   ticket?: QueueTicket;
   signatureRequests?: Partial<Record<"screening" | "guidance" | "clinic" | "registrar" | "accounting", string>>;
+  signatureQueue?: Partial<Record<"screening" | "guidance" | "clinic" | "registrar" | "accounting", { date: string; number: number }>>;
   screeningFeePaidAt?: string;
   screeningFeeVerifiedBy?: string;
+  signatureQueueProcessing?: { startedAt?: string; startedBy?: string };
+  /** Office queues currently processing this student's Study Load request. */
+  signatureQueueProcessingOffices?: Array<"screening" | "guidance" | "clinic" | "registrar" | "accounting">;
   clearance?: { offices: Array<{ office: string; status: string }> };
 }

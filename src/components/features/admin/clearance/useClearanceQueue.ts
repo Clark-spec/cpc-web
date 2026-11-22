@@ -132,7 +132,8 @@ export function filterAndSortRows(
 
   return matched.sort((a, b) => {
     if (filters.sort === "name") return a.studentName.localeCompare(b.studentName);
-    const delta = byAnchor(a) - byAnchor(b);
+    const delta = (a.queueDate ?? "").localeCompare(b.queueDate ?? "")
+      || (a.queueNumber != null && b.queueNumber != null ? a.queueNumber - b.queueNumber : byAnchor(a) - byAnchor(b));
     return filters.sort === "newest" ? -delta : delta;
   });
 }

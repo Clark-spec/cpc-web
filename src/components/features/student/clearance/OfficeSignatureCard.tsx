@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
+  Download,
   FileText,
   Loader2,
   RotateCcw,
@@ -21,6 +22,7 @@ import { RequestSignatureModal } from "@/components/features/student/clearance/R
 import { CLEARANCE_CLOSED_MESSAGE, useClearance } from "@/components/features/student/clearance/ClearanceContext";
 import { formatDate, formatRelativeTime } from "@/lib/format";
 import type { OfficeId, OfficeSignature } from "@/types/clearance";
+import { downloadQueueTicket } from "@/utils/downloadQueueTicket";
 
 type OfficeSignatureCardProps = {
   office: OfficeSignature;
@@ -105,10 +107,10 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     setCancelling(true);
     try {
       await cancelRequest(office.office);
-    } catch {
+    } catch (cause) {
       showError(
         "Could not cancel request",
-        `${office.label} still has this request. Please try again in a moment.`,
+        cause instanceof Error ? cause.message : `${office.label} still has this request. Please try again in a moment.`,
       );
     } finally {
       setCancelling(false);
@@ -230,12 +232,18 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
           </div>
         ) : requested ? (
           <div className="mt-3 space-y-2 rounded-xl border border-amber-200/70 bg-amber-50/60 p-2.5 backdrop-blur-xs">
+            {office.queueNumber && <p className="font-poppins text-xs font-bold text-cpc-navy-text">Office Signatures queue #{office.queueNumber}{office.queueDate ? ` · ${office.queueDate}` : ""}</p>}
             <div className="flex items-center justify-between text-[10.5px]">
               <span className="font-semibold text-amber-900">Request in review</span>
               <span className="text-amber-700/80 text-[10px]">
                 {formatRelativeTime(office.requestedAt ?? new Date().toISOString())}
               </span>
             </div>
+            {office.queueNumber && office.queueDate && (
+              <button type="button" onClick={() => downloadQueueTicket("Clearance Request", office.label, office.queueNumber!, office.queueDate!)} className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 font-poppins text-[10.5px] font-semibold text-cpc-blue-accent transition-colors hover:bg-amber-50">
+                <Download className="h-3.5 w-3.5" aria-hidden />Download queue ticket
+              </button>
+            )}
             {office.studentNote ? (
               <p className="rounded-lg border border-amber-200/50 bg-white/80 p-2 font-poppins text-[10.5px] italic text-amber-950">
                 “{office.studentNote}”
@@ -292,15 +300,21 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
               <Clock3 className="h-3.5 w-3.5 text-amber-600 animate-pulse" aria-hidden />
               Request Submitted
             </button>
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={cancelling}
-              className="inline-flex cursor-pointer items-center justify-center gap-1.5 self-center rounded px-2 py-0.5 font-poppins text-[10.5px] font-medium text-cpc-heading-soft underline decoration-dotted underline-offset-2 transition-colors hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {cancelling && <Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
-              Cancel Request
-            </button>
+            {office.isProcessing ? (
+              <p className="self-center px-2 py-0.5 font-poppins text-[10.5px] font-medium text-emerald-800">
+                The office is processing this request. Cancellation is unavailable; contact the office if you need help.
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="inline-flex cursor-pointer items-center justify-center gap-1.5 self-center rounded px-2 py-0.5 font-poppins text-[10.5px] font-medium text-cpc-heading-soft underline decoration-dotted underline-offset-2 transition-colors hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {cancelling && <Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
+                Cancel Request
+              </button>
+            )}
           </div>
         ) : rejected ? (
           <button

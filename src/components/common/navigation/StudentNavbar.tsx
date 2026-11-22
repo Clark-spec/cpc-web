@@ -13,6 +13,7 @@ import { useAuth } from "@/components/context/useAuth";
 type NavLink = {
   label: string;
   to: string;
+  openInNewTab?: boolean;
 };
 
 type NavItem = {
@@ -33,6 +34,8 @@ const navItems: NavItem[] = [
     label: "Student Service",
     links: [
       { label: "Online Clearance", to: "/student-services/online-clearance" },
+      { label: "Office Signatures Live Queue", to: "/display/office-signatures", openInNewTab: true },
+      { label: "Study Load Live Queue", to: "/display/study-load-signatures", openInNewTab: true },
       { label: "Online Kiosk", to: "#" },
       { label: "Service Request", to: "/student/service-requests" },
     ],
@@ -257,6 +260,16 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                               ) : (
                                 <Link
                                   to={link.to}
+                                  target={link.openInNewTab ? "_blank" : undefined}
+                                  rel={link.openInNewTab ? "noopener" : undefined}
+                                  onClick={(event) => {
+                                    if (link.openInNewTab) {
+                                      event.preventDefault();
+                                      window.open(link.to, "_blank", "noopener");
+                                    } else {
+                                      setOpenIndex(null);
+                                    }
+                                  }}
                                   aria-current={
                                     isLinkActive(pathname, link.to) ? "page" : undefined
                                   }
@@ -367,7 +380,15 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
                       <li key={link.label}>
                         <Link
                           to={link.to}
-                          onClick={() => setMobileOpen(false)}
+                          target={link.openInNewTab ? "_blank" : undefined}
+                          rel={link.openInNewTab ? "noopener" : undefined}
+                          onClick={(event) => {
+                            setMobileOpen(false);
+                            if (link.openInNewTab) {
+                              event.preventDefault();
+                              window.open(link.to, "_blank", "noopener");
+                            }
+                          }}
                           aria-current={isLinkActive(pathname, link.to) ? "page" : undefined}
                           className={cn(
                             "block rounded-md px-1.5 py-2 font-poppins text-sm text-cpc-navy-text transition-colors hover:bg-cpc-section-light hover:text-cpc-blue-accent",

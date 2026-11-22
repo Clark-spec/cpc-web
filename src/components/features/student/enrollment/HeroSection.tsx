@@ -9,8 +9,7 @@ import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database"
 export function HeroSection() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const studentId =
-    user?.studentNumber || (user?.role === "student" ? "STU-2026-0042" : undefined);
+  const studentId = user?.studentNumber || undefined;
   const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId ?? "");
   const [session, setSession] = useState(() => studentId && !isDatabaseStudent ? getStudentSession(studentId) : null);
   useEffect(() => {

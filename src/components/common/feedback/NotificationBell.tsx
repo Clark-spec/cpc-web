@@ -175,9 +175,14 @@ export function NotificationBell({
     );
     if (!newest) return;
     if (Date.now() - new Date(newest.createdAt).getTime() > TOAST_FRESHNESS_MS) return;
-    // Study Load request actions already show immediate feedback. The matching
+    // Signature request actions already show immediate feedback. The matching
     // server notification should update the bell, not produce a second toast.
-    if (newest.title?.startsWith("Request sent to ") || newest.title?.startsWith("Request cancelled: ")) return;
+    const title = newest.title?.trim().toLowerCase() ?? "";
+    if (
+      title.startsWith("request sent to ") ||
+      title.startsWith("request cancelled: ") ||
+      title.startsWith("clearance pending:")
+    ) return;
     toast(newest.message, newest.type);
   }, [notifications, open, toast]);
 

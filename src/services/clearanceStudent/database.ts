@@ -14,3 +14,14 @@ export async function updateMyClearance(action: "request" | "cancel", office: Of
   if (!response.data.data?.record) throw new ApiError(response.data.message || "Clearance update could not be saved.");
   return response.data.data.record;
 }
+
+export async function requestMyClearanceOffices(officeIds: OfficeId[]): Promise<ClearanceRecord> {
+  const csrf = await getCsrfToken();
+  const response = await apiClient.post<Envelope<{ record: ClearanceRecord }>>(
+    "/enrollment/v1/clearance/mine/request-many",
+    { offices: officeIds },
+    { headers: { "x-csrf-token": csrf } },
+  );
+  if (!response.data.data?.record) throw new ApiError(response.data.message || "Office Signature requests could not be saved.");
+  return response.data.data.record;
+}

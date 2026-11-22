@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { BadgeCheck, Clock, PenLine, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import { BadgeCheck, Clock, MonitorPlay, PenLine, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { useToast } from "@/components/ui/toast";
 import { Modal } from "@/components/ui/modal";
 import { SignaturePadModal } from "@/components/features/admin/clearance/SignaturePadModal";
 import { useSavedSignatures } from "@/components/features/admin/clearance/useSavedSignatures";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { ensureAdminSession, readAdminRole } from "@/services/complaints/admin-session";
+import { useSSE } from "@/hooks/useSSE";
+import { finishSignatureQueue, startSignatureQueue } from "@/services/signatureQueues/api";
+import { BSIT_SIGNATURE_SECTIONS, isBsitSignatureSection, normalizeBsitSignatureSection } from "@/lib/bsitSignatureSections";
 import { getOfficeSignatureRequests, signEnrollmentInDatabase } from "@/services/enrollmentWorkflow/database";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 import type { SignatureDraft } from "@/components/features/admin/clearance/types";
@@ -38,6 +42,7 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
   const [padOpen, setPadOpen] = useState(false);
   const [feeConfirmed, setFeeConfirmed] = useState(false);
   const [certified, setCertified] = useState(false);
+  const [queueStartMessage, setQueueStartMessage] = useState("");
 
   const activeSession = sessions.find((session) => session.student.studentIdNo === activeStudentId) ?? null;
   const getStatus = (session: StudentEnrollmentSession) => {
@@ -45,9 +50,9 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
     return status === "APPROVED" ? "SIGNED" : status === "REJECTED" || status === "RESUBMIT" ? "REJECTED" : "PENDING";
   };
   const getCurrentSection = (session: StudentEnrollmentSession) =>
-    String(session.student.section ?? "").trim().toUpperCase().replace(/\s+/g, "");
+    normalizeBsitSignatureSection(session.student.section);
   const matchesSection = (session: StudentEnrollmentSession) => sectionFilter === "all"
-    ? /^BSIT-[23][A-D]$/i.test(getCurrentSection(session))
+    ? isBsitSignatureSection(getCurrentSection(session))
     : getCurrentSection(session) === sectionFilter;
   const sectionSessions = sessions.filter(matchesSection);
   const visibleSessions = sectionSessions.filter((session) => statusFilter === "ALL" || getStatus(session) === statusFilter);
@@ -74,11 +79,17 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
     }
   }, [office]);
 
+  const resolveSseToken = useCallback(() => ensureAdminSession(readAdminRole()), []);
+
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => void refresh(), 10000);
     return () => window.clearInterval(timer);
   }, [refresh]);
+
+  useSSE((type) => {
+    if (type === "notification_created" || type === "notification_updated" || type === "enrollment_queue_updated") void refresh();
+  }, Boolean(user?.id), user?.id, resolveSseToken);
 
   useEffect(() => {
     if (!signatureId && signatureLibrary.defaultSignature) {
@@ -88,12 +99,14 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
   }, [captured, signatureId, signatureLibrary.defaultSignature]);
 
   function openSigning(studentId: string) {
+    const session = sessions.find((entry) => entry.student.studentIdNo === studentId);
     setActiveStudentId(studentId);
     setCaptured(null);
     setSignatureId(signatureLibrary.defaultSignature?.id ?? "");
     setSignatureSource(signatureLibrary.defaultSignature ? "saved" : "new");
-    setFeeConfirmed(false);
+    setFeeConfirmed(office === "screening" && Boolean(session?.screeningFeePaidAt));
     setCertified(false);
+    setQueueStartMessage("");
   }
 
   async function confirmDeleteSignature() {
@@ -116,7 +129,7 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
   }
 
   async function handleSign() {
-    if (!activeSession || !selectedDraft || !certified || busy) return;
+    if (!activeSession || !selectedDraft || !certified || busy || !activeSession.signatureQueueProcessing) return;
     if (office === "screening" && !feeConfirmed) return;
     const studentId = activeSession.student.studentIdNo;
     setBusy(studentId);
@@ -148,6 +161,60 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
     }
   }
 
+  async function startProcessing(studentId: string) {
+    if (busy) return;
+    setBusy(studentId);
+    try {
+      await startSignatureQueue({ queueType: "study_load", office, studentId });
+      setQueueStartMessage("");
+      toast("Request is now processing. The live board has been updated.", "success");
+      await refresh();
+    } catch (cause) {
+      toast(cause instanceof Error ? cause.message : "Could not start processing this request.", "error");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function finishProcessing(studentId: string) {
+    if (busy) return;
+    setBusy(studentId);
+    try {
+      await finishSignatureQueue({ queueType: "study_load", office, studentId });
+      toast("Request is no longer marked as processing.", "success");
+      await refresh();
+    } catch (cause) {
+      toast(cause instanceof Error ? cause.message : "Could not finish processing this request.", "error");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function confirmFeeAndStart(checked: boolean) {
+    setFeeConfirmed(checked);
+    if (!activeSession) return;
+    if (checked) {
+      setBusy(activeSession.student.studentIdNo);
+      try {
+        await startSignatureQueue({ queueType: "study_load", office, studentId: activeSession.student.studentIdNo, feePaidConfirmed: true });
+        toast("Payment confirmed and request is now processing.", "success");
+        await refresh();
+      } catch (cause) {
+        const paymentWasRecorded = cause instanceof Error && /earlier eligible request|already processing another request/i.test(cause.message);
+        setFeeConfirmed(paymentWasRecorded);
+        setQueueStartMessage(paymentWasRecorded
+          ? "Payment is confirmed, but this request has not started processing yet. Start processing when it is next eligible; digital signing unlocks once it appears under Now Processing."
+          : cause instanceof Error ? cause.message : "Payment could not be confirmed.");
+        await refresh();
+        toast(cause instanceof Error ? cause.message : "Could not start this request.", "error");
+      } finally {
+        setBusy(null);
+      }
+    } else if (activeSession.signatureQueueProcessing) {
+      void finishProcessing(activeSession.student.studentIdNo);
+    }
+  }
+
   return (
     <section className="mb-8 rounded-2xl border border-cpc-input-border/70 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cpc-input-border/50 pb-4">
@@ -158,16 +225,21 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
             <p className="text-[11px] text-cpc-heading-soft">Requests from students appear here and refresh automatically.</p>
           </div>
         </div>
-        <button type="button" onClick={() => void refresh()} className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => void refresh()} className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh
+          </button>
+          <a href="/display/study-load-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/study-load-signatures", "_blank", "noopener"); }} className="inline-flex items-center gap-1.5 rounded-lg border border-cpc-blue-accent/30 bg-white px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
+            <MonitorPlay className="h-3.5 w-3.5" aria-hidden /> Live Queue TV
+          </a>
+        </div>
       </div>
       {error && <p className="mt-3 rounded-lg bg-rose-50 p-3 text-xs text-rose-700">{error}</p>}
       <div className="mt-4 overflow-hidden rounded-xl border border-cpc-input-border/60 bg-white">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cpc-input-border/50 p-3">
           <div className="flex items-center gap-2"><h3 className="text-sm font-bold text-cpc-navy-text">{statusFilters.find((filter) => filter.key === statusFilter)?.label} requests</h3><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">{visibleSessions.length}</span></div>
           <div className="flex flex-wrap items-center gap-1.5">
-            <label className="mr-1 text-[11px] font-semibold text-cpc-heading-soft">Section <select aria-label="Filter enrollment requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-cpc-input-border bg-white px-2.5 py-2 text-xs font-semibold text-cpc-navy-text"><option value="all">All BSIT sections</option>{["BSIT-2A", "BSIT-2B", "BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D"].map((section) => <option key={section} value={section}>{section}</option>)}</select></label>
+            <label className="mr-1 text-[11px] font-semibold text-cpc-heading-soft">Section <select aria-label="Filter enrollment requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-cpc-input-border bg-white px-2.5 py-2 text-xs font-semibold text-cpc-navy-text"><option value="all">All BSIT sections</option>{BSIT_SIGNATURE_SECTIONS.map((section) => <option key={section} value={section}>{section}</option>)}</select></label>
             {statusFilters.map((filter) => {
               const active = statusFilter === filter.key;
               const palette = filter.color === "amber" ? (active ? "border-amber-600 bg-amber-600 text-white" : "border-amber-200 bg-white text-amber-800") : filter.color === "emerald" ? (active ? "border-emerald-600 bg-emerald-600 text-white" : "border-emerald-200 bg-white text-emerald-800") : filter.color === "rose" ? (active ? "border-rose-600 bg-rose-600 text-white" : "border-rose-200 bg-white text-rose-800") : (active ? "border-blue-700 bg-blue-700 text-white" : "border-slate-200 bg-white text-slate-600");
@@ -189,11 +261,16 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
                   <p className="text-sm font-bold text-cpc-navy-text">{session.student.name}</p>
                   <p className="mt-0.5 text-xs text-cpc-heading-soft">ID {studentId} · {getCurrentSection(session) || session.student.course} · {session.student.yearLevel}{session.student.yearLevel === 1 ? "st" : session.student.yearLevel === 2 ? "nd" : session.student.yearLevel === 3 ? "rd" : "th"} Year</p>
                   <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-cpc-muted-blue"><Clock className="h-3 w-3" /> Request received {requestTime ? new Date(requestTime).toLocaleString() : ""}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-cpc-blue-accent">Queue #{session.signatureQueue?.[office]?.number ?? "—"}{session.signatureQueue?.[office]?.date ? ` · ${session.signatureQueue[office]?.date}` : ""}</p>
                   <p className="mt-2 text-xs text-cpc-heading-soft">Study Load: {session.form.totalUnits} units · {session.form.term}</p>
                 </div>
                 <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${status === "PENDING" ? "bg-amber-100 text-amber-800" : status === "SIGNED" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}`}>{status === "PENDING" ? "Pending" : status === "SIGNED" ? "Signed" : "Rejected"}</span>
               </div>
-              {status === "PENDING" ? <button type="button" onClick={() => openSigning(studentId)} className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cpc-blue-accent px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"><PenLine className="h-4 w-4" /> Review &amp; Sign</button> : <p className={`mt-3 text-xs font-semibold ${status === "SIGNED" ? "text-emerald-700" : "text-rose-700"}`}>{status === "SIGNED" ? `Digitally signed${session.steps?.[office]?.updatedBy ? ` by ${session.steps[office].updatedBy}` : ""}.` : session.steps?.[office]?.remarks || "This request was rejected or returned."}</p>}
+              {session.signatureQueueProcessing && <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-900">Now processing{session.signatureQueueProcessing.startedBy ? ` · ${session.signatureQueueProcessing.startedBy}` : ""}</div>}
+              {status === "PENDING" && office === "screening" && !session.screeningFeePaidAt && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Awaiting ₱100 payment. This request keeps its queue number while staff process paid requests.</div>}
+              {office === "guidance" && session.screeningFeePaidAt && <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">₱100 face-to-face payment confirmed by {session.screeningFeeVerifiedBy || "the Dean"}{session.screeningFeePaidAt ? ` · ${new Date(session.screeningFeePaidAt).toLocaleString()}` : ""}. Screening signature is {session.steps.screening.status === "APPROVED" ? "signed" : "in progress"}.</div>}
+              {status === "PENDING" && <div className="mt-4 flex flex-wrap gap-2">{session.signatureQueueProcessing ? <button type="button" disabled={busy !== null} onClick={() => void finishProcessing(studentId)} className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50">Finish processing</button> : office !== "screening" || session.screeningFeePaidAt ? <button type="button" disabled={busy !== null} onClick={() => void startProcessing(studentId)} className="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-xs font-semibold text-emerald-800 disabled:opacity-50">Start processing</button> : null}<button type="button" onClick={() => openSigning(studentId)} disabled={office !== "screening" && !session.signatureQueueProcessing} className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cpc-blue-accent px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"><PenLine className="h-4 w-4" /> {office === "screening" && !session.screeningFeePaidAt ? "Confirm payment & start" : "Review & Sign"}</button></div>}
+              {status !== "PENDING" && <p className={`mt-3 text-xs font-semibold ${status === "SIGNED" ? "text-emerald-700" : "text-rose-700"}`}>{status === "SIGNED" ? `Digitally signed${session.steps?.[office]?.updatedBy ? ` by ${session.steps[office].updatedBy}` : ""}.` : session.steps?.[office]?.remarks || "This request was rejected or returned."}</p>}
             </article>
           );
         })}
@@ -211,9 +288,15 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
             </div>
             {office === "screening" && (
               <label className="mt-4 flex items-start gap-2 text-xs text-cpc-heading-soft">
-                <input type="checkbox" checked={feeConfirmed} onChange={(event) => setFeeConfirmed(event.target.checked)} />
-                Confirm that the student paid the required ₱100 department fee.
+                <input type="checkbox" checked={feeConfirmed} disabled={busy !== null} onChange={(event) => void confirmFeeAndStart(event.target.checked)} />
+                Confirm the student paid ₱100 in person at the department office. This starts processing; sign below to finish and notify Guidance.
               </label>
+            )}
+            {office === "screening" && feeConfirmed && !activeSession.signatureQueueProcessing && (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-[11px] leading-relaxed text-amber-900">{queueStartMessage || "Payment is confirmed. Start processing when this request is next eligible; digital signing unlocks once it appears under Now Processing."}</p>
+                <button type="button" disabled={busy !== null} onClick={() => void startProcessing(activeSession.student.studentIdNo)} className="mt-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-semibold text-amber-900 disabled:opacity-50">{busy === activeSession.student.studentIdNo ? "Starting…" : "Start processing"}</button>
+              </div>
             )}
             <fieldset className="mt-4 space-y-2">
               <legend className="text-[11px] font-semibold text-cpc-navy-text">Signature source</legend>
@@ -260,7 +343,7 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
             </label>
             <div className="mt-5 flex justify-end gap-2">
               <button type="button" onClick={() => setActiveStudentId(null)} className="rounded-lg border border-cpc-input-border px-4 py-2 text-xs font-semibold text-cpc-navy-text">Cancel</button>
-              <button type="button" disabled={busy === activeSession.student.studentIdNo || !selectedDraft || !certified || (office === "screening" && !feeConfirmed)} onClick={() => void handleSign()} className="inline-flex items-center gap-2 rounded-lg bg-cpc-blue-accent px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="button" disabled={busy === activeSession.student.studentIdNo || !activeSession.signatureQueueProcessing || !selectedDraft || !certified || (office === "screening" && !feeConfirmed)} onClick={() => void handleSign()} className="inline-flex items-center gap-2 rounded-lg bg-cpc-blue-accent px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
                 <ShieldCheck className="h-4 w-4" /> {busy === activeSession.student.studentIdNo ? "Saving…" : "Apply Digital Signature"}
               </button>
             </div>

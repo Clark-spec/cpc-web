@@ -114,6 +114,9 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     if (type === "connected" || type === "notification_created" || type === "notification_updated") {
       void refreshGradeAcknowledgement();
     }
+    if (type === "enrollment_queue_updated") {
+      void getClearance().then(setState).catch(() => undefined);
+    }
   }, user?.role === "student", user?.id);
 
   const student = useMemo<StudentProfile>(() => {

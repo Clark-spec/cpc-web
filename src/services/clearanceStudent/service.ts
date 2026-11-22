@@ -1,6 +1,6 @@
 import { canonicalProgram } from "@/lib/programs";
 import type { ClearancePeriod, ClearanceState, OfficeId, StudentProfile } from "@/types/clearance";
-import { loadMyClearanceRecord, updateMyClearance } from "./database";
+import { loadMyClearanceRecord, requestMyClearanceOffices, updateMyClearance } from "./database";
 
 const DEFAULT_PERIOD: ClearancePeriod = {
   academicYear: "2025-2026", term: "2nd Semester", opensAt: "", closesAt: "", open: true, overdueDays: 3,
@@ -82,8 +82,8 @@ export async function requestSignature(officeId: OfficeId, note?: string): Promi
 }
 
 export async function requestSignatures(officeIds: OfficeId[]): Promise<ClearanceState> {
-  for (const office of officeIds) await updateMyClearance("request", office);
-  return getClearance();
+  const record = await requestMyClearanceOffices(officeIds);
+  return toClearanceState(record);
 }
 
 export async function cancelRequest(officeId: OfficeId): Promise<ClearanceState> {

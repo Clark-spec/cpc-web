@@ -12,6 +12,7 @@ const EVENT_TYPES = new Set([
   "notification_created",
   "complaint_updated",
   "academic_calendar_updated",
+  "enrollment_queue_updated",
 ]);
 
 /** Reads one SSE block and delivers its named event to the current handler. */

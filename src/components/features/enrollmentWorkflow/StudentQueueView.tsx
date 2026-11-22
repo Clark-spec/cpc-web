@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
   ArrowLeft,
@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   ClipboardCheck,
+  Download,
   HeartPulse,
   Send,
   ShieldCheck,
@@ -23,6 +24,8 @@ import {
   type EnrollmentSignatureOffice,
 } from "@/services/enrollmentWorkflow/service";
 import { cancelSignatureRequestFromDatabase, loadMyEnrollmentSession, requestSignatureFromDatabase } from "@/services/enrollmentWorkflow/database";
+import { useSSE } from "@/hooks/useSSE";
+import { downloadQueueTicket } from "@/utils/downloadQueueTicket";
 
 const REQUEST_CARDS: Array<{
   office: EnrollmentSignatureOffice;
@@ -74,23 +77,28 @@ export function StudentQueueView() {
   const [enrollmentCompleteOpen, setEnrollmentCompleteOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ kind: "request" | "cancel"; office: EnrollmentSignatureOffice } | null>(null);
 
+  const refresh = useCallback(() => {
+    if (!isDatabaseStudent) {
+      setSession(getStudentSession(studentId));
+      return;
+    }
+    void loadMyEnrollmentSession().then((saved) => {
+      if (saved?.student.studentIdNo !== studentId) throw new Error("Enrollment record was not found.");
+      setSession(saved);
+      setDatabaseError(false);
+    }).catch(() => setDatabaseError(true)).finally(() => setLoadingDatabase(false));
+  }, [isDatabaseStudent, studentId]);
+
   useEffect(() => {
-    const refresh = () => {
-      if (!isDatabaseStudent) {
-        setSession(getStudentSession(studentId));
-        return;
-      }
-      void loadMyEnrollmentSession().then((saved) => {
-        if (saved?.student.studentIdNo !== studentId) throw new Error("Enrollment record was not found.");
-        setSession(saved);
-        setDatabaseError(false);
-      }).catch(() => setDatabaseError(true)).finally(() => setLoadingDatabase(false));
-    };
     refresh();
     const unsub = subscribeToEnrollmentQueue(refresh);
     const timer = window.setInterval(refresh, 10000);
     return () => { unsub(); window.clearInterval(timer); };
-  }, [isDatabaseStudent, studentId]);
+  }, [refresh]);
+
+  useSSE((type) => {
+    if (type === "notification_created" || type === "notification_updated" || type === "enrollment_queue_updated") refresh();
+  }, isDatabaseStudent, user?.id);
 
   const firstThreeSigned = ["screening", "guidance", "clinic"]
     .every((office) => session.steps[office as EnrollmentSignatureOffice].status === "APPROVED");
@@ -140,7 +148,7 @@ export function StudentQueueView() {
   }
 
   async function handleCancel(office: EnrollmentSignatureOffice) {
-    if (!session.signatureRequests?.[office] || sending) return;
+    if (!session.signatureRequests?.[office] || session.signatureQueueProcessingOffices?.includes(office) || sending) return;
     setSending(office);
     try {
       const saved = await cancelSignatureRequestFromDatabase(studentId, office);
@@ -197,6 +205,7 @@ export function StudentQueueView() {
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-cpc-heading-soft">
           Request the first three signatures in any order. Registrar and Accounting unlock after all three have signed.
         </p>
+        <a href="/display/study-load-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/study-load-signatures", "_blank", "noopener"); }} className="mt-3 inline-flex rounded-lg border border-cpc-blue-accent/30 bg-white px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-blue-50">View live Study Load queue board</a>
       </div>
 
       {officiallyEnrolled && (
@@ -253,6 +262,19 @@ export function StudentQueueView() {
                 {card.note}
               </p>
 
+              {session.signatureRequests?.[card.office] && (
+                <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/60 p-3 text-xs text-cpc-navy-text">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold">Queue number: #{session.signatureQueue?.[card.office]?.number ?? "—"}{session.signatureQueue?.[card.office]?.date ? ` · ${session.signatureQueue[card.office]?.date}` : ""}</p>
+                    {session.signatureQueue?.[card.office]?.number && session.signatureQueue[card.office]?.date && <button type="button" onClick={() => downloadQueueTicket("Study Load", card.title, session.signatureQueue![card.office]!.number, session.signatureQueue![card.office]!.date)} className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-cpc-blue-accent hover:bg-blue-50"><Download className="h-3.5 w-3.5" aria-hidden />Download ticket</button>}
+                  </div>
+                  {session.signatureQueueProcessingOffices?.includes(card.office) && <p className="mt-1 font-semibold text-emerald-800">The office is processing this request. It can no longer be cancelled; contact the office if you need help.</p>}
+                  <p className="mt-1 text-cpc-heading-soft">{card.office === "screening" ? "Show this number to the Dean when you visit the department office to pay ₱100 in person. It identifies your place in the request line; it is not an appointment time." : "This is your place in the request line for this office. Requests are handled in server-received order."} Each office accepts up to 1,000 requests per day.</p>
+                  {card.office === "screening" && !session.screeningFeePaidAt && session.steps.screening.status !== "APPROVED" && <p className="mt-1 font-medium text-amber-800">Your place is saved while the ₱100 payment is pending. The Dean will check payment and sign your request.</p>}
+                  {card.office === "screening" && session.screeningFeePaidAt && <p className="mt-1 font-medium text-emerald-800">₱100 payment confirmed by {session.screeningFeeVerifiedBy || "the Dean"}{session.screeningFeePaidAt ? ` · ${new Date(session.screeningFeePaidAt).toLocaleString()}` : ""}. Screening signature is {session.steps.screening.status === "APPROVED" ? "signed" : "in progress"}; Guidance can see the payment update.</p>}
+                </div>
+              )}
+
               {session.steps[card.office].remarks && (
                 <p className="mt-3 rounded-lg bg-rose-50 p-3 text-xs text-rose-800">
                   Office note: {session.steps[card.office].remarks}
@@ -297,7 +319,7 @@ export function StudentQueueView() {
                   {signed ? <CheckCircle2 className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
                   {signed ? "Signed" : sending === card.office && !alreadyRequested ? "Sending request…" : alreadyRequested ? "Request Sent" : "Request Signature"}
                 </button>
-                {alreadyRequested && !signed && (
+                {alreadyRequested && !signed && !session.signatureQueueProcessingOffices?.includes(card.office) && (
                   <button
                     type="button"
                     disabled={sending !== null}

@@ -67,14 +67,11 @@ function redirectPath(role: UserRole): string {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(readStoredUser);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // On mount, verify the stored session is still valid.
+  // On every tab startup, restore the user from the shared HttpOnly cookie.
   useEffect(() => {
-    const stored = readStoredUser();
-    if (!stored) return;
-
     getSessionApi()
       .then((freshUser) => {
         const updated: User = { ...freshUser, role: toUserRole(freshUser.role) };
@@ -82,15 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
       })
       .catch((error: unknown) => {
-        // Keep the saved session during temporary network/server failures.
-        // The API client handles an expired token by attempting a refresh first.
+        // Keep a previously saved user during temporary network/server failures.
         if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
           setUser(null);
           sessionStorage.removeItem(USER_STORAGE_KEY);
           sessionStorage.removeItem(ACCESS_TOKEN_KEY);
           sessionStorage.removeItem("cpc_refresh_token");
         }
-      });
+      })
+      .finally(() => setIsLoading(false));
     // Only run once after the initial render.
   }, []);
 

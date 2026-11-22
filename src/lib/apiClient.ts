@@ -7,6 +7,8 @@ declare module "axios" {
   export interface AxiosRequestConfig {
     /** Skip the one-shot silent refresh (used by login and admin bridges). */
     skipAuthRefresh?: boolean;
+    /** Refresh cookie auth silently while restoring an app session on startup. */
+    authRestore?: boolean;
     /**
      * Opt-in: show the shared error toast automatically when this request
      * fails. Pass a title, or `false`/omit for no automatic feedback.
@@ -188,6 +190,7 @@ async function fetchCsrfToken(): Promise<string> {
 type RetryConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
   skipAuthRefresh?: boolean;
+  authRestore?: boolean;
   notifyOnError?: string | false;
 };
 
@@ -255,20 +258,23 @@ apiClient.interceptors.response.use(
       config.headers["Authorization"] = `Bearer ${newToken}`;
       return apiClient(config);
     } catch {
-      // Refresh failed — clear session, explain once, then return to login.
       flushRefreshQueue(null);
-      sessionStorage.removeItem("cpc_access_token");
-      sessionStorage.removeItem("cpc_refresh_token");
-      sessionStorage.removeItem("cpc_user");
-      clearCsrfToken();
-      showToast({
-        type: "error",
-        title: "Session expired",
-        message: "You were signed out to keep your account safe. Log in again to continue.",
-        duration: 0,
-        action: { label: "Log in again", onClick: () => navigate("/login/student") },
-      });
-      navigate("/login/student", { replace: true });
+      // A startup cookie-session probe is also made for signed-out visitors.
+      // Its expected 401 must not produce an expired-session toast or redirect.
+      if (!config.authRestore) {
+        sessionStorage.removeItem("cpc_access_token");
+        sessionStorage.removeItem("cpc_refresh_token");
+        sessionStorage.removeItem("cpc_user");
+        clearCsrfToken();
+        showToast({
+          type: "error",
+          title: "Session expired",
+          message: "You were signed out to keep your account safe. Log in again to continue.",
+          duration: 0,
+          action: { label: "Log in again", onClick: () => navigate("/login/student") },
+        });
+        navigate("/login/student", { replace: true });
+      }
       return Promise.reject(
         new ApiError("Your session has expired. Please sign in again.", 401),
       );

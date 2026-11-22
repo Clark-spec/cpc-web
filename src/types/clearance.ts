@@ -26,6 +26,12 @@ export interface OfficeSignature {
   status: RequestStatus;
   /** ISO date-time the student sent the request. */
   requestedAt?: string;
+  /** Shared Office Signatures queue number and Philippine-local queue date. */
+  queueNumber?: number;
+  queueDate?: string;
+  isProcessing?: boolean;
+  processingAt?: string;
+  processingBy?: string;
   /** ISO date-time the office approved or rejected. */
   respondedAt?: string;
   /** Staff member who signed, e.g. "Prof. Dela Cruz". */
@@ -139,6 +145,9 @@ export interface ClearanceRequestRow {
   /** "requested" | "signed" | "rejected"; rows are never "not_requested". */
   status: RequestStatus;
   requestedAt?: string;
+  queueNumber?: number;
+  queueDate?: string;
+  isProcessing?: boolean;
   respondedAt?: string;
   studentNote?: string;
   remarks?: string;

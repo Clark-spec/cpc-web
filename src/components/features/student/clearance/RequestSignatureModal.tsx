@@ -40,11 +40,11 @@ export function RequestSignatureModal({
       await onSend(note);
       sendAction.succeed();
       onClose();
-    } catch {
+    } catch (error) {
       sendAction.fail();
       showError(
         "Could not send request",
-        "Your note is still here. Please try again in a moment.",
+        error instanceof Error ? error.message : "Your note is still here. Please try again in a moment.",
       );
     }
   }
@@ -61,7 +61,7 @@ export function RequestSignatureModal({
           Request Signature from {office.label}
         </h2>
         <p className="mt-1 font-poppins text-sm text-cpc-heading-soft">
-          The office will review your records and sign digitally.
+          The office will review your records and sign digitally. Requests share a daily limit of 1,000 across the five Office Signatures.
         </p>
 
         <div className="mt-4 rounded-lg border border-cpc-input-border bg-cpc-section-light/60 px-3 py-2.5">

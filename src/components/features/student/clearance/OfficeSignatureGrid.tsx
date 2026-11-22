@@ -24,11 +24,11 @@ export function OfficeSignatureGrid() {
       await requestAll(requestableOffices.map((office) => office.office));
       requestAllAction.succeed();
       window.setTimeout(() => setConfirmOpen(false), 650);
-    } catch {
+    } catch (error) {
       requestAllAction.fail();
       showError(
         "Could not send requests",
-        "Nothing was changed. Please try again in a moment.",
+        error instanceof Error ? error.message : "Today’s request limit may be full. Please try again tomorrow.",
       );
     }
   }
@@ -44,7 +44,7 @@ export function OfficeSignatureGrid() {
             Office Signatures
           </h2>
           <p className="mt-0.5 font-poppins text-xs text-cpc-heading-soft">
-            Request endorsement from each required department. {signed} of {signatoryOffices.length} offices have signed.
+            Request endorsement from each required department. {signed} of {signatoryOffices.length} offices have signed. Each office accepts up to 1,000 requests per day.
           </p>
         </div>
 
@@ -66,6 +66,7 @@ export function OfficeSignatureGrid() {
             </span>
           )}
         </button>
+        <a href="/display/office-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/office-signatures", "_blank", "noopener"); }} className="inline-flex items-center rounded-xl border border-cpc-blue-accent/30 bg-white/80 px-4 py-2 font-poppins text-xs font-semibold text-cpc-blue-accent hover:bg-white">View live Office Signatures board</a>
       </div>
 
       <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3">

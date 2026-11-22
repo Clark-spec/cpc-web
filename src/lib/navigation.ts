@@ -28,6 +28,7 @@ import {
   LayoutGrid,
   LifeBuoy,
   Megaphone,
+  MonitorPlay,
   MessageSquareWarning,
   Newspaper,
   Receipt,
@@ -54,6 +55,7 @@ export type NavLeaf = {
   icon: LucideIcon;
   roles: AdminRole[];
   badgeKey?: AdminBadgeKey;
+  openInNewTab?: boolean;
 };
 
 export type NavGroup = {
@@ -262,6 +264,15 @@ export const NAV_SECTIONS: NavSection[] = [
           },
           {
             type: "link",
+            id: "study-load-live-queue",
+            label: "Live Queue TV",
+            to: "/display/study-load-signatures",
+            icon: MonitorPlay,
+            openInNewTab: true,
+            roles: ["admin", "registrar", ...DEAN_ROLES, "guidance", "clinic", "accounting"],
+          },
+          {
+            type: "link",
             id: "guidance-approval",
             label: "Guidance Approvals",
             to: "/guidance/queue",
@@ -345,11 +356,20 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             type: "link",
             id: "clearance",
-            label: "Online Clearance Requests",
+            label: "Clearance Requests",
             to: "/admin/clearance-requests",
             icon: ShieldCheck,
             roles: ALL_ROLES,
             badgeKey: "clearance",
+          },
+          {
+            type: "link",
+            id: "clearance-live-queue",
+            label: "Office Signatures Live Queue",
+            to: "/display/office-signatures",
+            icon: MonitorPlay,
+            roles: ALL_ROLES,
+            openInNewTab: true,
           },
           {
             type: "link",

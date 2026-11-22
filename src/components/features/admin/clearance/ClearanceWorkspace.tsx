@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Check, Clock3, PenLine, RefreshCw, X } from "lucide-react";
+import { Check, Clock3, PenLine, Play, RefreshCw, Square, X } from "lucide-react";
 import { ErrorCard } from "@/components/common/feedback/ErrorCard";
+import { showError } from "@/lib/feedback";
 import { useClearanceAdmin } from "@/components/features/admin/clearance/ClearanceAdminContext";
 import { ApproveSignModal } from "@/components/features/admin/clearance/ApproveSignModal";
 import { RejectModal } from "@/components/features/admin/clearance/RejectModal";
 import { OFFICE_LABELS } from "@/components/features/admin/clearance/officeChecks";
 import type { ClearanceRequestRow } from "@/components/features/admin/clearance/types";
+import { finishSignatureQueue, startSignatureQueue } from "@/services/signatureQueues/api";
+import { BSIT_SIGNATURE_SECTIONS, isBsitSignatureSection, normalizeBsitSignatureSection } from "@/lib/bsitSignatureSections";
 
 export function ClearanceWorkspace() {
   const { error, loading, refresh, refreshing, visibleRows, rows, filters, setFilter, staff, isSuperAdmin } = useClearanceAdmin();
@@ -13,7 +16,13 @@ export function ClearanceWorkspace() {
   const [signRow, setSignRow] = useState<ClearanceRequestRow | null>(null);
   const [rejectRow, setRejectRow] = useState<ClearanceRequestRow | null>(null);
   const [sectionFilter, setSectionFilter] = useState("all");
-  const matchesSection = (row: ClearanceRequestRow) => sectionFilter === "all" || row.section?.toUpperCase().replace(/\s+/g, "") === sectionFilter;
+  const [processingBusy, setProcessingBusy] = useState<string | null>(null);
+  const matchesSection = (row: ClearanceRequestRow) => {
+    const registeredSection = normalizeBsitSignatureSection(row.section);
+    return sectionFilter === "all"
+      ? isBsitSignatureSection(registeredSection)
+      : registeredSection === sectionFilter;
+  };
   const sectionRows = rows.filter(matchesSection);
   const sectionVisibleRows = visibleRows.filter(matchesSection);
   const openReview = (row: ClearanceRequestRow) => setReviewRow(row);
@@ -26,13 +35,49 @@ export function ClearanceWorkspace() {
   ];
   const statusLabel = statusOptions.find((option) => option.value === filters.status)?.label ?? "Pending";
 
+  async function reviewAndSign(row: ClearanceRequestRow) {
+    if (row.isProcessing) {
+      setReviewRow(row);
+      return;
+    }
+    if (processingBusy) return;
+    setProcessingBusy(row.id);
+    try {
+      await startSignatureQueue({ queueType: "office_signatures", office: row.office, studentId: row.studentId });
+      setReviewRow(row);
+      void refresh();
+    } catch (cause) {
+      showError("Queue update failed", cause instanceof Error ? cause.message : "This request could not be started.");
+    } finally {
+      setProcessingBusy(null);
+    }
+  }
+
+  async function toggleProcessing(row: ClearanceRequestRow) {
+    if (processingBusy) return;
+    setProcessingBusy(row.id);
+    try {
+      const input = { queueType: "office_signatures" as const, office: row.office, studentId: row.studentId };
+      if (row.isProcessing) await finishSignatureQueue(input);
+      else await startSignatureQueue(input);
+      await refresh();
+    } catch (cause) {
+      showError("Queue update failed", cause instanceof Error ? cause.message : "The live queue could not be updated.");
+    } finally {
+      setProcessingBusy(null);
+    }
+  }
+
   return <div className="space-y-5 pb-10">
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><p className="text-xs font-semibold uppercase tracking-wider text-blue-700">{isSuperAdmin ? "All offices" : staff.title || "My office"}</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Clearance Requests</h1>
           <p className="mt-1 text-sm text-slate-600">Review clearance requests for your office and digitally sign pending requests.</p></div>
-        <button type="button" onClick={() => void refresh()} disabled={refreshing} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</button>
+        <div className="flex flex-wrap items-center gap-2">
+          <a href="/display/office-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/office-signatures", "_blank", "noopener"); }} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">View live queue</a>
+          <button type="button" onClick={() => void refresh()} disabled={refreshing} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</button>
+        </div>
       </div>
     </section>
 
@@ -42,7 +87,7 @@ export function ClearanceWorkspace() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2"><h2 className="font-bold text-slate-900">{statusLabel} requests</h2><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">{sectionVisibleRows.length}</span></div>
             <div className="flex flex-wrap items-center gap-1.5">
-            <label className="mr-1 text-xs font-semibold text-slate-600">Section <select aria-label="Filter clearance requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700"><option value="all">All BSIT sections</option>{["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D"].map((section) => <option key={section} value={section}>{section}</option>)}</select></label>
+            <label className="mr-1 text-xs font-semibold text-slate-600">Section <select aria-label="Filter clearance requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700"><option value="all">All BSIT sections</option>{BSIT_SIGNATURE_SECTIONS.map((section) => <option key={section} value={section}>{section}</option>)}</select></label>
             <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter clearance requests by status">
               {statusOptions.map((option) => {
                 const activeClass = option.value === "requested"
@@ -73,10 +118,12 @@ export function ClearanceWorkspace() {
               <button type="button" onClick={() => openReview(row)} className="min-w-0 text-left">
                 <span className="block truncate font-semibold text-slate-900">{row.studentName || "Student"}</span>
                 <span className="mt-1 block text-xs text-slate-600">ID {row.studentId} · {row.section || "Section not listed"}</span>
+                {row.queueNumber && <span className="mt-1 block font-mono text-xs font-semibold text-blue-700">Queue #{row.queueNumber} · {row.queueDate}</span>}
                 <span className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${row.status === "requested" ? "text-amber-700" : row.status === "signed" ? "text-emerald-700" : "text-rose-700"}`}>{row.status === "requested" ? <Clock3 className="h-3.5 w-3.5"/> : row.status === "signed" ? <Check className="h-3.5 w-3.5"/> : <X className="h-3.5 w-3.5"/>}{OFFICE_LABELS[row.office]} · {row.status === "requested" ? "Pending signature" : row.status === "signed" ? "Signed" : "Rejected"}</span>
               </button>
               <div className="flex shrink-0 gap-2">
-                <button type="button" onClick={() => openReview(row)} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800">{row.status === "requested" ? <><PenLine className="h-3.5 w-3.5"/>Review & sign</> : "View details"}</button>
+                {row.status === "requested" && <button type="button" disabled={processingBusy !== null} onClick={() => void toggleProcessing(row)} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${row.isProcessing ? "border border-slate-300 text-slate-700 hover:bg-slate-50" : "border border-emerald-300 text-emerald-800 hover:bg-emerald-50"}`}>{row.isProcessing ? <><Square className="h-3.5 w-3.5"/>Finish</> : <><Play className="h-3.5 w-3.5"/>Start processing</>}</button>}
+                <button type="button" disabled={processingBusy !== null} onClick={() => row.status === "requested" ? void reviewAndSign(row) : openReview(row)} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60">{row.status === "requested" ? <><PenLine className="h-3.5 w-3.5"/>{processingBusy === row.id ? "Starting…" : "Review & sign"}</> : "View details"}</button>
                 {row.status === "requested" && <button type="button" onClick={() => handleReject(row)} aria-label={`Return ${row.studentName}'s request`} className="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-50"><X className="h-4 w-4"/></button>}
               </div>
             </div>

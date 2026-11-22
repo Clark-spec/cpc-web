@@ -45,6 +45,8 @@ import {
   RequireAdminRole,
 } from "@/components/context/AdminShell";
 import { RequireStudent } from "@/components/context/RequireStudent";
+import { useAuth } from "@/components/context/useAuth";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { ProtectedEnrollment } from "@/components/context/ProtectedEnrollment";
 import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
 import ComplaintsAdminPage from "@/pages/admin/complaints";
@@ -75,6 +77,8 @@ import StudentVerifyPage from "@/pages/student/verify";
 import StudentEnrollmentFormPage from "@/pages/student/enrollment-form";
 import StudentQueuePage from "@/pages/student/queue";
 import DisplayPage from "@/pages/display";
+import StudyLoadSignatureDisplayPage from "@/pages/display/study-load-signatures";
+import OfficeSignatureDisplayPage from "@/pages/display/office-signatures";
 import CommitteeScreeningPage from "@/pages/committee/screening";
 import GuidanceQueuePage from "@/pages/guidance/queue";
 import ClinicQueuePage from "@/pages/clinic/queue";
@@ -101,11 +105,23 @@ const ACCOUNTING_ROLES = ["admin", "accounting"] as const;
 const REGISTRAR_ROLES = ["admin", "registrar"] as const;
 const ENROLLMENT_SIGNATURE_ROLES = ["admin", "registrar", "dean_cs", "dean_edu", "dean_hm", "guidance", "clinic", "accounting"] as const;
 
+function RootRedirect() {
+  const { user, isLoading } = useAuth();
+  const { user: adminUser } = useAdminAuth();
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center font-poppins text-sm text-cpc-heading-soft">Restoring your session…</div>;
+  }
+  if (user?.role === "student") return <Navigate to="/student/home" replace />;
+  if (user?.role === "staff") return <Navigate to="/admin/dashboard" replace />;
+  if (adminUser) return <Navigate to="/admin/dashboard" replace />;
+  return <Navigate to="/login/student" replace />;
+}
+
 export function AppRoutes() {
   return (
     <Routes>
       {/* Auth routes */}
-      <Route path="/" element={<Navigate to="/login/student" replace />} />
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<AuthLayout />}>
         <Route index element={<Navigate to="student" replace />} />
         <Route path="student" element={<StudentLoginPage />} />
@@ -229,6 +245,8 @@ export function AppRoutes() {
 
       {/* ── Public Live Queue Display (TV screen) ────────────────────── */}
       <Route path="/display" element={<DisplayPage />} />
+      <Route path="/display/study-load-signatures" element={<StudyLoadSignatureDisplayPage />} />
+      <Route path="/display/office-signatures" element={<OfficeSignatureDisplayPage />} />
 
       {/* ── Office Stations Direct Routes (Spec Section 6) ──────────── */}
       <Route

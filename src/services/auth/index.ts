@@ -111,6 +111,7 @@ export async function loginApi(payload: LoginPayload): Promise<LoginResult> {
 export async function getSessionApi(): Promise<AuthUser> {
   const response = await apiClient.get<ApiEnvelope<{ user: AuthUser }>>(
     "/auth/v1/session",
+    { authRestore: true },
   );
   const user = response.data?.data?.user;
   if (!user) throw new ApiError("No active session");

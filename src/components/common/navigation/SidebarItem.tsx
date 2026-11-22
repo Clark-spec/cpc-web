@@ -45,7 +45,15 @@ export function SidebarItem({
   const link = (
     <NavLink
       to={item.to}
-      onClick={onNavigate}
+      target={item.openInNewTab ? "_blank" : undefined}
+      rel={item.openInNewTab ? "noopener" : undefined}
+      onClick={(event) => {
+        if (item.openInNewTab) {
+          event.preventDefault();
+          window.open(item.to, "_blank", "noopener");
+        }
+        onNavigate?.();
+      }}
       aria-current={active ? "page" : undefined}
       aria-label={
         collapsed

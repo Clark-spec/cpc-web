@@ -318,8 +318,14 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                   <li key={child.id}>
                     <NavLink
                       to={child.to}
+                      target={child.openInNewTab ? "_blank" : undefined}
+                      rel={child.openInNewTab ? "noopener" : undefined}
                       role="menuitem"
-                      onClick={() => {
+                      onClick={(event) => {
+                        if (child.openInNewTab) {
+                          event.preventDefault();
+                          window.open(child.to, "_blank", "noopener");
+                        }
                         setFlyout(null);
                         onClose?.();
                       }}
