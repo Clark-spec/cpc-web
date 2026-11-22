@@ -25,7 +25,7 @@ import {
   requestSignatures as requestSignaturesService,
 } from "@/services/clearanceStudent/service";
 import { useNotifications } from "@/components/features/student/clearance/NotificationContext";
-import { getStudentGrades } from "@/services/grades/records";
+import { getSectionSubjects, getStudentGrades } from "@/services/grades/records";
 import { useSSE } from "@/hooks/useSSE";
 import type {
   ClearanceHistoryItem,
@@ -49,6 +49,7 @@ type ClearanceContextValue = {
   gradeAcknowledgementStatus: "loading" | "no_grades" | "ready" | "needs_acknowledgement" | "unavailable";
   postedGradeCount: number;
   unacknowledgedGradeCount: number;
+  missingGradeCount: number;
   refreshGradeAcknowledgement: () => Promise<void>;
   requestSignature: (officeId: OfficeId, note?: string) => Promise<void>;
   requestAll: (officeIds: OfficeId[]) => Promise<void>;
@@ -72,6 +73,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const [gradeAcknowledgementStatus, setGradeAcknowledgementStatus] = useState<ClearanceContextValue["gradeAcknowledgementStatus"]>("loading");
   const [postedGradeCount, setPostedGradeCount] = useState(0);
   const [unacknowledgedGradeCount, setUnacknowledgedGradeCount] = useState(0);
+  const [missingGradeCount, setMissingGradeCount] = useState(0);
   const [highlightedOffice, setHighlightedOffice] = useState<OfficeId | null>(null);
   const highlightTimer = useRef<number | null>(null);
   const { notifications, removeLocalNotification } = useNotifications();
@@ -96,19 +98,26 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       setGradeAcknowledgementStatus("ready");
       setPostedGradeCount(0);
       setUnacknowledgedGradeCount(0);
+      setMissingGradeCount(0);
       return;
     }
     try {
       const { records } = await getStudentGrades();
-      const posted = records.filter((record) => Boolean(record.grade));
-      const pending = posted.filter((record) => !record.acknowledgedAt).length;
+      const expected = getSectionSubjects(user.section ?? "");
+      const byCode = new Map(records.map((record) => [record.subjectCode, record]));
+      const posted = expected.length
+        ? expected.map((subject) => byCode.get(subject.subjectCode)).filter((record) => Boolean(record?.grade))
+        : records.filter((record) => Boolean(record.grade));
+      const missing = expected.filter((subject) => !byCode.get(subject.subjectCode)?.grade).length;
+      const pending = posted.filter((record) => !record?.acknowledgedAt).length;
       setPostedGradeCount(posted.length);
-      setUnacknowledgedGradeCount(pending);
-      setGradeAcknowledgementStatus(posted.length === 0 ? "no_grades" : pending ? "needs_acknowledgement" : "ready");
+      setMissingGradeCount(missing);
+      setUnacknowledgedGradeCount(pending + missing);
+      setGradeAcknowledgementStatus(posted.length === 0 ? "no_grades" : pending || missing ? "needs_acknowledgement" : "ready");
     } catch {
       setGradeAcknowledgementStatus("unavailable");
     }
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.role, user?.section]);
   useEffect(() => { void refreshGradeAcknowledgement(); }, [refreshGradeAcknowledgement]);
   useSSE((type) => {
     if (type === "connected" || type === "notification_created" || type === "notification_updated") {
@@ -327,6 +336,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       gradeAcknowledgementStatus,
       postedGradeCount,
       unacknowledgedGradeCount,
+      missingGradeCount,
       refreshGradeAcknowledgement,
       requestSignature,
       requestAll,
@@ -342,6 +352,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       gradeAcknowledgementStatus,
       postedGradeCount,
       unacknowledgedGradeCount,
+      missingGradeCount,
       refreshGradeAcknowledgement,
       requestSignature,
       requestAll,

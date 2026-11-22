@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, ChevronDown, GraduationCap, LoaderCircle, Save, Users } from "lucide-react";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { SectionCascadeSelect } from "@/components/common/selection/SectionCascadeSelect";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
-import { getGradeSections, getRegistrarStudents, getSectionSubjects, saveStudentGrades, type GradeInput, type GradeRow, type GradeStudent } from "@/services/grades/records";
+import { GRADE_TERM, gradeTermForSection, getGradeSections, getRegistrarStudents, getSectionSubjects, saveStudentGrades, type GradeInput, type GradeRow, type GradeStudent } from "@/services/grades/records";
 
 type StudentGradeGroup = { student: GradeStudent; rows: GradeRow[] };
 
@@ -19,6 +20,7 @@ export default function GradesRecordsPage() {
   const [savingStudent, setSavingStudent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [pendingSave, setPendingSave] = useState<StudentGradeGroup | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
   const saveButtons = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -53,7 +55,7 @@ export default function GradesRecordsPage() {
       const value = (drafts[row.id] ?? "").trim();
       return value && value !== (savedGrades[row.id] ?? "") ? [{ studentUserId: row.studentUserId, subjectCode: row.subjectCode, subject: row.subject, instructor: row.instructor, grade: value }] : [];
     });
-    if (!changed.length) return;
+    if (!changed.length) return false;
     setSavingStudent(group.student.id); setNotice(null); setError(null);
     try {
       const result = await saveStudentGrades(changed, role);
@@ -61,9 +63,21 @@ export default function GradesRecordsPage() {
       setAcknowledgedIds(current => { const next=new Set(current); changed.forEach(row=>next.delete(`${row.studentUserId}:${row.subjectCode}`)); return next; });
       setDrafts(current => { const next={...current}; changed.forEach(row => delete next[`${row.studentUserId}:${row.subjectCode}`]); return next; });
       setNotice(`${result.saved} ${result.saved === 1 ? "grade was" : "grades were"} saved. ${result.notified} student${result.notified === 1 ? " was" : "s were"} notified.`);
-    } catch (err) { setError(err instanceof Error ? err.message : "Grades could not be saved. Please try again."); }
+      return true;
+    } catch (err) { setError(err instanceof Error ? err.message : "Grades could not be saved. Please try again."); return false; }
     finally { setSavingStudent(null); }
   };
+
+  const confirmSave = async () => {
+    if (!pendingSave) return;
+    if (await save(pendingSave)) setPendingSave(null);
+  };
+
+  const pendingChanges = pendingSave?.rows.filter((row) => {
+    const value = (drafts[row.id] ?? "").trim();
+    return Boolean(value) && value !== (savedGrades[row.id] ?? "");
+  }) ?? [];
+  const changedExistingGrades = pendingChanges.filter((row) => Boolean(savedGrades[row.id])).length;
 
   const focusNext = (group: StudentGradeGroup, rowIndex: number) => {
     const next = group.rows[rowIndex + 1];
@@ -72,7 +86,7 @@ export default function GradesRecordsPage() {
   };
 
   return <main className="mx-auto max-w-7xl space-y-6 p-5 md:p-8">
-    <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">Academics · Registrar</p><h1 className="mt-1 text-2xl font-bold text-slate-900">Grades Records</h1><p className="mt-1 max-w-2xl text-sm text-slate-500">Select a section, open a student, enter grades in order, then save them together.</p></div><div className="rounded-xl border bg-white px-4 py-3 text-sm text-slate-600"><span className="font-semibold text-slate-900">1st Semester</span> · AY 2026–2027</div></header>
+    <header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">Academics · Registrar</p><h1 className="mt-1 text-2xl font-bold text-slate-900">Grades Records</h1><p className="mt-1 max-w-2xl text-sm text-slate-500">Select a section, open a student, enter grades in order, then save them together.</p></div><div className="rounded-xl border bg-white px-4 py-3 text-sm text-slate-600"><span className="font-semibold text-slate-900">{gradeTermForSection(section, GRADE_TERM)}</span></div></header>
 
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex flex-wrap items-end justify-between gap-4"><div><label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Section Scope</label><SectionCascadeSelect value={section as never} onChange={v=>{if(v!=="all"){setSection(v);setExpandedStudent(null);setSavedGrades({});}}} sections={getGradeSections() as never[]} ariaLabel="Grade records section scope" className="w-full sm:w-80" menuClassName="sm:w-80"/></div><div className="inline-flex items-center gap-2 text-sm text-slate-500"><Users size={16}/>{loading?"Loading students…":`${students.length} ${students.length===1?"student":"students"}`}</div></div></section>
 
@@ -88,8 +102,22 @@ export default function GradesRecordsPage() {
       const statusClass=ackCount===0?"bg-slate-100 text-slate-600":acked===ackCount?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-800";
       return <section key={group.student.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <button type="button" aria-expanded={isOpen} onClick={()=>setExpandedStudent(isOpen?null:group.student.id)} className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50 sm:px-5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><GraduationCap size={19}/></span><span className="min-w-0 flex-1"><span className="block truncate font-semibold text-slate-900">{group.student.name}</span><span className="mt-0.5 block text-xs text-slate-500">{group.student.studentNumber??"No student number"} · {section}</span></span><span className="hidden text-right sm:block"><span className="block text-sm font-medium text-slate-700">{group.rows.length} subjects</span><span className="block text-xs text-slate-500">{grades} grades entered</span></span><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClass}`}>{studentStatus}</span><ChevronDown size={18} className={`shrink-0 text-slate-500 transition-transform ${isOpen?"rotate-180":""}`}/></button>
-        {isOpen&&<div className="border-t"><div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-4 py-3 sm:px-5"><p className="text-sm font-medium text-slate-700">{group.rows.length} subjects · Press Enter to move to the next grade field.</p><p className="text-xs text-slate-500">Saved: {ackCount}/{group.rows.length} · Acknowledged: {acked}/{ackCount}</p></div>{group.rows.length===0?<p className="p-6 text-sm text-slate-500">No enrolled or scheduled subjects were found for this student.</p>:<><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-white text-[10px] font-bold uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3 sm:px-5">Subject</th><th className="px-4 py-3">Instructor</th><th className="px-4 py-3">Current grade</th><th className="px-4 py-3 sm:px-5">New grade</th></tr></thead><tbody>{group.rows.map((row,index)=><tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 sm:px-5"><span className="font-medium text-slate-900">{row.subject}</span><span className="ml-2 text-xs text-slate-400">{row.subjectCode}</span></td><td className="px-4 py-3 text-slate-600">{row.instructor}</td><td className="px-4 py-3 font-semibold text-slate-700">{savedGrades[row.id]??"N/A"}</td><td className="px-4 py-3 sm:px-5"><input ref={el=>{inputs.current[row.id]=el;}} data-grade-input="true" aria-label={`Grade for ${row.subject} (${group.student.name})`} value={drafts[row.id]??savedGrades[row.id]??""} onChange={e=>setDrafts(d=>({...d,[row.id]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();focusNext(group,index);}}} placeholder="Enter grade" className="w-32 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/></td></tr>)}</tbody></table></div><div className="flex justify-end border-t bg-white p-4 sm:px-5"><button ref={el=>{saveButtons.current[group.student.id]=el;}} type="button" onClick={()=>void save(group)} disabled={savingStudent===group.student.id||!hasChanges} className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">{savingStudent===group.student.id?<LoaderCircle className="animate-spin" size={16}/>:<Save size={16}/>}Save grades for student</button></div></>}</div>}
+        {isOpen&&<div className="border-t"><div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-4 py-3 sm:px-5"><p className="text-sm font-medium text-slate-700">{group.rows.length} subjects · Press Enter to move to the next grade field.</p><p className="text-xs text-slate-500">Saved: {ackCount}/{group.rows.length} · Acknowledged: {acked}/{ackCount}</p></div>{group.rows.length===0?<p className="p-6 text-sm text-slate-500">No enrolled or scheduled subjects were found for this student.</p>:<><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-white text-[10px] font-bold uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3 sm:px-5">Subject</th><th className="px-4 py-3">Instructor</th><th className="px-4 py-3">Current grade</th><th className="px-4 py-3 sm:px-5">New grade</th></tr></thead><tbody>{group.rows.map((row,index)=><tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 sm:px-5"><span className="font-medium text-slate-900">{row.subject}</span><span className="ml-2 text-xs text-slate-400">{row.subjectCode}</span></td><td className="px-4 py-3 text-slate-600">{row.instructor}</td><td className="px-4 py-3 font-semibold text-slate-700">{savedGrades[row.id]??"N/A"}</td><td className="px-4 py-3 sm:px-5"><input ref={el=>{inputs.current[row.id]=el;}} data-grade-input="true" aria-label={`Grade for ${row.subject} (${group.student.name})`} value={drafts[row.id]??savedGrades[row.id]??""} onChange={e=>setDrafts(d=>({...d,[row.id]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();focusNext(group,index);}}} placeholder="Enter grade" className="w-32 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/></td></tr>)}</tbody></table></div><div className="flex justify-end border-t bg-white p-4 sm:px-5"><button ref={el=>{saveButtons.current[group.student.id]=el;}} type="button" onClick={()=>setPendingSave(group)} disabled={savingStudent===group.student.id||!hasChanges} className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"><Save size={16}/>Save grades for student</button></div></>}</div>}
       </section>;
     })}</div>}
+    <ConfirmDialog
+      open={Boolean(pendingSave)}
+      onClose={() => setPendingSave(null)}
+      onConfirm={() => void confirmSave()}
+      title={`Save grades for ${pendingSave?.student.name ?? "this student"}?`}
+      description={<>
+        <p>Save {pendingChanges.length} {pendingChanges.length === 1 ? "grade" : "grades"} for {pendingSave?.student.studentNumber ?? "this student"} in {pendingSave ? section : "the selected section"}?</p>
+        {changedExistingGrades > 0 && <p className="mt-2 font-medium text-amber-800">Changing {changedExistingGrades} existing {changedExistingGrades === 1 ? "grade" : "grades"} will require the student to acknowledge it again.</p>}
+      </>}
+      confirmLabel="Save grades"
+      busy={savingStudent === pendingSave?.student.id}
+      loadingLabel="Saving grades…"
+      id="confirm-save-student-grades"
+    />
   </main>;
 }

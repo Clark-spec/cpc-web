@@ -10,7 +10,8 @@ import { useAuth } from "@/components/context/useAuth";
 import { useSSE } from "@/hooks/useSSE";
 import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
-import { acknowledgeStudentGrades, getCurrentStudentSection, getSectionSubjects, getStudentGrades, GRADE_TERM, type GradeRow } from "@/services/grades/records";
+import { acknowledgeStudentGrades, getCurrentStudentSection, getSectionSubjects, getStudentGrades, GRADE_TERM, type GradeRow, type StudentGradeRecord } from "@/services/grades/records";
+import { BSIT_2A_FORM3_SUBJECTS, BSIT_2A_FORM3_TERM } from "@/services/grades/bsit2aForm3";
 
 const cardClass = "rounded-2xl border border-cpc-tile-border/70 bg-white shadow-[0_8px_28px_rgba(28,49,120,0.06)]";
 
@@ -19,6 +20,9 @@ export default function StudentGradesPage() {
   const studentId = user?.id ?? "";
   const section = getCurrentStudentSection(user?.studentNumber ?? studentId, user?.section ?? undefined);
   const [rows, setRows] = useState<GradeRow[]>([]);
+  const [gradeTerm, setGradeTerm] = useState(GRADE_TERM);
+  const [historicalGrades, setHistoricalGrades] = useState<StudentGradeRecord[]>([]);
+  const [gradePeriodFilter, setGradePeriodFilter] = useState<"all" | "current" | "bsit2a">("all");
   const [postedGrades, setPostedGrades] = useState<Record<string, string | null>>({});
   const [enrollmentSession, setEnrollmentSession] = useState<StudentEnrollmentSession | null>(null);
   const [enrollmentChecked, setEnrollmentChecked] = useState(false);
@@ -44,6 +48,8 @@ export default function StudentGradesPage() {
     try {
       setError(null);
       const result = await getStudentGrades();
+      setGradeTerm(result.term || GRADE_TERM);
+      setHistoricalGrades(result.history ?? []);
       const saved = new Map(result.records.map(record => [record.subjectCode, record]));
       const subjects = result.subjects?.length ? result.subjects.map(subject => ({ subjectCode: subject.subjectCode, subject: subject.subjectTitle, instructor: subject.instructor ?? "" })) : getSectionSubjects(section);
       const allSubjects = new Map(subjects.map(subject => [subject.subjectCode, subject]));
@@ -66,7 +72,11 @@ export default function StudentGradesPage() {
     if (!isOfficiallyEnrolled) return;
     let current = true;
     void getStudentGrades().then((result) => {
-      if (current) setPostedGrades(Object.fromEntries(result.records.map((record) => [record.subjectCode, record.grade])));
+      if (current) {
+        setPostedGrades(Object.fromEntries(result.records.map((record) => [record.subjectCode, record.grade])));
+        setHistoricalGrades(result.history ?? []);
+        setGradeTerm(result.term || GRADE_TERM);
+      }
     }).catch(() => {
       // The saved Study Load remains available even if grade records are unavailable.
     });
@@ -104,6 +114,7 @@ export default function StudentGradesPage() {
       : numericGrades.length < activeSubjects.length
         ? `${semesterAverage} · Provisional`
         : semesterAverage;
+    const priorGradesByCode = new Map(historicalGrades.map((record) => [record.subjectCode, record]));
     return (
       <div className="min-h-screen w-full overflow-x-clip bg-white font-poppins">
         <PortalHeader />
@@ -129,7 +140,8 @@ export default function StudentGradesPage() {
               <div className="flex gap-2"><dt className="font-semibold text-cpc-heading-soft">ID No.:</dt><dd className="font-medium text-cpc-navy-text">{enrolledSession.student.studentIdNo}</dd></div>
               <div className="flex gap-2"><dt className="font-semibold text-cpc-heading-soft">Term &amp; Academic:</dt><dd className="font-medium text-cpc-navy-text">{enrolledSession.form.term}</dd></div>
             </dl>
-            {enrolledSession.form.subjects.length === 0 ? (
+            {historicalGrades.length > 0 && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cpc-input-border/70 bg-slate-50 px-4 py-3 print:hidden"><div><label htmlFor="academic-grade-period" className="block text-xs font-semibold uppercase tracking-wide text-cpc-heading-soft">Filter academic terms</label><p className="mt-0.5 text-xs text-cpc-heading-soft">Your acknowledged BSIT-2A grades stay in your history after promotion.</p></div><select id="academic-grade-period" value={gradePeriodFilter} onChange={(event) => setGradePeriodFilter(event.target.value as typeof gradePeriodFilter)} className="rounded-lg border border-cpc-input-border bg-white px-3 py-2 text-sm font-medium text-cpc-navy-text"><option value="all">All terms</option><option value="current">Current · {enrolledSession.student.section} · {enrolledSession.form.term}</option><option value="bsit2a">BSIT-2A · {BSIT_2A_FORM3_TERM}</option></select></div>}
+            {gradePeriodFilter !== "bsit2a" && (enrolledSession.form.subjects.length === 0 ? (
               <p className="px-6 py-12 text-center text-sm text-cpc-heading-soft">No subjects were recorded on this Study Load.</p>
             ) : (
               <div className="overflow-x-auto">
@@ -144,13 +156,14 @@ export default function StudentGradesPage() {
                   <tfoot><tr className="border-t border-slate-300 font-semibold text-cpc-navy-text"><td colSpan={3} className="px-3 py-3 text-right">Total Units</td><td className="px-3 py-3 text-center">{activeSubjects.reduce((total, subject) => total + subject.units, 0)}</td><td className="px-3 py-3 text-center">{activeSubjects.reduce((total, subject) => total + (gradeRemark(postedGrades[subject.code]) === "Passed" ? subject.units : 0), 0)}</td><td colSpan={2} className="px-3 py-3 text-right">Semester Average: {averageDisplay}</td></tr></tfoot>
                 </table>
               </div>
-            )}
+            ))}
+            {gradePeriodFilter !== "current" && historicalGrades.length > 0 && <section className="mt-7 border-t border-slate-200 pt-5"><div className="mb-3 flex flex-wrap items-end justify-between gap-2"><div><h2 className="text-sm font-bold text-cpc-navy-text">BSIT-2A · Previous semester grades</h2><p className="mt-1 text-xs text-cpc-heading-soft">2nd Semester · AY 2025-2026 · These grades were acknowledged before promotion.</p></div><StatusPill tone={historicalGrades.every((record) => Boolean(record.acknowledgedAt)) ? "green" : "amber"}>{historicalGrades.every((record) => Boolean(record.acknowledgedAt)) ? "Acknowledged" : "Review needed"}</StatusPill></div><div className="overflow-x-auto"><table className="w-full min-w-[640px] border-collapse text-left text-[11px]"><thead className="bg-slate-100 text-cpc-navy-text"><tr><th className="px-3 py-2.5">Subject Code</th><th className="px-3 py-2.5">Subject</th><th className="px-3 py-2.5">Grade</th><th className="px-3 py-2.5">Units</th><th className="px-3 py-2.5">Instructor</th></tr></thead><tbody>{BSIT_2A_FORM3_SUBJECTS.map((subject) => { const record = priorGradesByCode.get(subject.subjectCode); return <tr key={subject.subjectCode} className="border-b border-slate-200"><td className="px-3 py-2.5 font-semibold text-cpc-navy-text">{subject.subjectCode}</td><td className="px-3 py-2.5 text-cpc-navy-text">{subject.subject}</td><td className="px-3 py-2.5 text-center font-semibold text-cpc-navy-text">{record?.grade || "N/A"}</td><td className="px-3 py-2.5 text-center text-cpc-navy-text">{subject.units}</td><td className="px-3 py-2.5 text-cpc-navy-text">{record?.instructor || subject.instructor}</td></tr>; })}</tbody></table></div></section>}
           </section>
-          <div className="mx-auto flex max-w-5xl justify-end">
+          {gradePeriodFilter !== "bsit2a" && <div className="mx-auto flex max-w-5xl justify-end">
             <button type="button" onClick={() => downloadGradeSheet(enrolledSession, postedGrades, averageDisplay)} className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-cpc-blue-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-cpc-blue-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent">
-              <Download size={17} /> Download Grades
+              <Download size={17} /> Download Current Grades
             </button>
-          </div>
+          </div>}
         </main>
         <PortalFooter />
       </div>
@@ -184,7 +197,7 @@ export default function StudentGradesPage() {
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cpc-section-light text-cpc-blue-accent"><GraduationCap size={24}/></span>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.13em] text-cpc-heading-soft">Current academic record</p>
-              <h1 className="mt-1 text-lg font-bold text-cpc-navy-text">{section} <span className="font-normal text-cpc-heading-soft">· {GRADE_TERM}</span></h1>
+              <h1 className="mt-1 text-lg font-bold text-cpc-navy-text">{section} <span className="font-normal text-cpc-heading-soft">· {gradeTerm}</span></h1>
             </div>
           </div>
         </section>

@@ -3,6 +3,7 @@ import { EventsTable } from "@/components/common/display/EventsTable";
 import { SubjectsTable } from "@/components/common/display/SubjectsTable";
 import { useClearance } from "@/components/features/student/clearance/ClearanceContext";
 import { mockSubjects } from "@/services/clearanceStudent/mock";
+import { getSectionSubjects } from "@/services/grades/records";
 import { formatDate } from "@/lib/format";
 
 function ReadOnlyCheck({ label, checked }: { label: string; checked: boolean }) {
@@ -101,7 +102,7 @@ export function ClearanceForm() {
 
       {/* Part I & II: Academic Subjects and SAO Events Tables */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <SubjectsTable subjects={mockSubjects} />
+        <SubjectsTable subjects={student.section?.replace(/[^A-Z0-9]/gi, "").toUpperCase() === "BSIT2A" ? getSectionSubjects(student.section).map(({ subject, instructor }) => ({ name: subject, instructor, units: mockSubjects.find((item) => item.name === subject)?.units ?? 0 })) : mockSubjects} />
         <EventsTable events={saoEvents} />
       </div>
 

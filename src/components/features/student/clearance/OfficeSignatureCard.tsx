@@ -73,6 +73,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     periodOpen,
     gradeAcknowledgementStatus,
     unacknowledgedGradeCount,
+    missingGradeCount,
   } = useClearance();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -193,7 +194,9 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
         {office.office === "registrar" && !signed && !requested && gradeAcknowledgementStatus !== "ready" && (
           <div role={gradeAcknowledgementStatus === "unavailable" ? "alert" : "status"} className={`mt-3 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${gradeAcknowledgementStatus === "unavailable" ? "border-rose-200 bg-rose-50 text-rose-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
             {gradeAcknowledgementStatus === "needs_acknowledgement"
-              ? `Acknowledge your ${unacknowledgedGradeCount === 1 ? "posted grade" : `${unacknowledgedGradeCount} posted grades`} in Grades / Academic Records before requesting the Registrar signature.`
+              ? missingGradeCount > 0
+                ? `Wait for all required grades to be posted, then acknowledge them in Grades / Academic Records. ${missingGradeCount} required ${missingGradeCount === 1 ? "grade is" : "grades are"} not posted yet.`
+                : `Acknowledge your ${unacknowledgedGradeCount === 1 ? "posted grade" : `${unacknowledgedGradeCount} posted grades`} in Grades / Academic Records before requesting the Registrar signature.`
               : gradeAcknowledgementStatus === "no_grades"
                 ? "The Registrar signature request will be available after your grades are published and acknowledged."
               : gradeAcknowledgementStatus === "loading"

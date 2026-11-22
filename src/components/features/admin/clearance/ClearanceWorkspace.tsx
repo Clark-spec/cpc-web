@@ -36,21 +36,8 @@ export function ClearanceWorkspace() {
   const statusLabel = statusOptions.find((option) => option.value === filters.status)?.label ?? "Pending";
 
   async function reviewAndSign(row: ClearanceRequestRow) {
-    if (row.isProcessing) {
-      setReviewRow(row);
-      return;
-    }
-    if (processingBusy) return;
-    setProcessingBusy(row.id);
-    try {
-      await startSignatureQueue({ queueType: "office_signatures", office: row.office, studentId: row.studentId });
-      setReviewRow(row);
-      void refresh();
-    } catch (cause) {
-      showError("Queue update failed", cause instanceof Error ? cause.message : "This request could not be started.");
-    } finally {
-      setProcessingBusy(null);
-    }
+    if (processingBusy || !row.isProcessing) return;
+    setReviewRow(row);
   }
 
   async function toggleProcessing(row: ClearanceRequestRow) {
@@ -123,7 +110,7 @@ export function ClearanceWorkspace() {
               </button>
               <div className="flex shrink-0 gap-2">
                 {row.status === "requested" && <button type="button" disabled={processingBusy !== null} onClick={() => void toggleProcessing(row)} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${row.isProcessing ? "border border-slate-300 text-slate-700 hover:bg-slate-50" : "border border-emerald-300 text-emerald-800 hover:bg-emerald-50"}`}>{row.isProcessing ? <><Square className="h-3.5 w-3.5"/>Finish</> : <><Play className="h-3.5 w-3.5"/>Start processing</>}</button>}
-                <button type="button" disabled={processingBusy !== null} onClick={() => row.status === "requested" ? void reviewAndSign(row) : openReview(row)} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60">{row.status === "requested" ? <><PenLine className="h-3.5 w-3.5"/>{processingBusy === row.id ? "Starting…" : "Review & sign"}</> : "View details"}</button>
+                <button type="button" disabled={processingBusy !== null || (row.status === "requested" && !row.isProcessing)} onClick={() => row.status === "requested" ? void reviewAndSign(row) : openReview(row)} title={row.status === "requested" && !row.isProcessing ? "Start processing this request before reviewing and signing." : undefined} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">{row.status === "requested" ? <><PenLine className="h-3.5 w-3.5"/>Review &amp; sign</> : "View details"}</button>
                 {row.status === "requested" && <button type="button" onClick={() => handleReject(row)} aria-label={`Return ${row.studentName}'s request`} className="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-50"><X className="h-4 w-4"/></button>}
               </div>
             </div>
@@ -148,7 +135,7 @@ export function ClearanceWorkspace() {
         </div>
         <footer className="flex flex-col-reverse gap-2 border-t border-slate-200 p-5 sm:flex-row sm:justify-end sm:p-6">
           {reviewRow.status === "requested" && <><button type="button" onClick={() => handleReject(reviewRow)} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Return request</button>
-          <button type="button" onClick={() => { setSignRow(reviewRow); setReviewRow(null); }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"><PenLine className="h-4 w-4"/>Approve & continue to signature</button></>}
+          <button type="button" disabled={!reviewRow.isProcessing} title={!reviewRow.isProcessing ? "Start processing this request before signing." : undefined} onClick={() => { setSignRow(reviewRow); setReviewRow(null); }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"><PenLine className="h-4 w-4"/>Approve &amp; continue to signature</button></>}
         </footer>
       </section>
     </div>}
