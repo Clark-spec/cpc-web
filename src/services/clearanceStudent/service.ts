@@ -1,6 +1,7 @@
 import { canonicalProgram } from "@/lib/programs";
 import type { ClearancePeriod, ClearanceState, OfficeId, StudentProfile } from "@/types/clearance";
 import { loadMyClearanceRecord, requestMyClearanceOffices, updateMyClearance } from "./database";
+import { defaultSaoEvents } from "@/services/clearanceStudent/mock";
 
 const DEFAULT_PERIOD: ClearancePeriod = {
   academicYear: "2025-2026", term: "2nd Semester", opensAt: "", closesAt: "", open: true, overdueDays: 3,
@@ -47,7 +48,12 @@ function toClearanceState(record: Awaited<ReturnType<typeof loadMyClearanceRecor
     : [];
   return {
     offices: record.offices,
-    saoEvents: record.saoEvents ?? [],
+    saoEvents: record.saoEvents?.length
+      ? record.saoEvents
+      : defaultSaoEvents.map((event) => ({
+          ...event,
+          attended: record.offices.some((office) => office.office === "sao" && office.status === "signed") || event.attended,
+        })),
     history,
     dateCleared: completedAt,
     referenceNumber: record.referenceNumber,

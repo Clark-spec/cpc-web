@@ -3,7 +3,7 @@ import type { ProfileFormValues } from "@/components/features/student/profile/sc
 
 export type EnrollmentStatus = "Enrolled" | "Not Enrolled";
 export type Gender = "Male" | "Female" | "Prefer not to say";
-export type CivilStatus = "Single" | "Married" | "Widowed" | "Separated";
+export type CivilStatus = "Single" | "Married" | "Widowed" | "Separated" | "";
 
 export interface ProfileAddress {
   street: string;
@@ -22,7 +22,7 @@ export interface StudentProfile {
   enrollmentStatus: EnrollmentStatus;
   /** base64 data URL or remote URL. */
   avatarUrl?: string;
-  /** Institutional address, read-only. */
+  /** Student account email address. */
   email: string;
   phone: string;
   alternateContact?: string;
@@ -45,6 +45,8 @@ export interface StudentProfile {
 /** Fields the student is allowed to change. */
 export type EditableField =
   | "phone"
+  | "email"
+  | "placeOfBirth"
   | "alternateContact"
   | "address"
   | "civilStatus"
@@ -62,10 +64,29 @@ export type ProfileUpdateInput = Partial<Pick<StudentProfile, EditableField>>;
 export interface CorrectionRequestInput {
   /** Human-readable field name, e.g. "Date of Birth". */
   field: string;
+  currentValue: string;
   correctValue: string;
   reason: string;
   attachmentName?: string;
+  attachmentType?: string;
+  attachmentData?: string;
 }
+
+export type StudentProfileCorrectionRequest = {
+  id: string;
+  referenceNumber: string;
+  field: string;
+  currentValue: string;
+  requestedValue: string;
+  reason: string;
+  submittedAt: string;
+  status: "pending" | "approved" | "rejected";
+  adminRemarks: string;
+  reviewedAt: string | null;
+  attachmentName?: string | null;
+  attachmentType?: string | null;
+  attachmentData?: string | null;
+};
 
 /** Props shared by the three information cards. */
 export type ProfileCardProps = {

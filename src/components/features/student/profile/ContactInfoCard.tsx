@@ -10,7 +10,6 @@ export function ContactInfoCard({
   register,
   errors,
   highlighted,
-  onRequestCorrection,
 }: ProfileCardProps) {
   const addressError =
     errors.address?.street?.message ??
@@ -26,16 +25,26 @@ export function ContactInfoCard({
             icon={Mail}
             label="Email Address"
             value={profile.email}
+            htmlFor="profile-email"
             editing={editing}
-            readOnly
-            onRequestCorrection={() => onRequestCorrection("Email Address")}
-          />
+            error={errors.email?.message}
+            highlight={highlighted.has("email")}
+          >
+            <input
+              id="profile-email"
+              type="email"
+              autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "profile-email-error" : undefined}
+              className={profileInputClass}
+              {...register("email")}
+            />
+          </InfoRow>
 
           <InfoRow
             icon={Phone}
             label="Phone Number"
             htmlFor="profile-phone"
-            required
             error={errors.phone?.message}
             highlight={highlighted.has("phone")}
           >
@@ -78,7 +87,6 @@ export function ContactInfoCard({
             icon={Home}
             label="Address"
             htmlFor="profile-address-street"
-            required
             error={addressError}
             highlight={highlighted.has("address")}
           >
@@ -155,7 +163,7 @@ export function ContactInfoCard({
         </div>
       ) : (
         <dl className="divide-y divide-cpc-input-border/60">
-          <InfoRow icon={Mail} label="Email Address" value={profile.email} />
+          <InfoRow icon={Mail} label="Email Address" value={profile.email} highlight={highlighted.has("email")} />
           <InfoRow
             icon={Phone}
             label="Phone Number"

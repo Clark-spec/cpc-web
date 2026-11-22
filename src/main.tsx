@@ -71,6 +71,7 @@ import EnrollmentConfirmationPage from "@/pages/student/enrollment/confirmation"
 import EnrollmentStatusPage from "@/pages/student/enrollment/status";
 import EnrollmentStepPage from "@/pages/student/enrollment/step";
 import StudentProfilePage from "@/pages/student/profile";
+import StudentProfileCorrectionsPage from "@/pages/student/profile-corrections";
 import OnlineComplaintPage from "@/pages/student/online-complaint";
 import ComplaintStatusPage from "@/pages/student/complaint-status";
 import StudentVerifyPage from "@/pages/student/verify";
@@ -177,7 +178,7 @@ export function AppRoutes() {
         <Route path="students" element={<AllStudentsAdminPage />} />
         <Route
           path="students/profile-corrections"
-          element={<ProfileCorrectionsAdminPage />}
+          element={<RequireAdminRole roles={["admin", "registrar"]}><ProfileCorrectionsAdminPage /></RequireAdminRole>}
         />
         <Route
           path="students/account-settings"
@@ -331,6 +332,7 @@ export function AppRoutes() {
 
         {/* My Account */}
         <Route path="/my-account/profile" element={<StudentProfilePage />} />
+        <Route path="/my-account/profile-corrections" element={<StudentProfileCorrectionsPage />} />
         <Route path="/student/complaint-status" element={<ComplaintStatusPage />} />
 
         {/* Enrollment flow */}

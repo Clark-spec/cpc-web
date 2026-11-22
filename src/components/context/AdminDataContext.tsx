@@ -200,7 +200,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const adminTokenResolver = useCallback(() => ensureAdminSession(user?.role), [user?.role]);
   const handleAdminEvent = useCallback((type: string) => {
-    if (type === "connected" || type === "notification_created" || type === "notification_updated") {
+    if (type === "profile_correction_updated") {
+      window.dispatchEvent(new Event("cpc:profile-correction-updated"));
+    }
+    if (type === "connected" || type === "notification_created" || type === "notification_updated" || type === "profile_correction_updated") {
       void load("silent");
     }
   }, [load]);

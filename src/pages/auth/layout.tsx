@@ -20,7 +20,7 @@ const MAX_TRUSTED_WIDTH = 2560;
 const MAX_TRUSTED_HEIGHT = 1600;
 
 /** Glass card box, measured from the design. */
-const CARD = { width: 559, height: 791, left: 87, top: 121, radius: 46 };
+const CARD = { width: 640, height: 791, left: 87, top: 121, radius: 46 };
 
 /** The right-hand group — cap, diploma and welcome message — measured from the
  *  design's right edge, so it can be scaled from that corner as one unit. */
@@ -133,11 +133,16 @@ function DesktopStage({ width, height }: { width: number; height: number }) {
           aria-hidden
           className="absolute top-[16px] right-[47px] z-[4] h-[219px] w-auto"
         />
-        <div className="absolute top-[369px] left-0 z-10">
-          <p className="text-[64px] leading-[64px] font-normal text-cpc-welcome">Welcome to</p>
-          <p className="text-[95px] leading-[99.6px] font-extrabold text-cpc-cordova">Cordova</p>
-          <p className="text-[64px] leading-[92.8px] font-bold text-cpc-cordova">Public College</p>
-        </div>
+      </div>
+
+      {/* Center the welcome message in the open area beside the login card,
+          matching the centered rectangle shown in the login design. */}
+      <div
+        className="absolute top-[37%] left-[42%] z-10 w-[40%] -translate-y-1/2 px-4 text-center"
+      >
+        <p className="text-[58px] leading-[1.05] font-normal text-cpc-welcome">Welcome to</p>
+        <p className="text-[92px] leading-[1.02] font-extrabold text-cpc-cordova">Cordova</p>
+        <p className="text-[58px] leading-[1.15] font-bold text-cpc-cordova">Public College</p>
       </div>
 
       {/* Glass login card, pinned to the design's top-left corner. */}
@@ -152,7 +157,7 @@ function DesktopStage({ width, height }: { width: number; height: number }) {
         }}
       >
         <div
-          className="h-[791px] w-[559px] flex-none origin-top-left"
+        className="h-[791px] w-[640px] flex-none origin-top-left"
           style={{ transform: `scale(${scale})` }}
         >
           <Outlet />

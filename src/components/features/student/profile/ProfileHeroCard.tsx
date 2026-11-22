@@ -22,8 +22,6 @@ type ProfileHeroCardProps = {
 
 const DETAILS: Array<{ label: string; value: (profile: StudentProfile) => string }> = [
   { label: "Student ID", value: (profile) => profile.studentId },
-  { label: "Program", value: (profile) => profile.program },
-  { label: "Year Level", value: (profile) => profile.yearLevel },
   { label: "Section", value: (profile) => profile.section },
 ];
 

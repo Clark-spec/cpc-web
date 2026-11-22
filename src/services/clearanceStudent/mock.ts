@@ -34,6 +34,17 @@ export const mockSubjects: Subject[] = [
   { name: "Quantitative Methods", units: 3, instructor: "Dr. M. Santos" },
 ];
 
+/** Default SAO activities mirrored from the clearance record defaults. */
+export const defaultSaoEvents = [
+  { title: "Brigada Balik Eskwela", attended: false },
+  { title: "Foundation Day", attended: false },
+  { title: "Monday – BSIT and BEED", attended: false },
+  { title: "Mass – Foundation Day", attended: false },
+  { title: "SSG Day Trash Galore", attended: false },
+  { title: "I-CARE Seminar – Officers", attended: false },
+  { title: "Exhibit (Index Card)", attended: false, note: "Pending SAO attendance verification." },
+];
+
 /** The six signatories, in the order they appear on Form 3. */
 export const officeOrder: OfficeId[] = [
   "dean",
@@ -75,7 +86,7 @@ export function createInitialOffices(): OfficeSignature[] {
 export function createInitialState(): ClearanceState {
   return {
     offices: createInitialOffices(),
-    saoEvents: [],
+    saoEvents: defaultSaoEvents.map((event) => ({ ...event })),
     history: [],
     dateCleared: null,
   };

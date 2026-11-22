@@ -60,7 +60,7 @@ export function StudentVerifyView() {
       setRecordLoading(true);
       setRecordLoadError(false);
       apiClient.get<{ data?: { record?: MasterlistRecord } }>("/students/v1/continuing-record")
-        .then((response) => {
+        .then(async (response) => {
           const record = response.data?.data?.record;
           if (!active) return;
           if (!record || record.studentIdNo !== studentId) {
@@ -68,13 +68,13 @@ export function StudentVerifyView() {
             return;
           }
           cacheContinuingStudentRecord(record);
-          void loadMyEnrollmentSession().then((saved) => {
-            if (!active || !saved || saved.student.studentIdNo !== studentId) return;
-            cacheEnrollmentSession(saved);
-            setSession(saved);
-          }).catch(() => {
-            if (active) setRecordLoadError(true);
-          });
+          const saved = await loadMyEnrollmentSession();
+          if (!active) return;
+          if (!saved || saved.student.studentIdNo !== studentId) {
+            throw new Error("The Registrar record was found, but the Online Enrollment session could not be initialized.");
+          }
+          cacheEnrollmentSession(saved);
+          setSession(saved);
           setCorrections(getCorrectionRequests().filter((r) => r.studentId === studentId));
         })
         .catch(() => {
@@ -318,7 +318,7 @@ export function StudentVerifyView() {
               <p className="mt-1 text-sm font-bold text-cpc-navy-text">
                 {(["", "1st", "2nd", "3rd", "4th"][record.yearLevel] ?? `Year ${record.yearLevel}`)} Year
               </p>
-              <p className="text-xs text-cpc-muted-blue">2nd Semester · Continuing Student</p>
+              <p className="text-xs text-cpc-muted-blue">{record.semester === 1 ? "1st Semester" : record.semester === 2 ? "2nd Semester" : "Semester not set"} · Continuing Student</p>
             </div>
 
             <div className="rounded-xl border border-cpc-input-border/50 bg-cpc-section-light/50 p-4">

@@ -16,6 +16,7 @@ type User = Omit<AuthUser, "role"> & {
 
 type AuthContextType = {
   user: User | null;
+  updateUser: (patch: Partial<Pick<User, "avatarUrl">>) => void;
   role: UserRole;
   isAuthenticated: boolean;
   login: (credentials: { id: string; password: string; role: UserRole }) => Promise<boolean>;
@@ -52,7 +53,7 @@ function toUserRole(raw: string | undefined | null): UserRole {
   if (lower === "admin" || lower === "registrar" || lower === "dean" ||
       lower.startsWith("dean_") ||
       lower === "library" || lower === "accounting" || lower === "sao" ||
-      lower === "instructor") return "staff";
+      lower === "instructor" || lower === "guidance" || lower === "clinic") return "staff";
   return null;
 }
 
@@ -69,6 +70,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(readStoredUser);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const updateUser = useCallback((patch: Partial<Pick<User, "avatarUrl">>) => {
+    setUser((current) => {
+      if (!current) return current;
+      const updated = { ...current, ...patch };
+      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   // On every tab startup, restore the user from the shared HttpOnly cookie.
   useEffect(() => {
@@ -152,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        updateUser,
         role: user?.role ?? null,
         isAuthenticated: !!user,
         login,

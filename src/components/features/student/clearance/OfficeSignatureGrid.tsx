@@ -14,7 +14,9 @@ export function OfficeSignatureGrid() {
 
   const signatoryOffices = offices;
   const notRequested = signatoryOffices.filter((office) => office.status === "not_requested");
-  const requestableOffices = notRequested.filter((office) => office.office !== "registrar" || gradeAcknowledgementStatus === "ready");
+  const requestableOffices = notRequested.filter(
+    (office) => office.office !== "registrar" || gradeAcknowledgementStatus === "ready",
+  );
   const signed = signatoryOffices.filter((office) => office.status === "signed").length;
 
   async function handleRequestAll() {

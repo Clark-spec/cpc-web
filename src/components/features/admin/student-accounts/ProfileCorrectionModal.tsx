@@ -1,14 +1,13 @@
 import { useId, useState } from "react";
-import { ArrowRight, Check, FileText, Paperclip, X } from "lucide-react";
+import { ArrowRight, Check, Eye, FileText, Paperclip, X } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { CorrectionStatusBadge } from "@/components/features/admin/student-accounts/statusBadges";
 import {
   BTN,
   LABEL_BASE,
   FIELD_BASE,
-  sectionText,
 } from "@/components/features/admin/student-accounts/shared";
-import { COURSE_LABELS } from "@/components/features/admin/student-accounts/mockStudentAccounts";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import type {
@@ -35,8 +34,14 @@ export function ProfileCorrectionModal({
   const remarksId = useId();
   const [remarks, setRemarks] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const pending = request.status === "pending";
+  const sectionLabel = request.section.includes("-")
+    ? request.section
+    : request.section
+      ? `${request.course}-${request.section}`
+      : "—";
 
   function handleApprove() {
     onDecide({ status: "approved", adminRemarks: remarks.trim() });
@@ -92,11 +97,9 @@ export function ProfileCorrectionModal({
               </dd>
             </div>
             <div className="min-w-0">
-              <dt className="font-poppins text-[10px] text-cpc-heading-soft">
-                Program / Year level
-              </dt>
+              <dt className="font-poppins text-[10px] text-cpc-heading-soft">Section</dt>
               <dd className="truncate font-poppins text-xs text-cpc-navy-text">
-                {COURSE_LABELS[request.course]} · {sectionText(request.year, request.section)}
+                {sectionLabel}
               </dd>
             </div>
             <div className="min-w-0">
@@ -162,19 +165,19 @@ export function ProfileCorrectionModal({
             Supporting attachment
           </h3>
           {request.attachmentName ? (
-            <div className="flex items-center gap-2.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-2.5">
-              <FileText className="h-4 w-4 shrink-0 text-cpc-blue-accent" aria-hidden />
-              <div className="min-w-0">
-                <p
-                  className="truncate font-poppins text-xs font-semibold text-cpc-navy-text"
-                  title={request.attachmentName}
-                >
-                  {request.attachmentName}
-                </p>
-                <p className="flex items-center gap-1 font-poppins text-[10px] text-cpc-heading-soft">
-                  <Paperclip className="h-2.5 w-2.5 shrink-0" aria-hidden />
-                  Attached by student
-                </p>
+            <div className="rounded-lg border border-cpc-tile-border bg-white p-3">
+              <div className="flex items-center gap-2.5">
+                <FileText className="h-4 w-4 shrink-0 text-cpc-blue-accent" aria-hidden />
+                <div className="min-w-0">
+                  <p className="truncate font-poppins text-xs font-semibold text-cpc-navy-text" title={request.attachmentName}>{request.attachmentName}</p>
+                  <p className="flex items-center gap-1 font-poppins text-[10px] text-cpc-heading-soft"><Paperclip className="h-2.5 w-2.5 shrink-0" aria-hidden /> Attached by student</p>
+                </div>
+                {request.attachmentData && request.attachmentType?.startsWith("image/") && (
+                  <button type="button" onClick={() => setPreviewOpen(true)} className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md border border-cpc-input-border px-3 py-1.5 font-poppins text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
+                    <Eye className="h-3.5 w-3.5" aria-hidden /> Preview photo
+                  </button>
+                )}
+                {request.attachmentData && request.attachmentType === "application/pdf" && <a href={request.attachmentData} target="_blank" rel="noreferrer" className="ml-auto shrink-0 font-poppins text-xs font-semibold text-cpc-blue-accent underline">Preview PDF</a>}
               </div>
             </div>
           ) : (
@@ -289,6 +292,16 @@ export function ProfileCorrectionModal({
           </>
         )}
       </footer>
+      {request.attachmentData && request.attachmentType?.startsWith("image/") && (
+        <ImagePreviewModal
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          src={request.attachmentData}
+          alt={request.attachmentName ?? "Supporting document"}
+          title="Supporting document preview"
+          meta={request.attachmentName}
+        />
+      )}
     </Modal>
   );
 }

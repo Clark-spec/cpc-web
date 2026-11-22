@@ -46,7 +46,7 @@ type ClearanceContextValue = {
   isCleared: boolean;
   /** False while the admin keeps the clearance period closed (shared record). */
   periodOpen: boolean;
-  gradeAcknowledgementStatus: "loading" | "ready" | "needs_acknowledgement" | "unavailable";
+  gradeAcknowledgementStatus: "loading" | "no_grades" | "ready" | "needs_acknowledgement" | "unavailable";
   postedGradeCount: number;
   unacknowledgedGradeCount: number;
   refreshGradeAcknowledgement: () => Promise<void>;
@@ -104,7 +104,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       const pending = posted.filter((record) => !record.acknowledgedAt).length;
       setPostedGradeCount(posted.length);
       setUnacknowledgedGradeCount(pending);
-      setGradeAcknowledgementStatus(pending ? "needs_acknowledgement" : "ready");
+      setGradeAcknowledgementStatus(posted.length === 0 ? "no_grades" : pending ? "needs_acknowledgement" : "ready");
     } catch {
       setGradeAcknowledgementStatus("unavailable");
     }
@@ -123,12 +123,12 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     if (user && user.role === "student") {
       const snapshot = state.studentSnapshot;
       return {
-        name: snapshot?.name || user.name || mockStudent.name,
-        studentId: snapshot?.studentId || user.studentNumber || user.id || mockStudent.studentId,
-        section: snapshot?.section || user.section || "",
-        yearLevel: snapshot?.yearLevel ? `${snapshot.yearLevel} Year` : user.yearLevel ? `${user.yearLevel} Year` : mockStudent.yearLevel,
-        course: snapshot?.course || user.course || mockStudent.course,
-        program: snapshot?.program || canonicalProgram(user.course || mockStudent.program),
+        name: user.name || snapshot?.name || mockStudent.name,
+        studentId: user.studentNumber || snapshot?.studentId || user.id || mockStudent.studentId,
+        section: user.section || snapshot?.section || "",
+        yearLevel: user.yearLevel ? `${user.yearLevel} Year` : snapshot?.yearLevel ? `${snapshot.yearLevel} Year` : mockStudent.yearLevel,
+        course: user.course || snapshot?.course || mockStudent.course,
+        program: canonicalProgram(user.course || snapshot?.program || mockStudent.program),
         academicYear: snapshot?.academicYear || mockStudent.academicYear,
         semester: snapshot?.semester || mockStudent.semester,
         term: snapshot?.term || mockStudent.term,
@@ -219,7 +219,14 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const requestSignature = useCallback(
     async (officeId: OfficeId, note?: string) => {
       if (officeId === "registrar" && gradeAcknowledgementStatus !== "ready") {
-        showWarning("Acknowledge posted grades first", "Review and acknowledge posted grades before requesting the Registrar signature.");
+        showWarning(
+          gradeAcknowledgementStatus === "needs_acknowledgement" ? "Acknowledge posted grades first" : "Registrar signature unavailable",
+          gradeAcknowledgementStatus === "needs_acknowledgement"
+            ? "Review and acknowledge your posted grades before requesting the Registrar signature."
+            : gradeAcknowledgementStatus === "no_grades"
+              ? "The Registrar signature request becomes available after your grades are published and acknowledged."
+              : "We need to verify your grade records before requesting the Registrar signature. Please try again shortly.",
+        );
         return;
       }
       if (!state.periodOpen) {
@@ -247,8 +254,18 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const requestAll = useCallback(
     async (officeIds: OfficeId[]) => {
       if (officeIds.length === 0) return;
-      officeIds = officeIds.filter((officeId) => officeId !== "registrar" || gradeAcknowledgementStatus === "ready");
-      if (officeIds.length === 0) return;
+      if (officeIds.includes("registrar") && gradeAcknowledgementStatus !== "ready") {
+        showWarning(
+          gradeAcknowledgementStatus === "needs_acknowledgement" ? "Acknowledge posted grades first" : "Registrar signature unavailable",
+          gradeAcknowledgementStatus === "needs_acknowledgement"
+            ? "Acknowledge posted grades before requesting the Registrar signature. Other selected office requests can still be sent individually."
+            : gradeAcknowledgementStatus === "no_grades"
+              ? "The Registrar signature request becomes available after your grades are published and acknowledged. Other selected office requests can still be sent individually."
+              : "We need to verify your grade records before requesting the Registrar signature. Please try again shortly.",
+        );
+        officeIds = officeIds.filter((officeId) => officeId !== "registrar");
+        if (officeIds.length === 0) return;
+      }
       if (!state.periodOpen) {
         showWarning(
           "Clearance period is closed",

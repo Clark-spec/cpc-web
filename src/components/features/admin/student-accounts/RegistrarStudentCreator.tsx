@@ -19,6 +19,8 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
   const [lastName, setLastName] = useState("");
   const [middleInitial, setMiddleInitial] = useState("");
   const [section, setSection] = useState("");
+  const [gender, setGender] = useState("Male");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmCreate, setConfirmCreate] = useState(false);
   const canManageAccounts = user?.role === "admin" || user?.role === "registrar";
@@ -45,7 +47,7 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
         continuingRecord?: MasterlistRecord;
       }>>(
         "/students/v1/accounts",
-        { name, section },
+        { name, section, gender, dateOfBirth },
         { headers: { Authorization: `Bearer ${token}`, "x-csrf-token": csrf } },
       );
       const created = response.data?.data?.student;
@@ -57,6 +59,8 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
       setLastName("");
       setMiddleInitial("");
       setSection("");
+      setGender("Male");
+      setDateOfBirth("");
       setConfirmCreate(false);
       toast(`Created account ${created.studentNumber}. Default password: 123456`, "success");
     } catch (error) {
@@ -79,7 +83,7 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
           <p className="mt-1 font-poppins text-xs text-cpc-heading-soft">The student signs in with their generated ID and changes the default password after signing in.</p>
         </div>
       </div>
-      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5rem_minmax(0,1fr)_auto]">
+      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-4">
         <label className="font-poppins text-xs font-semibold text-cpc-label">
           First name
           <input required minLength={1} maxLength={60} value={firstName} onChange={(event) => setFirstName(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" placeholder="First name" />
@@ -96,6 +100,18 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
           Section
           <input required maxLength={40} value={section} onChange={(event) => setSection(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" placeholder="e.g. BSIT 1-A" />
         </label>
+        <label className="font-poppins text-xs font-semibold text-cpc-label">
+          Gender
+          <select required value={gender} onChange={(event) => setGender(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </label>
+        <label className="font-poppins text-xs font-semibold text-cpc-label">
+          Date of birth
+          <input required type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} max={new Date().toISOString().slice(0, 10)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" />
+        </label>
         <button type="submit" disabled={saving} className="cpc-btn cpc-btn-primary h-10 disabled:opacity-60">{saving ? "Creating…" : "Create student"}</button>
       </form>
       <p className="mt-2 font-poppins text-[11px] text-cpc-heading-soft">IDs start at 20240770 and increase from the highest existing ID. Default password: 123456.</p>
@@ -104,7 +120,7 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
         onClose={() => setConfirmCreate(false)}
         onConfirm={() => void createStudent()}
         title="Create this student account?"
-        description={<>Create an account for <strong>{name}</strong> in <strong>{section}</strong>? The student ID will be generated and the default password will be <strong>123456</strong>.</>}
+        description={<>Create an account for <strong>{name}</strong> in <strong>{section}</strong> with the entered gender and date of birth? The student ID will be generated and the default password will be <strong>123456</strong>.</>}
         confirmLabel="Create account"
         loadingLabel="Creating…"
         busy={saving}

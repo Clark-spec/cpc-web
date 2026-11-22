@@ -14,6 +14,7 @@ import type {
   CorrectionRequestInput,
   ProfileUpdateInput,
   StudentProfile,
+  StudentProfileCorrectionRequest,
 } from "@/components/features/student/profile/types";
 
 // ── Shape mapper ─────────────────────────────────────────────────────────────
@@ -103,9 +104,17 @@ export async function updateProfile(patch: ProfileUpdateInput): Promise<StudentP
 }
 
 export async function requestCorrection(input: CorrectionRequestInput): Promise<void> {
-  // Backend endpoint for correction requests is planned but not yet implemented.
-  // Log it for now; the registrar will handle it out-of-band.
-  console.info("[profileService] correction request submitted:", input);
+  const csrf = await getCsrfToken();
+  await apiClient.post(
+    "/students/v1/profile/corrections",
+    input,
+    { headers: { "x-csrf-token": csrf } },
+  );
+}
+
+export async function getMyCorrectionRequests(): Promise<StudentProfileCorrectionRequest[]> {
+  const response = await apiClient.get("/students/v1/profile/corrections/mine");
+  return response.data?.data?.requests ?? [];
 }
 
 /** Re-fetch from the server (replaces the old localStorage reset). */

@@ -72,7 +72,6 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     highlightedOffice,
     periodOpen,
     gradeAcknowledgementStatus,
-    postedGradeCount,
     unacknowledgedGradeCount,
   } = useClearance();
 
@@ -83,8 +82,8 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
   const signed = office.status === "signed";
   const requested = office.status === "requested";
   const rejected = office.status === "rejected";
-  const gradeGateReady = gradeAcknowledgementStatus === "ready";
-  const signatureRequestDisabled = !periodOpen || (office.office === "registrar" && !gradeGateReady);
+  const signatureRequestDisabled =
+    !periodOpen || (office.office === "registrar" && gradeAcknowledgementStatus !== "ready");
   const highlighted = highlightedOffice === office.office;
   const cardId = `office-${office.office}`;
   const titleId = `${cardId}-title`;
@@ -185,9 +184,9 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
           {info.description}
         </p>
 
-        {office.office === "registrar" && !signed && !requested && gradeAcknowledgementStatus === "ready" && postedGradeCount === 0 && (
+        {office.office === "registrar" && !signed && !requested && gradeAcknowledgementStatus === "no_grades" && (
           <div role="status" className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-900">
-            No grades have been posted yet. You can still request the Registrar signature. Review and acknowledge your grades in Academic Records if they are posted later.
+            Registrar signature requests are available after your grades are published and acknowledged.
           </div>
         )}
 
@@ -195,8 +194,10 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
           <div role={gradeAcknowledgementStatus === "unavailable" ? "alert" : "status"} className={`mt-3 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${gradeAcknowledgementStatus === "unavailable" ? "border-rose-200 bg-rose-50 text-rose-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
             {gradeAcknowledgementStatus === "needs_acknowledgement"
               ? `Acknowledge your ${unacknowledgedGradeCount === 1 ? "posted grade" : `${unacknowledgedGradeCount} posted grades`} in Grades / Academic Records before requesting the Registrar signature.`
+              : gradeAcknowledgementStatus === "no_grades"
+                ? "The Registrar signature request will be available after your grades are published and acknowledged."
               : gradeAcknowledgementStatus === "loading"
-                ? "Checking whether your posted grades have been acknowledged…"
+                ? "Checking whether grades have been posted. The Registrar request will be available when this check finishes."
                 : "Grade records could not be verified. Retry before requesting the Registrar signature."}
           </div>
         )}

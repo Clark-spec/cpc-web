@@ -16,6 +16,7 @@ import {
   updateProfile,
 } from "@/services/studentProfile";
 import { useSSE } from "@/hooks/useSSE";
+import { useAuth } from "@/components/context/useAuth";
 import type {
   CorrectionRequestInput,
   EditableField,
@@ -51,6 +52,8 @@ type ProfileContextValue = {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 const EDITABLE_FIELDS: EditableField[] = [
+  "email",
+  "placeOfBirth",
   "phone",
   "alternateContact",
   "address",
@@ -82,6 +85,7 @@ function changedFields(current: StudentProfile, patch: ProfileUpdateInput): Edit
  * the fresh profile so every card re-renders from one source of truth.
  */
 export function ProfileProvider({ children }: { children: ReactNode }) {
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [status, setStatus] = useState<ProfileStatus>("loading");
   const [error, setError] = useState<string | null>(null);
@@ -157,11 +161,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     async (patch: ProfileUpdateInput): Promise<SaveProfileResult> => {
       if (!profile) throw new Error("Your profile is still loading.");
       const next = await updateProfile(patch);
+      if (patch.avatarUrl !== undefined) updateUser({ avatarUrl: next.avatarUrl ?? null });
       const changed = changedFields(profile, patch);
       setProfile(next);
       return { profile: next, changed };
     },
-    [profile],
+    [profile, updateUser],
   );
 
   const resetDemo = useCallback(async () => {

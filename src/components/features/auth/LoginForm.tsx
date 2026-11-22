@@ -110,7 +110,7 @@ export function LoginForm(props: LoginFormProps) {
 
 type FormInternals = ReturnType<typeof useLoginForm>;
 
-/** Pixel-faithful Figma geometry: fixed design px sized for the 559x791 card,
+/** Pixel-faithful Figma geometry: fixed design px sized for the 640x791 card,
  *  uniformly scaled by the layout's card wrapper. */
 function DesktopLoginForm({
   role,
@@ -141,7 +141,7 @@ function DesktopLoginForm({
         {title}
       </h1>
 
-      <form onSubmit={handleSubmit} className="mt-[9px] flex w-[67%] flex-col">
+      <form onSubmit={handleSubmit} className="mt-[9px] flex w-[74%] flex-col">
         {error && (
           <div
             role="alert"

@@ -9,19 +9,14 @@ const requiredText = (label: string, min = 2, max = 80) =>
   z
     .string()
     .trim()
-    .min(min, `${label} must be at least ${min} characters.`)
-    .max(max, `${label} must be ${max} characters or fewer.`);
+    .max(max, `${label} must be ${max} characters or fewer.`)
+    .refine((value) => value === "" || value.length >= min, `${label} must be at least ${min} characters.`);
 
 const personName = (label: string) =>
   requiredText(label, 2, 60).regex(
-    /^[\p{L}.' -]+$/u,
+    /^(?:|[\p{L}.' -]+)$/u,
     `${label} can only contain letters, spaces, hyphens and periods.`,
   );
-
-const phone = z
-  .string()
-  .trim()
-  .regex(PH_MOBILE_PATTERN, "Enter a valid PH mobile number, e.g. +63 912 345 6789.");
 
 /** Empty string is allowed; anything else must be a valid PH mobile number. */
 const optionalPhone = z
@@ -32,7 +27,9 @@ const optionalPhone = z
   });
 
 export const profileFormSchema = z.object({
-  phone,
+  email: z.string().trim().max(254, "Email must be 254 characters or fewer.").refine((value) => value === "" || z.string().email().safeParse(value).success, "Enter a valid email address."),
+  placeOfBirth: requiredText("Place of Birth", 2, 120),
+  phone: optionalPhone,
   alternateContact: optionalPhone,
   address: z.object({
     street: requiredText("Street / Purok"),
@@ -40,9 +37,7 @@ export const profileFormSchema = z.object({
     city: requiredText("City / Municipality"),
     province: requiredText("Province"),
   }),
-  civilStatus: z.enum(CIVIL_STATUS_OPTIONS, {
-    message: "Choose a civil status.",
-  }),
+  civilStatus: z.enum(CIVIL_STATUS_OPTIONS).or(z.literal("")),
   religion: requiredText("Religion", 2, 40),
   nationality: requiredText("Nationality", 2, 40),
   motherName: personName("Mother's name"),

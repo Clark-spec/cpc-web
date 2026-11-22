@@ -77,6 +77,7 @@ const navItems: NavItem[] = [
       { label: "Clearance Status", to: "/student-services/online-clearance" },
       { label: "Complaint Status", to: "/student/complaint-status" },
       { label: "Request Status", to: "/student/request-status" },
+      { label: "Correction Request", to: "/my-account/profile-corrections" },
     ],
   },
 ];

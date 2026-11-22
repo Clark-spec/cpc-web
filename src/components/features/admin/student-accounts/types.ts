@@ -39,6 +39,8 @@ export type ProfileCorrectionRequest = {
   requestedValue: string;
   reason: string;
   attachmentName: string | null;
+  attachmentType?: string | null;
+  attachmentData?: string | null;
   submittedAt: string;
   status: CorrectionStatus;
   adminRemarks: string;

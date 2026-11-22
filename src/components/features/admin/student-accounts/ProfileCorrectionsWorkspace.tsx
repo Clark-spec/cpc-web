@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, Inbox, UserPen, XCircle } from "lucide-react";
 import { PageBanner } from "@/components/common/display/PageBanner";
 import { useToast } from "@/components/ui/toast";
 import { useAdminData } from "@/components/context/AdminDataContext";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { decideProfileCorrectionRequest, listProfileCorrectionRequests } from "@/services/studentAccounts/profileCorrections";
 import { ProfileCorrectionModal } from "@/components/features/admin/student-accounts/ProfileCorrectionModal";
 import { ProfileCorrectionsTable } from "@/components/features/admin/student-accounts/ProfileCorrectionsTable";
 import { ProfileCorrectionsToolbar } from "@/components/features/admin/student-accounts/ProfileCorrectionsToolbar";
@@ -28,10 +30,32 @@ const DEFAULT_FILTERS: CorrectionFilters = {
 /** Route: /admin/students/profile-corrections — the registrar's review queue. */
 export function ProfileCorrectionsWorkspace() {
   const { toast } = useToast();
+  const { user } = useAdminAuth();
   const { setProfileCorrectionsCount } = useAdminData();
   const [rows, setRows] = useState<ProfileCorrectionRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filters, setFilters] = useState<CorrectionFilters>(DEFAULT_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const refreshRequests = useCallback(async () => {
+    if (!user) return;
+    try {
+      const requests = await listProfileCorrectionRequests(user.role);
+      setRows(requests);
+      setLoadError(null);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Could not load correction requests.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    void refreshRequests();
+    window.addEventListener("cpc:profile-correction-updated", refreshRequests);
+    return () => window.removeEventListener("cpc:profile-correction-updated", refreshRequests);
+  }, [refreshRequests]);
 
   const pendingCount = rows.filter((row) => row.status === "pending").length;
 
@@ -111,27 +135,17 @@ export function ProfileCorrectionsWorkspace() {
     setFilters((prev) => ({ ...prev, status, page: 1 }));
   }
 
-  function handleDecide(id: string, decision: CorrectionDecision) {
+  async function handleDecide(id: string, decision: CorrectionDecision) {
     const target = rows.find((row) => row.id === id);
-    if (!target) return;
-
-    setRows((current) =>
-      current.map((row) =>
-        row.id === id
-          ? {
-              ...row,
-              status: decision.status,
-              adminRemarks: decision.adminRemarks,
-              reviewedAt: new Date().toISOString(),
-            }
-          : row,
-      ),
-    );
-    setSelectedId(null);
-    toast(
-      `${target.referenceNumber} ${CORRECTION_STATUS_LABELS[decision.status].toLowerCase()}.`,
-      "success",
-    );
+    if (!target || !user) return;
+    try {
+      const updated = await decideProfileCorrectionRequest(user.role, id, decision);
+      setRows((current) => current.map((row) => row.id === id ? updated : row));
+      setSelectedId(null);
+      toast(`${target.referenceNumber} ${CORRECTION_STATUS_LABELS[decision.status].toLowerCase()}.`, "success");
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Could not update the correction request.", "error");
+    }
   }
 
   const share = (count: number) =>
@@ -204,6 +218,20 @@ export function ProfileCorrectionsWorkspace() {
           onClick={() => applyStatusFilter("rejected")}
         />
       </div>
+
+      {loading && rows.length === 0 && (
+        <p role="status" className="rounded-xl border border-cpc-tile-border bg-white px-4 py-3 font-poppins text-xs text-cpc-heading-soft">
+          Loading correction requests…
+        </p>
+      )}
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 font-poppins text-xs text-rose-700">
+          <p>{loadError}</p>
+          <button type="button" onClick={() => void refreshRequests()} className="mt-2 font-semibold underline underline-offset-2">
+            Try again
+          </button>
+        </div>
+      )}
 
       <ProfileCorrectionsToolbar
         filters={filters}

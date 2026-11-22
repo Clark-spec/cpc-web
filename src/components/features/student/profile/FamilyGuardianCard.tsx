@@ -18,7 +18,6 @@ export function FamilyGuardianCard({
             icon={UserRound}
             label="Mother's Name"
             htmlFor="profile-mother-name"
-            required
             error={errors.motherName?.message}
             highlight={highlighted.has("motherName")}
           >
@@ -36,7 +35,6 @@ export function FamilyGuardianCard({
             icon={User}
             label="Father's Name"
             htmlFor="profile-father-name"
-            required
             error={errors.fatherName?.message}
             highlight={highlighted.has("fatherName")}
           >
@@ -54,7 +52,6 @@ export function FamilyGuardianCard({
             icon={Users}
             label="Guardian's Name"
             htmlFor="profile-guardian-name"
-            required
             error={errors.guardianName?.message}
             highlight={highlighted.has("guardianName")}
           >

@@ -7,9 +7,11 @@ import { useNotifications } from "@/components/context/NotificationContext";
 import { useProfile } from "@/components/features/student/profile/ProfileContext";
 import { mockProfile } from "@/components/features/student/profile/mockProfile";
 import { profileFormSchema, type ProfileFormValues } from "@/components/features/student/profile/schema";
-import type { EditableField, StudentProfile } from "@/components/features/student/profile/types";
+import type { EditableField, ProfileUpdateInput, StudentProfile } from "@/components/features/student/profile/types";
 
 const FIELD_LABELS: Record<EditableField, string> = {
+  email: "Email address",
+  placeOfBirth: "Place of birth",
   phone: "Phone number",
   alternateContact: "Alternate contact",
   address: "Address",
@@ -25,6 +27,8 @@ const FIELD_LABELS: Record<EditableField, string> = {
 
 /** Order used when moving focus to the first invalid control. */
 const FOCUS_ORDER: EditableField[] = [
+  "email",
+  "placeOfBirth",
   "phone",
   "alternateContact",
   "address",
@@ -39,6 +43,8 @@ const FOCUS_ORDER: EditableField[] = [
 
 function toFormValues(profile: StudentProfile): ProfileFormValues {
   return {
+    email: profile.email,
+    placeOfBirth: profile.placeOfBirth,
     phone: profile.phone,
     alternateContact: profile.alternateContact ?? "",
     address: { ...profile.address },
@@ -78,7 +84,7 @@ export function useProfileForm() {
   });
 
   const { register, handleSubmit, reset, setFocus, setValue, trigger, watch, formState } = form;
-  const { errors, isDirty, isValid } = formState;
+  const { errors, isDirty, isValid, dirtyFields } = formState;
 
   // Keep the form in sync when the context profile changes outside edit mode
   // (initial load, demo reset, successful save).
@@ -152,8 +158,31 @@ export function useProfileForm() {
       setSaving(true);
       saveAction.start();
       try {
-        const result = await save(values);
-        reset(values);
+        if (!profile) throw new Error("Your profile is still loading.");
+        const patch: ProfileUpdateInput = {};
+        if (dirtyFields.email) patch.email = values.email;
+        if (dirtyFields.phone) patch.phone = values.phone;
+        if (dirtyFields.alternateContact) patch.alternateContact = values.alternateContact;
+        if (dirtyFields.placeOfBirth) patch.placeOfBirth = values.placeOfBirth;
+        if (dirtyFields.civilStatus) patch.civilStatus = values.civilStatus;
+        if (dirtyFields.religion) patch.religion = values.religion;
+        if (dirtyFields.nationality) patch.nationality = values.nationality;
+        if (dirtyFields.motherName) patch.motherName = values.motherName;
+        if (dirtyFields.fatherName) patch.fatherName = values.fatherName;
+        if (dirtyFields.guardianName) patch.guardianName = values.guardianName;
+        if (dirtyFields.guardianContact) patch.guardianContact = values.guardianContact;
+        if (dirtyFields.avatarUrl) patch.avatarUrl = values.avatarUrl;
+        if (dirtyFields.address) {
+          patch.address = {
+            street: dirtyFields.address.street ? values.address.street : profile.address.street,
+            barangay: dirtyFields.address.barangay ? values.address.barangay : profile.address.barangay,
+            city: dirtyFields.address.city ? values.address.city : profile.address.city,
+            province: dirtyFields.address.province ? values.address.province : profile.address.province,
+          };
+        }
+
+        const result = await save(patch);
+        reset(toFormValues(result.profile));
         highlight(result.changed);
 
         saveAction.succeed();

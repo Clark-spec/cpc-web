@@ -57,9 +57,19 @@ export function PersonalInfoCard({
         label="Place of Birth"
         value={profile.placeOfBirth}
         editing={editing}
-        readOnly
-        onRequestCorrection={editing ? () => onRequestCorrection("Place of Birth") : undefined}
-      />
+        htmlFor="profile-place-of-birth"
+        error={errors.placeOfBirth?.message}
+        highlight={highlighted.has("placeOfBirth")}
+      >
+        <input
+          id="profile-place-of-birth"
+          autoComplete="address-level2"
+          aria-invalid={Boolean(errors.placeOfBirth)}
+          aria-describedby={errors.placeOfBirth ? "profile-place-of-birth-error" : undefined}
+          className={profileInputClass}
+          {...register("placeOfBirth")}
+        />
+      </InfoRow>
     </>
   );
 
@@ -79,7 +89,6 @@ export function PersonalInfoCard({
                 icon={Heart}
                 label="Civil Status"
                 htmlFor="profile-civil-status"
-                required
                 error={errors.civilStatus?.message}
                 highlight={highlighted.has("civilStatus")}
               >
@@ -90,6 +99,7 @@ export function PersonalInfoCard({
                   className={profileInputClass}
                   {...register("civilStatus")}
                 >
+                  <option value="">Select civil status</option>
                   {CIVIL_STATUS_OPTIONS.map((option) => (
                     <option key={option} value={option}>
                       {option}
