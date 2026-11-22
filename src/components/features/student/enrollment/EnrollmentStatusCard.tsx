@@ -5,7 +5,6 @@ import {
   BadgeCheck,
   CheckCircle2,
   Circle,
-  CircleAlert,
   ExternalLink,
   QrCode,
   Send,

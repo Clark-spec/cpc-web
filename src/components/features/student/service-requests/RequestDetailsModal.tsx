@@ -113,6 +113,7 @@ export function RequestDetailsModal({
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [previewDocument, setPreviewDocument] = useState<{ name: string; index: number } | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState(false);
 
@@ -171,12 +172,12 @@ export function RequestDetailsModal({
     };
   }, [onClose]);
 
-  async function handleDownload() {
-    if (!request?.document) return;
+  async function handleDownload(document: { name: string }, index: number) {
+    if (!request) return;
     setDownloading(true);
     setDownloadError(null);
     try {
-      await downloadDocument(request.id, request.document.name);
+      await downloadDocument(request.id, document.name, index);
     } catch (downloadFailure) {
       setDownloadError(getErrorMessage(downloadFailure));
     } finally {
@@ -184,16 +185,17 @@ export function RequestDetailsModal({
     }
   }
 
-  async function handlePreview() {
-    if (!request?.document) return;
+  async function handlePreview(document: { name: string; mime: string }, index: number) {
+    if (!request) return;
     setPreviewing(true);
     setPreviewError(null);
     try {
-      const blob = await getDocumentBlob(request.id);
+      const blob = await getDocumentBlob(request.id, index);
       if (!blob.type.startsWith("image/")) {
         setPreviewError("This attachment is not an image.");
         return;
       }
+      setPreviewDocument({ name: document.name, index });
       setPreviewSrc(URL.createObjectURL(blob));
     } catch (previewFailure) {
       setPreviewError(getErrorMessage(previewFailure));
@@ -294,10 +296,7 @@ export function RequestDetailsModal({
                 </p>
                 <ul className="mt-1.5 grid gap-2 rounded-lg border border-sr-border bg-[#FBFDFF] px-3 py-2.5 sm:grid-cols-2">
                   <RequirementRow label="Request details" detail="Service, purpose and copies" />
-                  <RequirementRow
-                    label="Valid student ID"
-                    detail={request.document?.name || "No document uploaded"}
-                  />
+                  <RequirementRow label="Valid student ID" detail={request.document?.name || "No document uploaded"} />
                   <RequirementRow label="Contact details" detail="From your student account" />
                   <RequirementRow label="Submission" detail="Received by student services" />
                 </ul>
@@ -305,25 +304,26 @@ export function RequestDetailsModal({
 
               <div>
                 <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
-                  Uploaded Document
+                  Uploaded Documents
                 </p>
-                {request.document ? (
-                  <div className="mt-1 flex items-center gap-3 rounded-lg border border-sr-border px-3 py-2.5">
+                {(request.documents?.length ? request.documents : request.document ? [request.document] : []).length ? (
+                  <div className="mt-1 space-y-2">
+                  {(request.documents?.length ? request.documents : request.document ? [request.document] : []).map((document, index) => <div key={`${document.name}-${index}`} className="flex items-center gap-3 rounded-lg border border-sr-border px-3 py-2.5">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sr-section text-sr-primary">
                       <FileIcon className="h-4 w-4" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-poppins text-[12px] font-medium text-sr-text">
-                        {request.document.name}
+                        {document.name}
                       </p>
                       <p className="font-poppins text-[10px] text-sr-muted">
-                        {formatFileSize(request.document.size)}
+                        {formatFileSize(document.size)}
                       </p>
                     </div>
-                    {request.document.mime.startsWith("image/") && (
+                    {document.mime.startsWith("image/") && (
                       <button
                         type="button"
-                        onClick={() => void handlePreview()}
+                        onClick={() => void handlePreview(document, index)}
                         disabled={previewing}
                         className="rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page disabled:opacity-60"
                       >
@@ -332,12 +332,13 @@ export function RequestDetailsModal({
                     )}
                     <button
                       type="button"
-                      onClick={handleDownload}
+                      onClick={() => void handleDownload(document, index)}
                       disabled={downloading}
                       className="rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {downloading ? "Preparing…" : "Download"}
                     </button>
+                  </div>)}
                   </div>
                 ) : (
                   <p className="mt-1 rounded-lg border border-sr-border bg-[#FBFDFF] px-3 py-2.5 font-poppins text-[11px] text-sr-muted">
@@ -409,14 +410,14 @@ export function RequestDetailsModal({
           )}
         </div>
       </div>
-      {previewSrc && request?.document && (
+      {previewSrc && previewDocument && (
         <ImagePreviewModal
           open={Boolean(previewSrc)}
           onClose={() => setPreviewSrc(null)}
           src={previewSrc}
-          alt={request.document.name}
+          alt={previewDocument.name}
           title="Uploaded student ID"
-          meta={request.document.name}
+          meta={previewDocument.name}
         />
       )}
     </div>

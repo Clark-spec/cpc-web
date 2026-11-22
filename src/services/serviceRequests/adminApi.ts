@@ -90,6 +90,18 @@ function normalizeRow(value: unknown): AdminServiceRequestRow {
           mime: readString(documentRaw.mime) ?? "",
         }
       : null,
+    documents: Array.isArray(raw.documents)
+      ? raw.documents.map((value) => {
+          const item = asRecord(value);
+          return {
+            name: readString(item.name) ?? "Attachment",
+            size: readNumber(item.size) ?? 0,
+            mime: readString(item.mime, item.type) ?? "",
+          };
+        })
+      : hasDocument
+        ? [{ name: documentRaw.name as string, size: readNumber(documentRaw.size) ?? 0, mime: readString(documentRaw.mime) ?? "" }]
+        : [],
     lastUpdatedByRole: readString(raw.lastUpdatedByRole) ?? null,
     lastUpdatedByName: readString(raw.lastUpdatedByName) ?? null,
     student: {
@@ -194,11 +206,11 @@ export async function listAdminServiceRequests(
   };
 }
 
-export async function getAdminServiceRequest(id: string): Promise<AdminServiceRequestDetail> {
+export async function getAdminServiceRequest(id: string, referenceNumber?: string): Promise<AdminServiceRequestDetail> {
   const response = await withAdminToken((token) =>
     apiClient.get<ApiEnvelope<{ request: unknown }>>(
       `/service-requests/v1/admin/${encodeURIComponent(id)}`,
-      adminConfig(token),
+      adminConfig(token, { params: referenceNumber ? { referenceNumber } : undefined }),
     ),
   );
 
@@ -230,11 +242,11 @@ export async function updateAdminServiceRequest(
   return normalizeDetail(request);
 }
 
-export async function downloadAdminServiceDocument(id: string, fileName: string): Promise<void> {
+export async function downloadAdminServiceDocument(id: string, fileName: string, index = 0): Promise<void> {
   const response = await withAdminToken((token) =>
     apiClient.get(
       `/service-requests/v1/admin/${encodeURIComponent(id)}/document`,
-      adminConfig(token, { responseType: "blob" }),
+      adminConfig(token, { responseType: "blob", params: { index } }),
     ),
   );
 
@@ -250,4 +262,14 @@ export async function downloadAdminServiceDocument(id: string, fileName: string)
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function getAdminServiceDocumentBlob(id: string, index = 0): Promise<Blob> {
+  const response = await withAdminToken((token) =>
+    apiClient.get(
+      `/service-requests/v1/admin/${encodeURIComponent(id)}/document`,
+      adminConfig(token, { responseType: "blob", params: { index } }),
+    ),
+  );
+  return response.data as Blob;
 }

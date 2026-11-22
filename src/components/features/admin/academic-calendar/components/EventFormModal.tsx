@@ -32,6 +32,7 @@ type EventFormModalProps = {
   initialDate?: string;
   initialYear: AcademicYear;
   initialSemester: Semester;
+  showApplicablePrograms?: boolean;
   onClose: () => void;
   onSave: (event: AdminCalendarEvent, mode: SaveMode) => void;
 };
@@ -146,6 +147,7 @@ export function EventFormModal({
   initialDate,
   initialYear,
   initialSemester,
+  showApplicablePrograms = true,
   onClose,
   onSave,
 }: EventFormModalProps) {
@@ -474,34 +476,36 @@ export function EventFormModal({
               </div>
             </div>
 
-            <div>
-              <span className={fieldLabelClass}>Applicable Programs</span>
-              <div className="flex flex-wrap gap-1.5">
-                {PROGRAMS.map((program) => {
-                  const selected = form.programs.includes(program);
-                  return (
-                    <button
-                      key={program}
-                      type="button"
-                      onClick={() => toggleProgram(program)}
-                      aria-pressed={selected}
-                      className={cn(
-                        "inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-poppins text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-cpc-blue-accent",
-                        selected
-                          ? "border-cpc-blue-accent bg-cpc-section-light text-cpc-blue-accent"
-                          : "border-cpc-tile-border bg-white text-cpc-heading-soft hover:border-cpc-blue-accent/40",
-                      )}
-                    >
-                      {selected && <Check className="h-3 w-3" aria-hidden />}
-                      {program}
-                    </button>
-                  );
-                })}
+            {showApplicablePrograms && (
+              <div>
+                <span className={fieldLabelClass}>Applicable Programs</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {PROGRAMS.map((program) => {
+                    const selected = form.programs.includes(program);
+                    return (
+                      <button
+                        key={program}
+                        type="button"
+                        onClick={() => toggleProgram(program)}
+                        aria-pressed={selected}
+                        className={cn(
+                          "inline-flex cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-poppins text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-cpc-blue-accent",
+                          selected
+                            ? "border-cpc-blue-accent bg-cpc-section-light text-cpc-blue-accent"
+                            : "border-cpc-tile-border bg-white text-cpc-heading-soft hover:border-cpc-blue-accent/40",
+                        )}
+                      >
+                        {selected && <Check className="h-3 w-3" aria-hidden />}
+                        {program}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-1 font-poppins text-[11px] text-cpc-heading-soft">
+                  Leave empty when the event applies to the whole institution.
+                </p>
               </div>
-              <p className="mt-1 font-poppins text-[11px] text-cpc-heading-soft">
-                Leave empty when the event applies to the whole institution.
-              </p>
-            </div>
+            )}
           </fieldset>
 
           {/* Section D */}

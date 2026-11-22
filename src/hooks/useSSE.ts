@@ -1,26 +1,41 @@
 import { useEffect, useRef } from "react";
-import { API_BASE_URL } from "@/lib/apiClient";
+import { API_BASE_URL, readAccessToken } from "@/lib/apiClient";
+import { getSessionApi } from "@/services/auth";
 
 type SseEventHandler = (type: string, data: unknown) => void;
 
+const EVENT_TYPES = new Set([
+  "connected",
+  "profile_updated",
+  "service_request_updated",
+  "notification_updated",
+  "notification_created",
+  "complaint_updated",
+  "academic_calendar_updated",
+]);
+
+/** Reads one SSE block and delivers its named event to the current handler. */
+function dispatchEventBlock(block: string, handler: SseEventHandler) {
+  let type = "message";
+  const data: string[] = [];
+  for (const line of block.split(/\r?\n/)) {
+    if (line.startsWith("event:")) type = line.slice(6).trim();
+    else if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+  }
+  if (!EVENT_TYPES.has(type)) return;
+  try {
+    handler(type, JSON.parse(data.join("\n")));
+  } catch {
+    handler(type, {});
+  }
+}
+
 /**
- * Subscribes to the backend Server-Sent Events stream for the authenticated
- * student. The browser's `EventSource` API handles reconnection automatically.
- *
- * The backend sends:
- *   - `connected`               on every (re)connect — refetch missed events
- *   - `ping`                    every 25 s (heartbeat, no action needed)
- *   - `profile_updated`         when profile data changes
- *   - `service_request_updated` when a request's status changes
- *   - `notification_updated`    when the notification feed changes
- *   - `notification_created`    when a new notification is delivered
- *   - `complaint_updated`       when a complaint's status changes
- *   - `academic_calendar_updated` when a published calendar event changes
- *
- * @param onEvent  Stable callback — wrap in useCallback to prevent reconnects.
- * @param enabled  Pass `false` to skip connecting (e.g. user is not logged in).
+ * Authenticated SSE stream. Fetch is used instead of EventSource so each tab
+ * sends its own bearer token; auth cookies are shared between student and
+ * registrar tabs and can belong to the other account.
  */
-export function useSSE(onEvent: SseEventHandler, enabled = true, identity?: string) {
+export function useSSE(onEvent: SseEventHandler, enabled = true, identity?: string, tokenResolver?: () => Promise<string>) {
   const handlerRef = useRef(onEvent);
 
   useEffect(() => {
@@ -30,43 +45,67 @@ export function useSSE(onEvent: SseEventHandler, enabled = true, identity?: stri
   useEffect(() => {
     if (!enabled) return;
 
-    let es: EventSource | null = null;
+    const controller = new AbortController();
+    let retryDelay = 1_000;
 
-    function connect() {
-      es = new EventSource(`${API_BASE_URL}/sse/v1/student`, { withCredentials: true });
+    const connect = async () => {
+      while (!controller.signal.aborted) {
+        try {
+          let token = tokenResolver ? await tokenResolver() : readAccessToken();
+          let response = await fetch(`${API_BASE_URL}/sse/v1/student`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            credentials: "include",
+            signal: controller.signal,
+          });
 
-      const eventTypes = [
-        "connected",
-        "profile_updated",
-        "service_request_updated",
-        "notification_updated",
-        "notification_created",
-        "complaint_updated",
-        "academic_calendar_updated",
-      ] as const;
-
-      for (const type of eventTypes) {
-        es.addEventListener(type, (event) => {
-          try {
-            handlerRef.current(type, JSON.parse((event as MessageEvent).data));
-          } catch {
-            handlerRef.current(type, {});
+          // Refresh this tab's access token through the normal API client, then
+          // retry the stream. This avoids relying on the shared auth cookie.
+          if (response.status === 401 && !tokenResolver) {
+            await getSessionApi();
+            token = readAccessToken();
+            response = await fetch(`${API_BASE_URL}/sse/v1/student`, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+              credentials: "include",
+              signal: controller.signal,
+            });
           }
+
+          if (!response.ok || !response.body) throw new Error("SSE connection failed");
+          retryDelay = 1_000;
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+
+          while (!controller.signal.aborted) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const blocks = buffer.split(/\r?\n\r?\n/);
+            buffer = blocks.pop() ?? "";
+            for (const block of blocks) dispatchEventBlock(block, handlerRef.current);
+          }
+          await reader.cancel().catch(() => undefined);
+        } catch {
+          if (controller.signal.aborted) return;
+        }
+
+        if (controller.signal.aborted) return;
+        await new Promise<void>((resolve) => {
+          const timer = window.setTimeout(resolve, retryDelay);
+          controller.signal.addEventListener(
+            "abort",
+            () => {
+              window.clearTimeout(timer);
+              resolve();
+            },
+            { once: true },
+          );
         });
+        retryDelay = Math.min(retryDelay * 2, 15_000);
       }
-
-      // Ping events are intentionally ignored — they just keep the connection alive.
-
-      es.onerror = () => {
-        // EventSource reconnects automatically; no manual retry needed.
-      };
-    }
-
-    connect();
-
-    return () => {
-      es?.close();
     };
-  }, [enabled, identity]);
-}
 
+    void connect();
+    return () => controller.abort();
+  }, [enabled, identity, tokenResolver]);
+}

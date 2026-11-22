@@ -59,17 +59,17 @@ export function HeroSection() {
       />
 
       {/* Labels + heading (Poppins — same as site header brand). */}
-      <div className="absolute inset-x-0 top-0 z-[2] mx-auto flex w-full max-w-[1200px] flex-col items-center px-4 pt-5 text-center sm:px-8 sm:pt-6 lg:pt-7">
+      <div className="absolute inset-x-0 top-0 z-[2] mx-auto flex w-full max-w-[1200px] flex-col items-center px-4 pt-36 text-center sm:px-8 sm:pt-40 lg:pt-44">
         <div
           {...reveal(
             0,
-            "flex flex-wrap items-center justify-center gap-x-3 gap-y-1",
+            "flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 rounded-full border border-cpc-blue-accent/15 bg-white/55 px-4 py-1.5 shadow-[0_4px_16px_rgba(15,36,104,0.08)] backdrop-blur-[2px]",
           )}
         >
-          <p className="text-[11px] leading-5 font-bold tracking-[0.3em] text-cpc-blue-accent uppercase sm:text-[12px] lg:text-[13px]">
+          <p className="text-[12px] leading-5 font-semibold tracking-[0.3em] text-cpc-blue-accent uppercase sm:text-[13px]">
             Welcome to
           </p>
-          <p className="text-[10px] leading-5 font-semibold tracking-[0.35em] text-cpc-blue-accent uppercase sm:text-[11px] lg:text-[12px]">
+          <p className="text-[11px] leading-5 font-semibold tracking-[0.35em] text-cpc-navy-text uppercase sm:text-[12px]">
             Student Portal
           </p>
         </div>
@@ -77,7 +77,7 @@ export function HeroSection() {
         <h1
           {...reveal(
             90,
-            "mt-2 w-[min(95%,100%)] font-poppins text-[clamp(2.5rem,6.5vw,5.5rem)] leading-[1.05] font-extrabold tracking-[-0.01em] text-balance text-cpc-navy-text [text-shadow:0_0_24px_rgba(232,239,255,0.95)] max-md:max-w-[12ch] md:mt-3 md:whitespace-nowrap",
+            "mt-3 w-[min(95%,100%)] font-poppins text-[clamp(2.5rem,6.5vw,5.5rem)] leading-[1.02] font-extrabold tracking-[-0.035em] text-balance text-cpc-navy-text [text-shadow:0_2px_2px_rgba(255,255,255,0.85),0_8px_24px_rgba(15,36,104,0.16)] max-md:max-w-[12ch] md:mt-4 md:whitespace-nowrap",
           )}
         >
           Cordova Public College

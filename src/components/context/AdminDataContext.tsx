@@ -11,6 +11,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -32,6 +33,9 @@ import {
   fetchAdminNotificationFeed,
   markAdminNotificationsReadApi,
 } from "@/services/admin/notificationFeed";
+import { getAdminComplaintCount } from "@/services/complaints/admin";
+import { ensureAdminSession } from "@/services/complaints/admin-session";
+import { useSSE } from "@/hooks/useSSE";
 import type {
   ActivityItem,
   AdminBadgeCounts,
@@ -50,6 +54,7 @@ type AdminDataState = {
   activity: ActivityItem[];
   requests: ClearanceRequest[];
   notifications: AdminNotification[];
+  complaintCount: number;
   lastUpdated: string | null;
 };
 
@@ -119,6 +124,7 @@ const EMPTY_STATE: AdminDataState = {
   activity: [],
   requests: [],
   notifications: [],
+  complaintCount: 0,
   lastUpdated: null,
 };
 
@@ -133,6 +139,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profileCorrectionsCount, setProfileCorrectionsCount] = useState(0);
+  const notificationMutationVersion = useRef(0);
 
   const loadNotifications = useCallback(async (): Promise<AdminNotification[]> => {
     try {
@@ -153,12 +160,13 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       const started = Date.now();
 
       try {
-        const [stats, enrollment, activity, requests, notifications] = await Promise.all([
+        const [stats, enrollment, activity, requests, notifications, complaintCount] = await Promise.all([
           getDashboardStats(user),
           getEnrollmentOverview(),
           getRecentActivity(),
           getClearanceRequests(user),
           loadNotifications(),
+          getAdminComplaintCount().catch(() => 0),
         ]);
 
         // The brief skeleton makes the first paint feel like a real fetch.
@@ -177,6 +185,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
           activity,
           requests,
           notifications,
+          complaintCount,
           lastUpdated: new Date().toISOString(),
         });
       } catch {
@@ -189,14 +198,25 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     [loadNotifications, user],
   );
 
+  const adminTokenResolver = useCallback(() => ensureAdminSession(user?.role), [user?.role]);
+  const handleAdminEvent = useCallback((type: string) => {
+    if (type === "connected" || type === "notification_created" || type === "notification_updated") {
+      void load("silent");
+    }
+  }, [load]);
+  useSSE(handleAdminEvent, Boolean(user), user?.id, adminTokenResolver);
+
   // Admin sessions use a bearer token, which EventSource cannot send, so the
   // staff bell polls the feed while the tab is visible.
   const syncNotifications = useCallback(async () => {
+    const startedAtVersion = notificationMutationVersion.current;
     try {
       try {
         const notifications = await fetchAdminNotificationFeed();
+        if (startedAtVersion !== notificationMutationVersion.current) return;
         setState((current) => ({ ...current, notifications }));
       } catch {
+        if (startedAtVersion !== notificationMutationVersion.current) return;
         setState((current) => ({ ...current, notifications: [] }));
       }
     } catch {
@@ -288,6 +308,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
   const markAllNotificationsRead = useCallback(async () => {
     const idsToMark = filteredNotifications.map((n) => n.id);
+    notificationMutationVersion.current += 1;
     try {
       await markAdminNotificationsReadApi(idsToMark);
     } catch {
@@ -304,6 +325,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   }, [filteredNotifications]);
 
   const markNotificationRead = useCallback(async (id: string) => {
+    notificationMutationVersion.current += 1;
     try {
       await markAdminNotificationsReadApi([id]);
     } catch {
@@ -336,7 +358,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     () => ({
       enrollment: state.stats?.pendingEnrollments ?? 0,
       clearance: state.requests.filter((request) => request.status === "pending").length,
-      complaints: state.stats?.activeComplaints ?? 0,
+      complaints: state.complaintCount,
       profileCorrections: profileCorrectionsCount,
     }),
     [profileCorrectionsCount, state.requests, state.stats],

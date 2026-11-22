@@ -24,6 +24,7 @@ export type AdminComplaintRow = {
   /** Anonymous records arrive without identity; the UI shows placeholders. */
   anonymous: boolean;
   attachmentName: string | null;
+  attachments?: Array<{ name: string; type: string; url: string | null }>;
   adminRemarks: string;
   updatedAt: string | null;
   /** Staff member who last changed the status or remarks. */

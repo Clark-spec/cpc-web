@@ -55,6 +55,7 @@ export type AdminServiceRequestRow = {
   submittedAt: string;
   updatedAt: string;
   document: AdminServiceDocument | null;
+  documents?: AdminServiceDocument[];
   lastUpdatedByRole: string | null;
   lastUpdatedByName: string | null;
   student: AdminServiceStudent;

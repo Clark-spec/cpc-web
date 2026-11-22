@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 
 /**
- * Frontend-only sample calendar. Every event below is local demo data for the
- * Academic Calendar page; nothing here is fetched from a backend.
+ * Student calendar event types and category metadata. Published event data is
+ * loaded from the academic calendar API by useAcademicCalendar.
  */
 
 export type CalendarCategory =

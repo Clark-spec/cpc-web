@@ -12,6 +12,7 @@ export type StudentComplaint = {
   anonymous: boolean;
   attachmentName: string | null;
   attachmentUrl?: string | null;
+  attachments?: Array<{ name: string; type?: string; url: string | null }>;
   adminRemarks: string;
 };
 
@@ -43,6 +44,7 @@ export type AdminComplaint = {
   yearLevel: string;
   email: string;
   attachmentUrl?: string | null;
+  attachments?: Array<{ name: string; type: string; url: string | null }>;
 };
 
 export type AdminComplaintsResponse = {
@@ -67,5 +69,5 @@ export type ComplaintSubmitInput = {
   category: string;
   description: string;
   isAnonymous: boolean;
-  attachment: File | null;
+  attachments: File[];
 };

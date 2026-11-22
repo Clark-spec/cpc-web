@@ -112,7 +112,7 @@ export default function OnlineComplaintPage() {
         category: values.category,
         description: values.description,
         isAnonymous: values.anonymous,
-        attachment: values.attachment,
+        attachments: values.attachments,
       });
 
       try {

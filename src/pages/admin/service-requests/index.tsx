@@ -198,7 +198,7 @@ export default function ServiceRequestsPage() {
     status: AdminServiceRequestStatus,
   ) => {
     const rows = (result?.requests ?? []).filter(
-      (row) => ids.includes(row.id) && row.status !== status,
+      (row) => ids.includes(row.id) && row.status !== status && row.status !== "released",
     );
     if (rows.length === 0) return;
 
@@ -357,6 +357,7 @@ export default function ServiceRequestsPage() {
         <ServiceRequestDetailsModal
           key={viewing.id}
           requestId={viewing.id}
+          referenceNumber={viewing.referenceNumber}
           onClose={() => setViewing(null)}
           onSaved={handleSaved}
           onConflict={handleConflict}

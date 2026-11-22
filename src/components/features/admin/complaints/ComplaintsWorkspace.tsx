@@ -14,7 +14,10 @@ import type {
   ComplaintStatusFilter,
   ComplaintUpdate,
 } from "@/components/features/admin/complaints/types";
-import { getAdminComplaints, updateAdminComplaint } from "@/services/complaints";
+import { getAdminComplaint, getAdminComplaints, updateAdminComplaint } from "@/services/complaints";
+import { useSSE } from "@/hooks/useSSE";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
+import { ensureAdminSession } from "@/services/complaints/admin-session";
 
 const DEFAULT_FILTERS: ComplaintFilters = {
   query: "",
@@ -38,6 +41,7 @@ export function ComplaintsWorkspace() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ComplaintFilters>(DEFAULT_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { user } = useAdminAuth();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,6 +62,21 @@ export function ComplaintsWorkspace() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const adminTokenResolver = useCallback(() => ensureAdminSession(user?.role), [user?.role]);
+  const handleAdminEvent = useCallback((type: string) => {
+    if (type === "notification_created" || type === "notification_updated") void load();
+  }, [load]);
+  useSSE(handleAdminEvent, Boolean(user), user?.id, adminTokenResolver);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    let active = true;
+    void getAdminComplaint(selectedId).then((detail) => {
+      if (active) setRows((current) => current.map((item) => item.id === detail.id ? detail : item));
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, [selectedId]);
 
   const filteredRows = useMemo(() => {
     const query = filters.query.trim().toLowerCase();

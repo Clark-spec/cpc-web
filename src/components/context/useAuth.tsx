@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import type { ReactNode } from "react";
 import { navigate } from "@/lib/router";
 import { showInfo, showSuccess } from "@/lib/feedback";
+import { ApiError } from "@/lib/apiClient";
 import { loginApi, logoutApi, getSessionApi, type AuthUser } from "@/services/auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -80,11 +81,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(updated);
         sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
       })
-      .catch(() => {
-        // Session expired or server unreachable — clear local state.
-        setUser(null);
-        sessionStorage.removeItem(USER_STORAGE_KEY);
-        sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      .catch((error: unknown) => {
+        // Keep the saved session during temporary network/server failures.
+        // The API client handles an expired token by attempting a refresh first.
+        if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+          setUser(null);
+          sessionStorage.removeItem(USER_STORAGE_KEY);
+          sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+          sessionStorage.removeItem("cpc_refresh_token");
+        }
       });
     // Only run once after the initial render.
   }, []);

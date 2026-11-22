@@ -53,7 +53,7 @@ const navItems: NavItem[] = [
 
       { label: "Class Schedules", to: "/academics/class-schedules" },
       { label: "Academic Calendar", to: "/academics/academic-calendar" },
-      { label: "Grades / Academic Records", to: "#" },
+      { label: "Grades / Academic Records", to: "/academics/grades" },
     ],
   },
   {
@@ -237,7 +237,7 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
       >
         <div
           className={cn(
-            "mx-auto flex h-12 w-full max-w-[1440px] items-center justify-between",
+            "mx-auto flex h-12 w-full max-w-[1440px] items-center justify-center",
             gutter,
           )}
         >

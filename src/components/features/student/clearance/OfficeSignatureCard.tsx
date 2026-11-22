@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   Award,
+  BookOpen,
   CalendarOff,
   CheckCircle2,
   Clock3,
+  CreditCard,
   FileText,
   Loader2,
   RotateCcw,
@@ -35,25 +37,25 @@ const OFFICE_INFO: Record<
     description: "Validates curriculum requirements & graduation standing",
     icon: Award,
   },
+  library: {
+    label: "Library",
+    description: "Audits borrowed book returns & library clearance",
+    icon: BookOpen,
+  },
   registrar: {
     label: "Registrar",
     description: "Audits academic records, credentials & prerequisites",
     icon: FileText,
   },
+  accounting: {
+    label: "Accounting",
+    description: "Validates statement of account & remaining fee balances",
+    icon: CreditCard,
+  },
   sao: {
     label: "SAO / SSG Adviser",
     description: "Verifies mandatory event attendances & index card",
     icon: Users,
-  },
-  library: {
-    label: "Library",
-    description: "Verifies the student's library account and outstanding obligations",
-    icon: FileText,
-  },
-  accounting: {
-    label: "Accounting",
-    description: "Verifies the student's accounting record and outstanding obligations",
-    icon: CheckCircle2,
   },
 };
 
@@ -67,6 +69,9 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     cancelRequest,
     highlightedOffice,
     periodOpen,
+    gradeAcknowledgementStatus,
+    postedGradeCount,
+    unacknowledgedGradeCount,
   } = useClearance();
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -76,6 +81,8 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
   const signed = office.status === "signed";
   const requested = office.status === "requested";
   const rejected = office.status === "rejected";
+  const gradeGateReady = gradeAcknowledgementStatus === "ready";
+  const signatureRequestDisabled = !periodOpen || (office.office === "registrar" && !gradeGateReady);
   const highlighted = highlightedOffice === office.office;
   const cardId = `office-${office.office}`;
   const titleId = `${cardId}-title`;
@@ -175,6 +182,22 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
         <p className="mt-1.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
           {info.description}
         </p>
+
+        {office.office === "registrar" && !signed && !requested && gradeAcknowledgementStatus === "ready" && postedGradeCount === 0 && (
+          <div role="status" className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-900">
+            No grades have been posted yet. You can still request the Registrar signature. Review and acknowledge your grades in Academic Records if they are posted later.
+          </div>
+        )}
+
+        {office.office === "registrar" && !signed && !requested && gradeAcknowledgementStatus !== "ready" && (
+          <div role={gradeAcknowledgementStatus === "unavailable" ? "alert" : "status"} className={`mt-3 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${gradeAcknowledgementStatus === "unavailable" ? "border-rose-200 bg-rose-50 text-rose-800" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+            {gradeAcknowledgementStatus === "needs_acknowledgement"
+              ? `Acknowledge your ${unacknowledgedGradeCount === 1 ? "posted grade" : `${unacknowledgedGradeCount} posted grades`} in Grades / Academic Records before requesting the Registrar signature.`
+              : gradeAcknowledgementStatus === "loading"
+                ? "Checking whether your posted grades have been acknowledged…"
+                : "Grade records could not be verified. Retry before requesting the Registrar signature."}
+          </div>
+        )}
 
         {signed ? (
           <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-2.5 backdrop-blur-xs">
@@ -283,7 +306,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            disabled={!periodOpen}
+            disabled={signatureRequestDisabled}
             className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-rose-300 bg-white py-2 font-poppins text-xs font-semibold text-rose-700 shadow-xs transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden />
@@ -293,7 +316,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            disabled={!periodOpen}
+            disabled={signatureRequestDisabled}
             className="cpc-btn cpc-btn-primary cpc-btn-sm cpc-btn-block"
           >
             {periodOpen ? (

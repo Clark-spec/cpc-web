@@ -37,6 +37,7 @@ function normalizeComplaint(raw: any): StudentComplaint {
     anonymous: raw?.anonymous === true,
     attachmentName: raw?.attachmentName ?? null,
     attachmentUrl: raw?.attachmentUrl ?? null,
+    attachments: Array.isArray(raw?.attachments) ? raw.attachments : (raw?.attachmentName ? [{ name: raw.attachmentName, url: raw.attachmentUrl ?? null }] : []),
     adminRemarks: String(raw?.adminRemarks ?? ""),
   };
 }
@@ -69,14 +70,9 @@ function fileToDataUrl(file: File): Promise<string> {
 export async function submitComplaint(
   values: ComplaintSubmitInput,
 ): Promise<StudentComplaint> {
-  const attachment = values.attachment
-    ? {
-        name: values.attachment.name,
-        type: values.attachment.type,
-        size: values.attachment.size,
-        data: await fileToDataUrl(values.attachment),
-      }
-    : null;
+  const attachments = await Promise.all(values.attachments.map(async (file) => ({
+    name: file.name, type: file.type, size: file.size, data: await fileToDataUrl(file),
+  })));
 
   const csrf = await getCsrfToken();
   const response = await apiClient.post<ApiEnvelope<{ complaint: any }>>(
@@ -86,7 +82,7 @@ export async function submitComplaint(
       category: values.category,
       description: values.description,
       isAnonymous: values.isAnonymous,
-      attachment,
+      attachments,
     },
     { headers: { "x-csrf-token": csrf } },
   );

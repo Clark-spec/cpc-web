@@ -171,7 +171,7 @@ function setDraftState(next: ServiceRequestDraft | null): void {
 }
 
 /* Uploaded files are kept in memory so "Download" returns the real file. */
-const documentBlobs = new Map<string, Blob>();
+const documentBlobs = new Map<string, Blob[]>();
 
 function documentFromFile(file: File): RequestDocument {
   return { name: file.name, size: file.size, mime: file.type };
@@ -218,9 +218,11 @@ export async function createServiceRequest(
   if (!service) throw new Error("Select the service you need before submitting.");
   if (!values.purpose) throw new Error("Select the purpose of your request before submitting.");
 
-  const document = values.documents[0]
-    ? documentFromFile(values.documents[0])
+  const documents = values.documents.length
+    ? values.documents.map(documentFromFile)
     : (getDraftState()?.document ?? null);
+  const normalizedDocuments = Array.isArray(documents) ? documents : documents ? [documents] : [];
+  const document = normalizedDocuments[0] ?? null;
   if (!document) throw new Error("Upload a valid student ID before submitting.");
 
   const existing = getRequests();
@@ -237,10 +239,11 @@ export async function createServiceRequest(
     submittedAt,
     updatedAt: submittedAt,
     document,
+    documents: normalizedDocuments,
     timeline: buildTimeline("submitted", { submitted: submittedAt }),
   };
 
-  if (values.documents[0]) documentBlobs.set(String(request.id), values.documents[0]);
+  if (values.documents.length) documentBlobs.set(String(request.id), values.documents);
 
   setRequests([request, ...existing]);
 
@@ -365,10 +368,10 @@ function createDemoIdCard(): Promise<Blob> {
  * Hands the stored student ID to the browser as a download. Files uploaded in
  * this session are real; seeded requests get a generated placeholder image.
  */
-export async function downloadDocument(id: RequestId, fileName: string): Promise<void> {
+export async function downloadDocument(id: RequestId, fileName: string, index = 0): Promise<void> {
   await wait(300);
 
-  const stored = documentBlobs.get(String(id));
+  const stored = documentBlobs.get(String(id))?.[index];
   const blob = stored ?? (await createDemoIdCard());
   const downloadName = stored
     ? fileName
@@ -384,8 +387,8 @@ export async function downloadDocument(id: RequestId, fileName: string): Promise
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export async function getDocumentBlob(id: RequestId): Promise<Blob> {
+export async function getDocumentBlob(id: RequestId, index = 0): Promise<Blob> {
   await wait(300);
-  return documentBlobs.get(String(id)) ?? createDemoIdCard();
+  return documentBlobs.get(String(id))?.[index] ?? createDemoIdCard();
 }
 

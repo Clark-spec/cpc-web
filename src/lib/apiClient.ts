@@ -1,6 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { navigate } from "@/lib/router";
 import { showApiError, showToast } from "@/lib/feedback";
+import { clearCsrfToken, storeCsrfToken } from "@/lib/csrfToken";
 
 declare module "axios" {
   export interface AxiosRequestConfig {
@@ -174,6 +175,16 @@ function flushRefreshQueue(token: string | null) {
   _refreshQueue = [];
 }
 
+async function fetchCsrfToken(): Promise<string> {
+  const response = await axios.get(`${API_BASE_URL}/auth/v1/csrf-token`, {
+    withCredentials: true,
+  });
+  const token: string | undefined = response.data?.data?.csrfToken;
+  if (!token) throw new Error("Could not refresh the security token");
+  storeCsrfToken(token);
+  return token;
+}
+
 type RetryConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
   skipAuthRefresh?: boolean;
@@ -220,16 +231,24 @@ apiClient.interceptors.response.use(
 
     try {
       // Use a plain axios call to avoid re-triggering our interceptor.
+      const csrfToken = await fetchCsrfToken();
       const refreshResponse = await axios.post(
         `${API_BASE_URL}/auth/v1/refresh-token`,
         {},
-        { withCredentials: true },
+        { withCredentials: true, headers: { "x-csrf-token": csrfToken } },
       );
 
       const newToken: string | undefined = refreshResponse.data?.data?.accessToken;
       if (!newToken) throw new Error("No access token in refresh response");
 
       sessionStorage.setItem("cpc_access_token", newToken);
+      // Refresh-token rotation changes the CSRF session binding. Refresh it
+      // after the new auth cookies have been applied for future writes.
+      try {
+        await fetchCsrfToken();
+      } catch {
+        clearCsrfToken();
+      }
       flushRefreshQueue(newToken);
 
       config.headers = config.headers ?? {};
@@ -241,6 +260,7 @@ apiClient.interceptors.response.use(
       sessionStorage.removeItem("cpc_access_token");
       sessionStorage.removeItem("cpc_refresh_token");
       sessionStorage.removeItem("cpc_user");
+      clearCsrfToken();
       showToast({
         type: "error",
         title: "Session expired",

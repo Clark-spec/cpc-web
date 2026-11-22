@@ -23,6 +23,6 @@ export type ComplaintFormValues = {
   category: string;
   subject: string;
   description: string;
-  attachment: File | null;
+  attachments: File[];
   anonymous: boolean;
 };

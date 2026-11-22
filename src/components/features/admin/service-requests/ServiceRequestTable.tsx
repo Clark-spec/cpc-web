@@ -509,13 +509,15 @@ export function ServiceRequestTable({
                           id={`status-${request.id}`}
                           value={request.status}
                           aria-label={`Change status for ${request.id}`}
+                          disabled={request.status === "released"}
+                          title={request.status === "released" ? "Released requests are final" : "Change request status"}
                           onChange={(event) =>
                             onChangeStatus(
                               request,
                               event.target.value as AdminServiceRequestStatus,
                             )
                           }
-                          className="h-7 cursor-pointer rounded-lg border border-admin-border/60 bg-white/90 px-2 font-poppins text-[10px] font-semibold text-admin-text shadow-xs outline-none transition-all hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15"
+                          className="h-7 cursor-pointer rounded-lg border border-admin-border/60 bg-white/90 px-2 font-poppins text-[10px] font-semibold text-admin-text shadow-xs outline-none transition-all hover:border-admin-secondary/40 focus:border-admin-secondary focus:ring-2 focus:ring-admin-secondary/15 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-admin-muted"
                         >
                           {SERVICE_STATUS_ORDER.map((option) => (
                             <option key={option} value={option}>

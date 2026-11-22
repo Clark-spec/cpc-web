@@ -82,6 +82,8 @@ import AccountingQueuePage from "@/pages/accounting/queue";
 import RegistrarQueuePage from "@/pages/registrar/queue";
 import RegistrarVerificationPage from "@/pages/registrar/verification";
 import RegistrarSchedulePage from "@/pages/registrar/schedule";
+import GradesRecordsPage from "@/pages/admin/grades";
+import StudentGradesPage from "@/pages/student/grades";
 
 /** Staff roles that can open Academics › Academic Calendar. */
 const ACADEMIC_CALENDAR_ROLES = [
@@ -138,6 +140,7 @@ export function AppRoutes() {
             </RequireAdminRole>
           }
         />
+        <Route path="academics/sections" element={<RequireAdminRole roles={["admin", "registrar"]}><GradesRecordsPage /></RequireAdminRole>} />
         <Route
           path="enrollment/applications"
           element={<EnrollmentApplicationsPage view="all" />}
@@ -306,6 +309,7 @@ export function AppRoutes() {
         {/* Academics */}
         <Route path="/academics/class-schedules" element={<ClassSchedulesPage />} />
         <Route path="/academics/academic-calendar" element={<AcademicCalendarPage />} />
+        <Route path="/academics/grades" element={<StudentGradesPage />} />
 
         {/* My Account */}
         <Route path="/my-account/profile" element={<StudentProfilePage />} />

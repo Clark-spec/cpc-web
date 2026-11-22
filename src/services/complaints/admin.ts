@@ -36,6 +36,7 @@ function toRow(complaint: AdminComplaint): AdminComplaintRow {
     status: normalizeStatus(complaint.status),
     anonymous: complaint.anonymous === true,
     attachmentName: complaint.attachmentName ?? null,
+    attachments: complaint.attachments,
     adminRemarks: complaint.adminRemarks ?? "",
     updatedAt: complaint.updatedAt ?? null,
     updatedByName: complaint.updatedByName ?? null,
@@ -83,6 +84,28 @@ export async function getAdminComplaints(): Promise<AdminComplaintRow[]> {
   );
   const complaints = response.data?.data?.complaints ?? [];
   return complaints.map(toRow);
+}
+
+export async function getAdminComplaintCount(): Promise<number> {
+  const response = await withAdminToken((token) =>
+    apiClient.get<ApiEnvelope<{ pagination?: { total?: number } }>>(
+      "/complaints/v1/admin",
+      adminConfig(token, { params: { page: 1, pageSize: 1 } }),
+    ),
+  );
+  return Math.max(0, Number(response.data?.data?.pagination?.total) || 0);
+}
+
+export async function getAdminComplaint(id: string): Promise<AdminComplaintRow> {
+  const response = await withAdminToken((token) =>
+    apiClient.get<ApiEnvelope<{ complaint: AdminComplaint }>>(
+      `/complaints/v1/admin/${id}`,
+      adminConfig(token),
+    ),
+  );
+  const complaint = response.data?.data?.complaint;
+  if (!complaint) throw new ApiError("Could not load complaint details.");
+  return toRow(complaint);
 }
 
 export async function updateAdminComplaint(

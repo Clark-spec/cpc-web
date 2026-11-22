@@ -15,14 +15,23 @@ type Envelope<T> = { data?: T; message?: string };
 export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void }) {
   const { user } = useAdminAuth();
   const { toast } = useToast();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [middleInitial, setMiddleInitial] = useState("");
   const [section, setSection] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmCreate, setConfirmCreate] = useState(false);
   const canManageAccounts = user?.role === "admin" || user?.role === "registrar";
+  const name = [firstName.trim(), middleInitial.trim() ? `${middleInitial.trim().replace(/\.$/, "")}.` : "", lastName.trim()]
+    .filter(Boolean)
+    .join(" ");
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!firstName.trim() || !lastName.trim()) {
+      toast("Enter both a first name and a last name.", "error");
+      return;
+    }
     setConfirmCreate(true);
   }
 
@@ -44,7 +53,9 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
       const continuingRecord = response.data?.data?.continuingRecord;
       if (continuingRecord) cacheContinuingStudentRecord(continuingRecord);
       onCreated?.();
-      setName("");
+      setFirstName("");
+      setLastName("");
+      setMiddleInitial("");
       setSection("");
       setConfirmCreate(false);
       toast(`Created account ${created.studentNumber}. Default password: 123456`, "success");
@@ -68,10 +79,18 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
           <p className="mt-1 font-poppins text-xs text-cpc-heading-soft">The student signs in with their generated ID and changes the default password after signing in.</p>
         </div>
       </div>
-      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5rem_minmax(0,1fr)_auto]">
         <label className="font-poppins text-xs font-semibold text-cpc-label">
-          Student name
-          <input required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" placeholder="Full name" />
+          First name
+          <input required minLength={1} maxLength={60} value={firstName} onChange={(event) => setFirstName(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" placeholder="First name" />
+        </label>
+        <label className="font-poppins text-xs font-semibold text-cpc-label">
+          Last name
+          <input required minLength={1} maxLength={60} value={lastName} onChange={(event) => setLastName(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" placeholder="Last name" />
+        </label>
+        <label className="font-poppins text-xs font-semibold text-cpc-label">
+          Middle initial (optional)
+          <input maxLength={2} value={middleInitial} onChange={(event) => setMiddleInitial(event.target.value.replace(/[^a-zA-Z.]/g, "").slice(0, 2))} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal uppercase" placeholder="M.I." />
         </label>
         <label className="font-poppins text-xs font-semibold text-cpc-label">
           Section

@@ -16,6 +16,7 @@ import {
   startOfMonth,
 } from "@/components/features/student/academic-calendar/calendar";
 import { getPublishedCalendarEvents } from "@/services/academicCalendar/api";
+import { useSearchParams } from "react-router";
 import { useSSE } from "@/hooks/useSSE";
 
 export type CalendarView = "month" | "week" | "list";
@@ -40,6 +41,7 @@ const MONTHS = [
 ];
 
 export function useAcademicCalendar() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<CalendarView>("month");
   const [anchor, setAnchor] = useState<Date>(() => startOfDay(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -124,6 +126,30 @@ export function useAcademicCalendar() {
       active = false;
     };
   }, []);
+
+  const linkedEventId = searchParams.get("eventId");
+  const linkedEventTitle = searchParams.get("eventTitle");
+  useEffect(() => {
+    if ((!linkedEventId && !linkedEventTitle) || loading) return;
+    const linkedEvent =
+      (linkedEventId ? allEvents.find((event) => event.id === linkedEventId) : null) ??
+      (linkedEventTitle
+        ? allEvents.find(
+            (event) =>
+              event.title.localeCompare(linkedEventTitle, undefined, { sensitivity: "accent" }) ===
+              0,
+          )
+        : null);
+    if (!linkedEvent) return;
+
+    setAnchor(startOfMonth(parseDateKey(linkedEvent.start)));
+    setView("month");
+    setSelectedEventId(linkedEvent.id);
+    const next = new URLSearchParams(searchParams);
+    next.delete("eventId");
+    next.delete("eventTitle");
+    setSearchParams(next, { replace: true });
+  }, [allEvents, linkedEventId, linkedEventTitle, loading, searchParams, setSearchParams]);
 
   const events = useMemo(
     () =>

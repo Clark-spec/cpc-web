@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { CalendarPlus, CalendarRange } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { PageBanner } from "@/components/common/display/PageBanner";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { ErrorCard } from "@/components/common/feedback/ErrorCard";
@@ -85,6 +86,7 @@ function scrollToSection(id: string) {
  */
 export default function AcademicCalendarPage() {
   const { toast } = useToast();
+  const { user } = useAdminAuth();
 
   const [events, setEvents] = useState<AdminCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -679,6 +681,7 @@ export default function AcademicCalendarPage() {
           initialDate={form.initialDate}
           initialYear={year}
           initialSemester={semester === "All Semesters" ? DEFAULT_SEMESTER : semester}
+          showApplicablePrograms={user?.role !== "dean_cs"}
           onClose={() => setForm(null)}
           onSave={handleSave}
         />

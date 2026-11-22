@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
 import { ComplaintStatusBadge } from "@/components/features/student/complaints/ComplaintStatusBadge";
 import { COMPLAINT_STATUS_LABELS } from "@/components/features/admin/complaints/mockComplaints";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import type {
   AdminComplaintRow,
   ComplaintUpdate,
@@ -42,6 +43,7 @@ export function ComplaintDetailsModal({
   const [remarks, setRemarks] = useState(row.adminRemarks);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ name: string; url: string } | null>(null);
 
   const dirty = status !== row.status || remarks.trim() !== row.adminRemarks;
 
@@ -165,21 +167,29 @@ export function ComplaintDetailsModal({
           >
             Attachment
           </h3>
-          {row.attachmentName ? (
-            <div className="flex items-center gap-2.5 rounded-lg border border-cpc-tile-border bg-white px-3 py-2.5">
+          {(row.attachments?.length ? row.attachments : row.attachmentName ? [{ name: row.attachmentName, type: "", url: null }] : []).length ? (
+            <div className="space-y-3">
+              {(row.attachments?.length ? row.attachments : [{ name: row.attachmentName!, type: "", url: null }]).map((file, index) => (
+            <div key={`${file.name}-${index}`} className="rounded-lg border border-cpc-tile-border bg-white px-3 py-2.5">
+              <div className="flex items-center gap-2.5">
               <FileText className="h-4 w-4 shrink-0 text-cpc-blue-accent" aria-hidden />
               <div className="min-w-0">
                 <p
                   className="truncate font-poppins text-xs font-semibold text-cpc-navy-text"
-                  title={row.attachmentName}
+                  title={file.name}
                 >
-                  {row.attachmentName}
+                  {file.name}
                 </p>
                 <p className="flex items-center gap-1 font-poppins text-[10px] text-cpc-heading-soft">
                   <Paperclip className="h-2.5 w-2.5 shrink-0" aria-hidden />
                   Attached by student
                 </p>
               </div>
+            </div>
+              {file.url && (file.type.startsWith("image/") || file.url.startsWith("data:image/")) && <button type="button" onClick={() => setPreviewFile({ name: file.name, url: file.url! })} className="mt-2 rounded-md border border-cpc-input-border px-3 py-1.5 font-poppins text-xs font-semibold text-cpc-blue-accent transition-colors hover:bg-cpc-section-light">Preview photo</button>}
+              {file.url && !file.type.startsWith("image/") && <a href={file.url} target="_blank" rel="noreferrer" className="mt-2 inline-block font-poppins text-xs text-cpc-blue-accent underline">Preview / open file</a>}
+            </div>
+              ))}
             </div>
           ) : (
             <p className="font-poppins text-xs text-cpc-heading-soft">
@@ -273,6 +283,16 @@ export function ComplaintDetailsModal({
           {saving ? "Saving…" : "Save changes"}
         </button>
       </footer>
+      {previewFile && (
+        <ImagePreviewModal
+          open
+          onClose={() => setPreviewFile(null)}
+          src={previewFile.url}
+          alt={`Student attachment: ${previewFile.name}`}
+          title="Complaint photo"
+          meta={previewFile.name}
+        />
+      )}
     </Modal>
   );
 }

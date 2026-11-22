@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
 import { Modal } from "@/components/ui/modal";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { ApiError } from "@/lib/apiClient";
 import { ServiceRequestStatusBadge } from "@/components/features/admin/service-requests/ServiceRequestStatusBadge";
 import {
@@ -20,12 +21,14 @@ import {
 } from "@/services/serviceRequests/admin";
 import {
   downloadAdminServiceDocument,
+  getAdminServiceDocumentBlob,
   getAdminServiceRequest,
   updateAdminServiceRequest,
 } from "@/services/serviceRequests/adminApi";
 
 type ServiceRequestDetailsModalProps = {
   requestId: string;
+  referenceNumber?: string;
   onClose: () => void;
   /** Called with the saved record so the queue row can be patched in place. */
   onSaved: (request: AdminServiceRequestDetail) => void;
@@ -64,6 +67,7 @@ function getErrorMessage(error: unknown): string {
  */
 export function ServiceRequestDetailsModal({
   requestId,
+  referenceNumber,
   onClose,
   onSaved,
   onConflict,
@@ -78,11 +82,18 @@ export function ServiceRequestDetailsModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ src: string; name: string } | null>(null);
+  const [previewingIndex, setPreviewingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!preview?.src.startsWith("blob:")) return;
+    return () => URL.revokeObjectURL(preview.src);
+  }, [preview]);
 
   useEffect(() => {
     let active = true;
 
-    getAdminServiceRequest(requestId)
+    getAdminServiceRequest(requestId, referenceNumber)
       .then((data) => {
         if (!active) return;
         setDetail(data);
@@ -99,7 +110,7 @@ export function ServiceRequestDetailsModal({
     return () => {
       active = false;
     };
-  }, [requestId]);
+  }, [requestId, referenceNumber]);
 
   const dirty =
     detail !== null &&
@@ -139,12 +150,12 @@ export function ServiceRequestDetailsModal({
     }
   }
 
-  async function handleDownload() {
-    if (!detail?.document) return;
+  async function handleDownload(document: { name: string }, index: number) {
+    if (!detail) return;
     setDownloading(true);
     setDownloadError(null);
     try {
-      await downloadAdminServiceDocument(detail.id, detail.document.name);
+      await downloadAdminServiceDocument(detail.id, document.name, index);
     } catch (error) {
       setDownloadError(getErrorMessage(error));
     } finally {
@@ -152,7 +163,26 @@ export function ServiceRequestDetailsModal({
     }
   }
 
+  async function handlePreview(document: { name: string; mime: string }, index: number) {
+    if (!detail) return;
+    setPreviewingIndex(index);
+    setDownloadError(null);
+    try {
+      const blob = await getAdminServiceDocumentBlob(detail.id, index);
+      if (!blob.type.startsWith("image/")) {
+        setDownloadError("This attachment is not an image.");
+        return;
+      }
+      setPreview({ src: URL.createObjectURL(blob), name: document.name });
+    } catch (error) {
+      setDownloadError(getErrorMessage(error));
+    } finally {
+      setPreviewingIndex(null);
+    }
+  }
+
   return (
+    <>
     <Modal open onClose={onClose} labelledBy={headingId} className="sm:max-w-[680px]">
       {/* Frosted modal header */}
       <div className="relative overflow-hidden border-b border-white/60 bg-gradient-to-br from-cpc-navy via-[#0d2460] to-[#091b4c] px-5 py-5 pr-14">
@@ -295,24 +325,26 @@ export function ServiceRequestDetailsModal({
             {/* Uploaded document */}
             <div className="rounded-xl border border-admin-border/50 bg-admin-page/60 px-4 py-3.5">
               <p className="font-poppins text-[9.5px] font-bold tracking-[0.08em] text-admin-muted uppercase">
-                Uploaded Document
+                Uploaded Documents
               </p>
-              {detail.document ? (
-                <div className="mt-1.5 flex items-center gap-3 rounded-lg border border-admin-border/60 bg-white px-3 py-2.5">
+              {(detail.documents?.length ? detail.documents : detail.document ? [detail.document] : []).length ? (
+                <div className="mt-1.5 space-y-2">
+                {(detail.documents?.length ? detail.documents : detail.document ? [detail.document] : []).map((document, index) => <div key={`${document.name}-${index}`} className="flex flex-wrap items-center gap-3 rounded-lg border border-admin-border/60 bg-white px-3 py-2.5">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-admin-page text-admin-secondary">
                     <ClipboardList className="h-4 w-4" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-poppins text-[11.5px] font-medium text-admin-text">
-                      {detail.document.name}
+                      {document.name}
                     </p>
                     <p className="font-poppins text-[10px] text-admin-muted">
-                      {formatFileSize(detail.document.size)}
+                      {formatFileSize(document.size)}
                     </p>
                   </div>
+                  {document.mime.startsWith("image/") && <button type="button" onClick={() => void handlePreview(document, index)} disabled={previewingIndex !== null} className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-admin-border/60 bg-white px-2.5 py-1 font-poppins text-[10.5px] font-semibold text-admin-secondary transition-colors hover:bg-admin-page disabled:opacity-60">{previewingIndex === index ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> : null}{previewingIndex === index ? "Opening…" : "Preview"}</button>}
                   <button
                     type="button"
-                    onClick={handleDownload}
+                    onClick={() => void handleDownload(document, index)}
                     disabled={downloading}
                     className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-admin-border/60 bg-white px-2.5 py-1 font-poppins text-[10.5px] font-semibold text-admin-secondary transition-colors hover:bg-admin-page disabled:cursor-not-allowed disabled:opacity-60"
                   >
@@ -323,6 +355,7 @@ export function ServiceRequestDetailsModal({
                     )}
                     {downloading ? "Preparing…" : "Download"}
                   </button>
+                </div>)}
                 </div>
               ) : (
                 <p className="mt-1.5 font-poppins text-[11px] text-admin-muted">
@@ -350,10 +383,11 @@ export function ServiceRequestDetailsModal({
                   <select
                     id={`${headingId}-status`}
                     value={status}
+                    disabled={detail.status === "released"}
                     onChange={(event) =>
                       setStatus(event.target.value as AdminServiceRequestStatus)
                     }
-                    className={cn(FIELD_BASE, "cursor-pointer")}
+                    className={cn(FIELD_BASE, "cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-100")}
                   >
                     {SERVICE_STATUS_ORDER.map((option) => (
                       <option key={option} value={option}>
@@ -361,6 +395,11 @@ export function ServiceRequestDetailsModal({
                       </option>
                     ))}
                   </select>
+                  {detail.status === "released" && (
+                    <p className="mt-1 font-poppins text-[10px] text-admin-muted">
+                      Released is final and cannot be changed.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -467,5 +506,7 @@ export function ServiceRequestDetailsModal({
         </div>
       </div>
     </Modal>
+    {preview && <ImagePreviewModal open onClose={() => setPreview(null)} src={preview.src} alt={preview.name} title="Uploaded service request photo" meta={preview.name} />}
+    </>
   );
 }

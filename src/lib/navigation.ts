@@ -394,7 +394,7 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             type: "link",
             id: "sections",
-            label: "Sections",
+            label: "Grades Records",
             to: "/admin/academics/sections",
             icon: LayoutGrid,
             roles: ["admin", "registrar", ...DEAN_ROLES],

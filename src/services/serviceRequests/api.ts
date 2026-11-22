@@ -155,6 +155,7 @@ function normalizeRequest(value: unknown): ServiceRequest {
   const documentValue = raw.document ?? raw.student_id ?? raw.attachment;
   const documentRaw = asRecord(documentValue);
   const hasDocument = Boolean(readString(documentRaw.name, documentRaw.file_name, documentRaw.filename));
+  const documents = Array.isArray(raw.documents) ? raw.documents.map(normalizeDocument) : (hasDocument ? [normalizeDocument(documentValue)] : []);
 
   return {
     id: readId(raw.id, raw.request_id),
@@ -170,6 +171,7 @@ function normalizeRequest(value: unknown): ServiceRequest {
     submittedAt,
     updatedAt,
     document: hasDocument ? normalizeDocument(documentValue) : null,
+    documents,
     timeline,
     history,
   };
@@ -204,6 +206,7 @@ function normalizeDraft(value: unknown): ServiceRequestDraft | null {
   const documentValue = raw.document ?? raw.student_id ?? raw.attachment;
   const hasDocument =
     readBoolean(raw.has_document, raw.hasDocument) ?? Boolean(documentValue);
+  const documents = Array.isArray(raw.documents) ? raw.documents.map(normalizeDocument) : (documentValue ? [normalizeDocument(documentValue)] : []);
 
   return {
     serviceId: readNumber(raw.service_id, raw.serviceId) ?? null,
@@ -212,6 +215,7 @@ function normalizeDraft(value: unknown): ServiceRequestDraft | null {
     notes: readString(raw.notes, raw.additional_notes) ?? "",
     hasDocument,
     document: hasDocument ? normalizeDocument(documentValue) : null,
+    documents,
     updatedAt:
       readString(raw.updated_at, raw.updatedAt) ?? new Date().toISOString(),
   };
@@ -298,15 +302,9 @@ export async function createServiceRequest(
   onProgress?: (percent: number) => void,
 ): Promise<ServiceRequest> {
   const csrf = await getCsrfToken();
-  const document = values.documents[0];
-  const attachment = document
-    ? {
-        name: document.name,
-        type: document.type,
-        size: document.size,
-        data: await fileToDataUrl(document),
-      }
-    : null;
+  const attachments = await Promise.all(values.documents.map(async (document) => ({
+    name: document.name, type: document.type, size: document.size, data: await fileToDataUrl(document),
+  })));
 
   const body = unwrap<unknown>(
     (
@@ -317,7 +315,7 @@ export async function createServiceRequest(
           copies: values.copies,
           purpose: values.purpose,
           notes: values.notes,
-          attachment,
+          attachments,
         },
         {
           headers: { "x-csrf-token": csrf },
@@ -347,15 +345,9 @@ export async function saveDraft(
   onProgress?: (percent: number) => void,
 ): Promise<ServiceRequestDraft> {
   const csrf = await getCsrfToken();
-  const document = values.documents[0];
-  const attachment = document
-    ? {
-        name: document.name,
-        type: document.type,
-        size: document.size,
-        data: await fileToDataUrl(document),
-      }
-    : null;
+  const attachments = await Promise.all(values.documents.map(async (document) => ({
+    name: document.name, type: document.type, size: document.size, data: await fileToDataUrl(document),
+  })));
 
   const body = unwrap<unknown>(
     (
@@ -366,8 +358,8 @@ export async function saveDraft(
           copies: values.copies,
           purpose: values.purpose,
           notes: values.notes,
-          attachment,
-          removeAttachment: !attachment && Boolean(values.removeDraftDocument),
+          attachments,
+          removeAttachment: attachments.length === 0 && Boolean(values.removeDraftDocument),
         },
         {
           headers: { "x-csrf-token": csrf },
@@ -428,11 +420,12 @@ export async function markNotificationsRead(): Promise<void> {
   );
 }
 
-export async function downloadDocument(id: RequestId, fileName: string): Promise<void> {
+export async function downloadDocument(id: RequestId, fileName: string, index = 0): Promise<void> {
   const response = await apiClient.get(
     `/service-requests/v1/${encodeURIComponent(String(id))}/document`,
     {
       responseType: "blob",
+      params: { index },
     },
   );
 
@@ -450,10 +443,10 @@ export async function downloadDocument(id: RequestId, fileName: string): Promise
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export async function getDocumentBlob(id: RequestId): Promise<Blob> {
+export async function getDocumentBlob(id: RequestId, index = 0): Promise<Blob> {
   const response = await apiClient.get(
     `/service-requests/v1/${encodeURIComponent(String(id))}/document`,
-    { responseType: "blob" },
+    { responseType: "blob", params: { index } },
   );
   return response.data as Blob;
 }

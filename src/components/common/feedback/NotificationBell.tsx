@@ -195,7 +195,16 @@ export function NotificationBell({
     }
     setOpen(false);
     if (notification.href) {
-      navigate(notification.href);
+      let destination = notification.href;
+      if (isAmbientNotification(notification)) {
+        const url = new URL(destination, window.location.origin);
+        const eventTitle = notification.message.match(/^"(.+?)"\s+(?:was|has|is)\b/)?.[1];
+        if (eventTitle && !url.searchParams.has("eventTitle")) {
+          url.searchParams.set("eventTitle", eventTitle);
+        }
+        destination = `${url.pathname}${url.search}${url.hash}`;
+      }
+      navigate(destination);
     }
   };
 

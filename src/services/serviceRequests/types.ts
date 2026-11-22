@@ -71,6 +71,7 @@ export type ServiceRequest = {
   updatedAt: string;
   /** Null when the student submitted without an attachment. */
   document: RequestDocument | null;
+  documents?: RequestDocument[];
   timeline: TimelineStage[];
   /** Present on detail responses and appended to live updates. */
   history?: RequestHistoryEntry[];
@@ -96,6 +97,7 @@ export type ServiceRequestDraft = {
   notes: string;
   hasDocument: boolean;
   document: RequestDocument | null;
+  documents?: RequestDocument[];
   updatedAt: string;
 };
 

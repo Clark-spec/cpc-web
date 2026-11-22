@@ -44,6 +44,7 @@ export interface AppNotification {
 }
 
 export type NotifyInput = {
+  title?: string;
   message: string;
   type?: NotificationType;
   officeId?: string;
@@ -239,7 +240,31 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // fires after an automatic reconnect, so missed notifications are fetched.
   useSSE(
     useCallback(
-      (type) => {
+      (type, data) => {
+        if (type === "notification_created" && data && typeof data === "object") {
+          const event = data as Partial<AppNotification>;
+          if (
+            typeof event.id === "string" &&
+            typeof event.message === "string" &&
+            typeof event.createdAt === "string"
+          ) {
+            const incoming: AppNotification = {
+              id: event.id,
+              title: event.title,
+              message: event.message,
+              type: event.type === "success" || event.type === "warning" ? event.type : "info",
+              createdAt: event.createdAt,
+              read: false,
+              href: event.href,
+            };
+            setNotifications((previous) => {
+              if (previous.some((notification) => notification.id === incoming.id)) return previous;
+              setUnreadCount((count) => count + 1);
+              return [incoming, ...previous].slice(0, MAX_NOTIFICATIONS);
+            });
+          }
+        }
+
         if (
           type === "connected" ||
           type === "notification_updated" ||
@@ -257,11 +282,28 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     currentStudentId,
   );
 
+  // Keep the bell current even when a proxy or a second API worker drops the
+  // in-memory SSE broadcast. SSE remains the instant path; this short poll is
+  // the recovery path and also runs when the tab becomes visible again.
+  useEffect(() => {
+    if (!currentStudentId) return;
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void syncFeed().catch(() => {});
+    };
+    const timer = window.setInterval(refreshWhenVisible, 3_000);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [currentStudentId, syncFeed]);
+
   const notify = useCallback(
-    ({ message, type = "info", officeId, href, silent = false }: NotifyInput) => {
+    ({ title, message, type = "info", officeId, href, silent = false }: NotifyInput) => {
       if (!currentStudentId) return;
       const notification: AppNotification = {
         id: crypto.randomUUID(),
+        title,
         message,
         type,
         createdAt: new Date().toISOString(),

@@ -41,7 +41,7 @@ const EMPTY_VALUES: ComplaintFormValues = {
   category: "",
   subject: "",
   description: "",
-  attachment: null,
+  attachments: [],
   anonymous: false,
 };
 
@@ -54,7 +54,7 @@ const FIELD_IDS: Record<FieldName, string> = {
   category: "complaint-category",
   subject: "complaint-subject",
   description: "complaint-description",
-  attachment: "complaint-attachment",
+  attachments: "complaint-attachment",
 };
 
 function formatRemaining(ms: number): string {
@@ -86,13 +86,9 @@ function validate(values: ComplaintFormValues): ComplaintFormErrors {
     errors.description = "Describe your complaint in at least 20 characters.";
   }
 
-  if (values.attachment) {
-    if (!ACCEPTED_DOCUMENT_TYPES.includes(values.attachment.type)) {
-      errors.attachment = "Upload a PDF, PNG, or JPG file.";
-    } else if (values.attachment.size > MAX_DOCUMENT_BYTES) {
-      errors.attachment = "The file is larger than 5 MB. Please upload a smaller file.";
-    }
-  }
+  if (values.attachments.some((file) => !ACCEPTED_DOCUMENT_TYPES.includes(file.type))) errors.attachments = "Upload PDF, PNG, or JPG files.";
+  else if (values.attachments.some((file) => file.size > MAX_DOCUMENT_BYTES)) errors.attachments = "Each file must be 5 MB or smaller.";
+  else if (values.attachments.length > 2) errors.attachments = "You can upload up to 2 files.";
 
   return errors;
 }
@@ -144,24 +140,17 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const submitAction = useActionStatus();
   const [now, setNow] = useState(() => Date.now());
-  const [attachmentPreviewOpen, setAttachmentPreviewOpen] = useState(false);
+  const [attachmentPreviewIndex, setAttachmentPreviewIndex] = useState<number | null>(null);
 
-  const attachmentPreviewUrl = useMemo(
-    () =>
-      values.attachment?.type.startsWith("image/")
-        ? URL.createObjectURL(values.attachment)
-        : null,
-    [values.attachment],
-  );
+  const attachmentPreviewUrls = useMemo(() => values.attachments.map((file) => file.type.startsWith("image/") ? URL.createObjectURL(file) : null), [values.attachments]);
 
   useEffect(() => {
-    if (!attachmentPreviewUrl) return;
-    return () => URL.revokeObjectURL(attachmentPreviewUrl);
-  }, [attachmentPreviewUrl]);
+    attachmentPreviewUrls.forEach((url) => { if (url) URL.revokeObjectURL(url); });
+  }, [attachmentPreviewUrls]);
 
   useEffect(() => {
-    setAttachmentPreviewOpen(false);
-  }, [values.attachment]);
+    setAttachmentPreviewIndex(null);
+  }, [values.attachments]);
 
   const cooldownEnd = cooldownUntil ? new Date(cooldownUntil).getTime() : 0;
   const cooldownActive = cooldownEnd > now;
@@ -200,19 +189,22 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
   }
 
   function handleAttachment(file: File) {
+    if (values.attachments.length >= 2) { showError("Upload limit reached", "You can upload up to 2 files."); return; }
     if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
       const message = "Upload a PDF, PNG, or JPG file.";
-      setErrors((current) => ({ ...current, attachment: message }));
+      setErrors((current) => ({ ...current, attachments: message }));
       showError("File not accepted", message);
       return;
     }
     if (file.size > MAX_DOCUMENT_BYTES) {
       const message = "The file is larger than 5 MB. Please upload a smaller file.";
-      setErrors((current) => ({ ...current, attachment: message }));
+      setErrors((current) => ({ ...current, attachments: message }));
       showError("File too large", message);
       return;
     }
-    update("attachment", file);
+    setValues((current) => current.attachments.length < 2
+      ? { ...current, attachments: [...current.attachments, file] }
+      : current);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -565,52 +557,17 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                 <span className="font-normal text-cpc-heading-soft">(optional)</span>
               </p>
               <p className="mb-2 font-poppins text-[11px] leading-relaxed text-cpc-heading-soft">
-                Upload a PDF, PNG, or JPG up to 5 MB, or capture a photo with your camera.
+                Upload up to 2 PDF, PNG, or JPG files (5 MB each), or capture photos with your camera.
               </p>
 
-              {values.attachment ? (
-                <div className="flex flex-wrap items-center gap-3 rounded-[10px] border border-cpc-input-border bg-white px-3 py-2.5">
-                  {attachmentPreviewUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => setAttachmentPreviewOpen(true)}
-                      aria-label="View attached photo"
-                      title="View photo"
-                      className="h-9 w-9 shrink-0 cursor-zoom-in overflow-hidden rounded-lg ring-1 ring-cpc-input-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-                    >
-                      <img
-                        src={attachmentPreviewUrl}
-                        alt="Attached photo"
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ) : (
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cpc-section-light text-cpc-blue-accent">
-                      <Paperclip className="h-[18px] w-[18px]" aria-hidden />
-                    </span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-poppins text-[13px] font-medium text-cpc-navy-text">
-                      {values.attachment.name}
-                    </p>
-                    <p className="font-poppins text-[11px] text-cpc-heading-soft">
-                      {formatFileSize(values.attachment.size)} · Ready to attach
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      update("attachment", null);
-                      setErrors((current) => ({ ...current, attachment: undefined }));
-                    }}
-                    aria-label="Remove attachment"
-                    title="Remove attachment"
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-cpc-input-border bg-white text-cpc-heading-soft transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-                  >
-                    <X className="h-4 w-4" aria-hidden />
-                  </button>
+              {values.attachments.map((file, index) => (
+                <div key={`${file.name}-${index}`} className="mb-2 flex flex-wrap items-center gap-3 rounded-[10px] border border-cpc-input-border bg-white px-3 py-2.5">
+                  {attachmentPreviewUrls[index] ? <button type="button" onClick={() => setAttachmentPreviewIndex(index)} aria-label={`View photo ${index + 1}`} className="h-9 w-9 shrink-0 overflow-hidden rounded-lg ring-1 ring-cpc-input-border"><img src={attachmentPreviewUrls[index]!} alt={`Attachment ${index + 1}`} className="h-full w-full object-cover" /></button> : <Paperclip className="h-5 w-5 text-cpc-blue-accent" aria-hidden />}
+                  <div className="min-w-0 flex-1"><p className="truncate font-poppins text-[13px] font-medium text-cpc-navy-text">{file.name}</p><p className="font-poppins text-[11px] text-cpc-heading-soft">{formatFileSize(file.size)} · Ready to attach</p></div>
+                  <button type="button" onClick={() => update("attachments", values.attachments.filter((_, fileIndex) => fileIndex !== index))} aria-label={`Remove ${file.name}`} className="flex h-7 w-7 items-center justify-center rounded-full border border-cpc-input-border text-cpc-heading-soft hover:text-rose-600"><X className="h-4 w-4" aria-hidden /></button>
                 </div>
-              ) : (
+              ))}
+              {values.attachments.length < 2 && (
                 <div
                   onDragEnter={(event) => {
                     event.preventDefault();
@@ -673,18 +630,19 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
                     type="file"
                     className="hidden"
                     accept={ACCEPTED_DOCUMENT_TYPES.join(",")}
+                    multiple
                     onChange={(event) => {
-                      const file = event.target.files?.[0];
+                      const files = Array.from(event.target.files ?? []);
                       event.target.value = "";
-                      if (file) handleAttachment(file);
+                      files.forEach(handleAttachment);
                     }}
                   />
                 </div>
               )}
 
-              {errors.attachment && (
+              {errors.attachments && (
                 <span id="complaint-attachment-error" className="enroll-form-error" role="alert">
-                  {errors.attachment}
+                  {errors.attachments}
                 </span>
               )}
             </div>
@@ -726,14 +684,14 @@ export function ComplaintForm({ onSubmit, cooldownUntil }: ComplaintFormProps) {
         />
       )}
 
-      {attachmentPreviewUrl && values.attachment && (
+      {attachmentPreviewIndex !== null && attachmentPreviewUrls[attachmentPreviewIndex] && values.attachments[attachmentPreviewIndex] && (
         <ImagePreviewModal
-          open={attachmentPreviewOpen}
-          onClose={() => setAttachmentPreviewOpen(false)}
-          src={attachmentPreviewUrl}
+          open
+          onClose={() => setAttachmentPreviewIndex(null)}
+          src={attachmentPreviewUrls[attachmentPreviewIndex]!}
           alt="Attached complaint photo"
-          title={values.attachment.name}
-          meta={`${values.attachment.name} · ${formatFileSize(values.attachment.size)}`}
+          title={values.attachments[attachmentPreviewIndex].name}
+          meta={`${values.attachments[attachmentPreviewIndex].name} · ${formatFileSize(values.attachments[attachmentPreviewIndex].size)}`}
         />
       )}
     </section>

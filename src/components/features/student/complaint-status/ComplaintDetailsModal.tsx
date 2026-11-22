@@ -121,7 +121,7 @@ export function ComplaintDetailsModal({
   complaint,
   onClose,
 }: ComplaintDetailsModalProps) {
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -139,6 +139,12 @@ export function ComplaintDetailsModal({
 
   const remarks = complaint.adminRemarks.trim();
   const timeline = buildTimeline(complaint);
+  const attachments = complaint.attachments?.length ? complaint.attachments : complaint.attachmentName ? [{ name: complaint.attachmentName, type: "", url: complaint.attachmentUrl ?? null }] : [];
+  const isPhoto = (attachment: (typeof attachments)[number]) =>
+    attachment.type?.startsWith("image/") === true ||
+    attachment.url?.startsWith("data:image/") === true ||
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(attachment.name);
+  const previewAttachment = previewIndex === null ? null : attachments[previewIndex];
 
   return (
     <div
@@ -219,27 +225,29 @@ export function ComplaintDetailsModal({
               </p>
             </div>
 
-            {complaint.attachmentName && (
+            {attachments.length > 0 && (
               <div>
                 <p className="font-poppins text-[10px] font-semibold tracking-[0.06em] text-sr-muted uppercase">
                   Attachment
                 </p>
-                <div className="mt-1 flex items-center gap-2 rounded-lg border border-sr-border px-3 py-2">
+                <div className="mt-1 space-y-2">
+                {attachments.map((attachment, index) => <div key={`${attachment.name}-${index}`} className="flex items-center gap-2 rounded-lg border border-sr-border px-3 py-2">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sr-section text-sr-primary">
                     <Paperclip className="h-3.5 w-3.5" aria-hidden />
                   </span>
                   <p className="truncate font-poppins text-[11.5px] text-sr-text">
-                    {complaint.attachmentName}
+                    {attachment.name}
                   </p>
-                  {complaint.attachmentUrl?.startsWith("data:image/") && (
+                  {attachment.url && isPhoto(attachment) && (
                     <button
                       type="button"
-                      onClick={() => setPreviewOpen(true)}
+                      onClick={() => setPreviewIndex(index)}
                       className="ml-auto shrink-0 rounded-md border border-sr-border px-2.5 py-1 font-poppins text-[11px] font-semibold text-sr-primary transition-colors hover:bg-sr-page"
                     >
-                      Preview
+                      Preview photo
                     </button>
                   )}
+                </div>)}
                 </div>
               </div>
             )}
@@ -270,14 +278,14 @@ export function ComplaintDetailsModal({
           </div>
         </div>
       </div>
-      {complaint.attachmentUrl?.startsWith("data:image/") && (
+      {previewAttachment?.url && isPhoto(previewAttachment) && (
         <ImagePreviewModal
-          open={previewOpen}
-          onClose={() => setPreviewOpen(false)}
-          src={complaint.attachmentUrl}
-          alt={complaint.attachmentName || "Uploaded complaint photo"}
+          open
+          onClose={() => setPreviewIndex(null)}
+          src={previewAttachment.url!}
+          alt={previewAttachment.name}
           title="Uploaded complaint photo"
-          meta={complaint.attachmentName}
+          meta={previewAttachment.name}
         />
       )}
     </div>

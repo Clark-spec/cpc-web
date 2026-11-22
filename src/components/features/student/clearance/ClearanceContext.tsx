@@ -25,6 +25,8 @@ import {
   requestSignatures as requestSignaturesService,
 } from "@/services/clearanceStudent/service";
 import { useNotifications } from "@/components/features/student/clearance/NotificationContext";
+import { getStudentGrades } from "@/services/grades/records";
+import { useSSE } from "@/hooks/useSSE";
 import type {
   ClearanceHistoryItem,
   ClearanceState,
@@ -44,6 +46,10 @@ type ClearanceContextValue = {
   isCleared: boolean;
   /** False while the admin keeps the clearance period closed (shared record). */
   periodOpen: boolean;
+  gradeAcknowledgementStatus: "loading" | "ready" | "needs_acknowledgement" | "unavailable";
+  postedGradeCount: number;
+  unacknowledgedGradeCount: number;
+  refreshGradeAcknowledgement: () => Promise<void>;
   requestSignature: (officeId: OfficeId, note?: string) => Promise<void>;
   requestAll: (officeIds: OfficeId[]) => Promise<void>;
   cancelRequest: (officeId: OfficeId) => Promise<void>;
@@ -63,9 +69,37 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [state, setState] = useState<ClearanceState>(createInitialState);
   const [loading, setLoading] = useState(true);
+  const [gradeAcknowledgementStatus, setGradeAcknowledgementStatus] = useState<ClearanceContextValue["gradeAcknowledgementStatus"]>("loading");
+  const [postedGradeCount, setPostedGradeCount] = useState(0);
+  const [unacknowledgedGradeCount, setUnacknowledgedGradeCount] = useState(0);
   const [highlightedOffice, setHighlightedOffice] = useState<OfficeId | null>(null);
   const highlightTimer = useRef<number | null>(null);
   const { notify } = useNotifications();
+
+  const refreshGradeAcknowledgement = useCallback(async () => {
+    if (user?.role !== "student") {
+      setGradeAcknowledgementStatus("ready");
+      setPostedGradeCount(0);
+      setUnacknowledgedGradeCount(0);
+      return;
+    }
+    try {
+      const { records } = await getStudentGrades();
+      const posted = records.filter((record) => Boolean(record.grade));
+      const pending = posted.filter((record) => !record.acknowledgedAt).length;
+      setPostedGradeCount(posted.length);
+      setUnacknowledgedGradeCount(pending);
+      setGradeAcknowledgementStatus(pending ? "needs_acknowledgement" : "ready");
+    } catch {
+      setGradeAcknowledgementStatus("unavailable");
+    }
+  }, [user?.id, user?.role]);
+  useEffect(() => { void refreshGradeAcknowledgement(); }, [refreshGradeAcknowledgement]);
+  useSSE((type) => {
+    if (type === "connected" || type === "notification_created" || type === "notification_updated") {
+      void refreshGradeAcknowledgement();
+    }
+  }, user?.role === "student", user?.id);
 
   const student = useMemo<StudentProfile>(() => {
     if (user && user.role === "student") {
@@ -160,6 +194,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
    */
   const requestSignature = useCallback(
     async (officeId: OfficeId, note?: string) => {
+      if (officeId === "registrar" && gradeAcknowledgementStatus !== "ready") {
+        showWarning("Acknowledge posted grades first", "Review and acknowledge posted grades before requesting the Registrar signature.");
+        return;
+      }
       if (!state.periodOpen) {
         showWarning(
           "Clearance period is closed",
@@ -184,12 +222,14 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         );
       }
     },
-    [notify, state.periodOpen],
+    [gradeAcknowledgementStatus, notify, state.periodOpen],
   );
 
   /** "Request All": one service call, one summary toast, one notification each. */
   const requestAll = useCallback(
     async (officeIds: OfficeId[]) => {
+      if (officeIds.length === 0) return;
+      officeIds = officeIds.filter((officeId) => officeId !== "registrar" || gradeAcknowledgementStatus === "ready");
       if (officeIds.length === 0) return;
       if (!state.periodOpen) {
         showWarning(
@@ -218,7 +258,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           : `${sent} offices will review your clearance and sign it digitally.`,
       );
     },
-    [notify, state.periodOpen],
+    [gradeAcknowledgementStatus, notify, state.periodOpen],
   );
 
   const cancelRequest = useCallback(
@@ -264,6 +304,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       loading,
       isCleared,
       periodOpen: state.periodOpen ?? true,
+      gradeAcknowledgementStatus,
+      postedGradeCount,
+      unacknowledgedGradeCount,
+      refreshGradeAcknowledgement,
       requestSignature,
       requestAll,
       cancelRequest,
@@ -275,6 +319,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       state,
       loading,
       isCleared,
+      gradeAcknowledgementStatus,
+      postedGradeCount,
+      unacknowledgedGradeCount,
+      refreshGradeAcknowledgement,
       requestSignature,
       requestAll,
       cancelRequest,
