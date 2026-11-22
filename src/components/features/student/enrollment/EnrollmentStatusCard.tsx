@@ -48,12 +48,13 @@ function downloadSignedStudyLoad(session: StudentEnrollmentSession) {
 
   const left = 14;
   const widths = [24, 72, 34, 18, 30, 27, 13, 48];
+  const tableWidth = widths.reduce((total, width) => total + width, 0);
   const headers = ["Code", "Subject", "Schedule", "Days", "Set A · F2F", "Set B · Online", "Units", "Instructor"];
   const top = 44;
+  doc.setFillColor(31, 52, 126);
+  doc.rect(left, top, tableWidth, 8, "F");
   let x = left;
   headers.forEach((header, index) => {
-    doc.setFillColor(31, 52, 126);
-    doc.rect(x, top, widths[index], 8, "F");
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
@@ -61,21 +62,29 @@ function downloadSignedStudyLoad(session: StudentEnrollmentSession) {
     x += widths[index];
   });
   let y = top + 8;
-  session.form.subjects.filter((subject) => subject.status !== "dropped").forEach((subject, rowIndex) => {
+  const subjects = session.form.subjects.filter((subject) => subject.status !== "dropped");
+  subjects.forEach((subject) => {
     const values = [subject.code, subject.title, subject.schedule, subject.days || "—", subject.roomSetA || subject.room || "—", subject.roomSetB || "ONLINE", String(subject.units), subject.instructor || "—"];
     const rowHeight = 8;
     x = left;
-    doc.setFillColor(rowIndex % 2 ? 246 : 255, rowIndex % 2 ? 248 : 255, rowIndex % 2 ? 253 : 255);
-    doc.setTextColor(35, 45, 75);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.5);
     values.forEach((value, index) => {
-      doc.rect(x, y, widths[index], rowHeight, "F");
-      const lines = doc.splitTextToSize(value, widths[index] - 3);
+      doc.setTextColor(35, 45, 75);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      const lines = doc.splitTextToSize(value || "—", widths[index] - 3);
       doc.text(lines.slice(0, 2), x + 1.5, y + (lines.length > 1 ? 3.2 : 5.1));
       x += widths[index];
     });
+    doc.setDrawColor(220, 226, 237);
+    doc.line(left, y + rowHeight, left + tableWidth, y + rowHeight);
     y += rowHeight;
+  });
+  doc.setDrawColor(190, 202, 222);
+  x = left;
+  doc.line(left, top, left, y);
+  widths.forEach((width) => {
+    x += width;
+    doc.line(x, top, x, y);
   });
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
