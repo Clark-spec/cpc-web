@@ -5,10 +5,8 @@ import {
   BadgeCheck,
   CheckCircle2,
   Circle,
-  ExternalLink,
   QrCode,
   Send,
-  Ticket,
   Download,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
@@ -20,7 +18,6 @@ import {
   subscribeToEnrollmentQueue,
 } from "@/services/enrollmentWorkflow/service";
 import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
-import { EnrollmentStatusInfoCards } from "@/components/features/student/enrollment/EnrollmentStatusInfoCards";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 
 const ENROLLMENT_SIGNATURES = [
@@ -432,18 +429,6 @@ export function EnrollmentStatusCard() {
         </article>
       </section>}
 
-      {!isEnrolled && <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center border-t border-cpc-input-border/50 pt-6">
-        <Link to="/student/queue" className="cpc-btn cpc-btn-primary">
-          <Ticket className="h-4 w-4" /> Request Signatures
-        </Link>
-        <Link to="/student/enrollment-form" className="cpc-btn cpc-btn-secondary">
-          Review Form Subjects
-        </Link>
-        <Link to="/display" target="_blank" className="cpc-btn cpc-btn-secondary">
-          <ExternalLink className="h-4 w-4" /> Live Board (/display)
-        </Link>
-      </div>}
-      {!isEnrolled && <div className="mt-8"><EnrollmentStatusInfoCards /></div>}
     </div>
   );
 }
