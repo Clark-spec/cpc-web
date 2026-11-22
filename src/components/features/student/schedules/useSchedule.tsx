@@ -14,6 +14,8 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useAuth } from "@/components/context/useAuth";
 import { showInfo } from "@/lib/feedback";
 import { STUDENT_SECTION_REGISTRY_KEY } from "@/lib/scheduleStorage";
+import { loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
+import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 import {
   formatPublishedCaption,
   readPublishedSchedule,
@@ -99,13 +101,50 @@ const ScheduleContext = createContext<ScheduleContextValue | null>(null);
 
 export function ScheduleProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const mySection = useMemo<SectionId>(() => deriveStudentSection(user), [user]);
+  const [officialSection, setOfficialSection] = useState<SectionId | null>(null);
+  const mySection = useMemo<SectionId>(() => officialSection ?? deriveStudentSection(user), [officialSection, user]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [storedSection, setStoredSection] = useLocalStorage<SectionId>(
     `${SECTION_KEY}.${user?.studentNumber ?? "default"}`,
     mySection,
   );
   const [roomSet, setStoredRoomSet] = useLocalStorage<RoomSet>(ROOM_SET_KEY, "A");
+
+  // The login profile can still contain the previous cohort after the registrar
+  // completes enrollment. Read the persisted enrollment session so this page
+  // follows the student's promoted section without requiring another login.
+  useEffect(() => {
+    const studentId = user?.studentNumber;
+    if (user?.role !== "student" || !studentId) {
+      setOfficialSection(null);
+      return;
+    }
+
+    let active = true;
+    const refreshEnrollmentSection = async () => {
+      try {
+        const session: StudentEnrollmentSession | null = await loadMyEnrollmentSession();
+        if (!active || session?.student.studentIdNo !== studentId) return;
+        const requiredOffices = ["screening", "guidance", "clinic", "registrar", "accounting"] as const;
+        const allSigned = requiredOffices.every((office) => session.steps?.[office]?.status === "APPROVED");
+        const currentSection = session.student.section;
+        setOfficialSection(
+          allSigned && session.form.status === "APPROVED" && currentSection && isSectionId(currentSection)
+            ? currentSection
+            : null,
+        );
+      } catch {
+        // The auth profile remains the fallback if the enrollment API is offline.
+      }
+    };
+
+    void refreshEnrollmentSection();
+    const timer = window.setInterval(() => void refreshEnrollmentSection(), 10000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [user?.role, user?.studentNumber]);
 
   const paramSection = searchParams.get("section");
   // URL wins over storage, so a shared link always opens the right section.
@@ -114,6 +153,21 @@ export function ScheduleProvider({ children }: { children: ReactNode }) {
     : isSectionId(storedSection)
       ? storedSection
       : mySection;
+
+  // A completed enrollment changes the student's personal section. Replace any
+  // old section link/storage value so the newly promoted schedule opens directly.
+  useEffect(() => {
+    if (!officialSection || section === officialSection) return;
+    setStoredSection(officialSection);
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.set("section", officialSection);
+        return next;
+      },
+      { replace: true },
+    );
+  }, [officialSection, section, setSearchParams, setStoredSection]);
 
   // Let the staff portal target this student's bell even when the account is
   // not in the seeded mock directory.

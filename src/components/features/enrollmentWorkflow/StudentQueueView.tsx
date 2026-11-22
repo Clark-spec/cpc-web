@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/context/useAuth";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
+import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
 import {
   getStudentSession,
@@ -70,6 +71,7 @@ export function StudentQueueView() {
   const [sending, setSending] = useState<EnrollmentSignatureOffice | null>(null);
   const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
   const [databaseError, setDatabaseError] = useState(false);
+  const [enrollmentCompleteOpen, setEnrollmentCompleteOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ kind: "request" | "cancel"; office: EnrollmentSignatureOffice } | null>(null);
 
   useEffect(() => {
@@ -92,6 +94,16 @@ export function StudentQueueView() {
 
   const firstThreeSigned = ["screening", "guidance", "clinic"]
     .every((office) => session.steps[office as EnrollmentSignatureOffice].status === "APPROVED");
+  const officiallyEnrolled = (["screening", "guidance", "clinic", "registrar", "accounting"] as EnrollmentSignatureOffice[])
+    .every((office) => session.steps[office].status === "APPROVED");
+
+  useEffect(() => {
+    if (!isDatabaseStudent || loadingDatabase || databaseError || !officiallyEnrolled) return;
+    const seenKey = `cpc:official-enrollment-modal:${studentId}`;
+    if (window.sessionStorage.getItem(seenKey)) return;
+    window.sessionStorage.setItem(seenKey, "shown");
+    setEnrollmentCompleteOpen(true);
+  }, [databaseError, isDatabaseStudent, loadingDatabase, officiallyEnrolled, studentId]);
   const formReadyForSignatures = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
   const canRequest: Record<EnrollmentSignatureOffice, boolean> = {
     screening: formReadyForSignatures && session.steps.screening.status !== "APPROVED",
@@ -186,6 +198,20 @@ export function StudentQueueView() {
           Request the first three signatures in any order. Registrar and Accounting unlock after all three have signed.
         </p>
       </div>
+
+      {officiallyEnrolled && (
+        <Modal open={enrollmentCompleteOpen} onClose={() => setEnrollmentCompleteOpen(false)} labelledBy="official-enrollment-title" className="sm:max-w-lg">
+          <div className="p-6 text-center sm:p-8">
+            <BadgeCheck className="mx-auto h-12 w-12 text-emerald-600" aria-hidden />
+            <h2 id="official-enrollment-title" className="mt-3 text-xl font-bold text-emerald-900">Congratulations!</h2>
+            <p className="mt-2 text-sm font-semibold text-cpc-navy-text">You are officially enrolled as a {session.student.section || session.form.section || "continuing"} student.</p>
+            <p className="mt-2 text-xs leading-relaxed text-cpc-heading-soft">All five offices have signed your Study Load for {session.form.term}.</p>
+            <Link to="/online-enrollment/status" onClick={() => setEnrollmentCompleteOpen(false)} className="mt-6 inline-flex cursor-pointer items-center justify-center rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800">
+              View Enrollment Status
+            </Link>
+          </div>
+        </Modal>
+      )}
 
       {session.ticket && (
         <div className="mb-6 flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 text-xs text-cpc-navy-text">

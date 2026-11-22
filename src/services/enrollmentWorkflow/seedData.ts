@@ -129,14 +129,14 @@ export const CURRICULUM_CATALOG: Record<
       { id: "bsit2-hci", code: "HCI 1", title: "Human Computer Interaction 1", units: 3, schedule: "SAT 07:00 - 10:00 AM", room: "LAB 1", instructor: "Prof. E. Tajanlangit" },
     ],
     3: [
-      { id: "bsit3-im2", code: "IM 2", title: "Information Management 2", units: 3, schedule: "7:00 AM – 10:00 AM", days: "SAT", roomSetA: "LAB 1", roomSetB: "LAB 1", instructor: "E. Tajanlangit", active: true },
+      { id: "bsit3-im2", code: "IM 2", title: "Information Management 2", units: 3, schedule: "7:00 AM – 10:00 AM", days: "SAT", roomSetA: "LAB 1", roomSetB: "ONLINE", instructor: "E. Tajanlangit", active: true },
       { id: "bsit3-hci1", code: "HCI 1", title: "Human Computer Interaction 1", units: 3, schedule: "10:00 AM – 11:00 AM", days: "MWF", roomSetA: "LAB 2", roomSetB: "ONLINE", instructor: "I. Eda", active: true },
       { id: "bsit3-track-el2", code: "IT TRACK EL 2", title: "Fundamentals of Business Analytics", units: 3, schedule: "10:00 AM – 1:00 PM", days: "SAT", roomSetA: "TENT 2", roomSetB: "ONLINE", instructor: "A. Entrena", active: true },
-      { id: "bsit3-os", code: "OS", title: "Operating System", units: 3, schedule: "12:00 PM – 1:00 PM", days: "MWF", roomSetA: "LAB 2", roomSetB: "ONLINE", instructor: "T. Comayas", active: false },
+      { id: "bsit3-os", code: "OS", title: "Operating System", units: 3, schedule: "12:00 PM – 1:00 PM", days: "TTh", roomSetA: "LAB 2", roomSetB: "ONLINE", instructor: "T. Comayas", active: true },
       { id: "bsit3-it-elec2", code: "IT ELEC 2", title: "Object Oriented Programming 2", units: 3, schedule: "1:00 PM – 2:00 PM", days: "MWF", roomSetA: "LAB 1", roomSetB: "ONLINE", instructor: "I. Eda", active: true },
       { id: "bsit3-soc-sci1", code: "SOC SCI 1", title: "Phil Constitution and Government", units: 3, schedule: "1:30 PM – 3:00 PM", days: "TTh", roomSetA: "302", roomSetB: "ONLINE", instructor: "J. Cadungog", active: true },
       { id: "bsit3-ias1", code: "IAS 1", title: "Information Assurance and Security 1", units: 3, schedule: "3:00 PM – 4:30 PM", days: "TTh", roomSetA: "LAB 3", roomSetB: "ONLINE", instructor: "B. Empaces", active: true },
-      { id: "bsit3-appsdev", code: "APPSDEV", title: "Application Development", units: 3, schedule: "4:00 PM – 7:00 PM", days: "SAT", roomSetA: "LAB 1", roomSetB: "LAB 1", instructor: "A. Batoon", active: true },
+      { id: "bsit3-appsdev", code: "APPSDEV", title: "Application Development", units: 3, schedule: "4:00 PM – 7:00 PM", days: "SAT", roomSetA: "LAB 1", roomSetB: "ONLINE", instructor: "A. Batoon", active: true },
       { id: "bsit3-net2", code: "NET 2", title: "Networking 2", units: 3, schedule: "4:30 PM – 6:00 PM", days: "TTh", roomSetA: "LAB 2", roomSetB: "ONLINE", instructor: "T. Comayas", active: true },
     ],
     4: [

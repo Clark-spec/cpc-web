@@ -65,6 +65,8 @@ export type NotificationContextValue = {
   markAllRead: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  /** Removes an offline-only notice without making a delete request to the API. */
+  removeLocalNotification: (id: string) => void;
   deleteAllNotifications: () => Promise<void>;
   loadMore: () => Promise<void>;
   /** Clears the list (used by "Reset demo"). */
@@ -416,6 +418,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, [unreadCount]);
 
+  const removeLocalNotification = useCallback((id: string) => {
+    const current = notificationsRef.current;
+    const removed = current.find((notification) => notification.id === id);
+    if (!removed?.local) return;
+    const next = current.filter((notification) => notification.id !== id);
+    notificationsRef.current = next;
+    setNotifications(next);
+    setUnreadCount(next.filter((notification) => !notification.read).length);
+  }, []);
+
   const resetNotifications = useCallback(() => {
     setNotifications([]);
     setUnreadCount(0);
@@ -434,6 +446,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markRead,
       deleteNotification,
       deleteAllNotifications,
+      removeLocalNotification,
       loadMore,
       resetNotifications,
       refresh,
@@ -449,6 +462,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markRead,
       deleteNotification,
       deleteAllNotifications,
+      removeLocalNotification,
       loadMore,
       resetNotifications,
       refresh,
@@ -471,6 +485,7 @@ const FALLBACK_NOTIFICATION_CONTEXT: NotificationContextValue = {
   markRead: async () => {},
   deleteNotification: async () => {},
   deleteAllNotifications: async () => {},
+  removeLocalNotification: () => {},
   loadMore: async () => {},
   resetNotifications: () => {},
   refresh: async () => {},

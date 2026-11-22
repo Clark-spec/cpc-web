@@ -63,6 +63,9 @@ export interface ClearanceHistoryItem {
   status: "Cleared";
   dateCleared: string;
   signatures: OfficeSignature[];
+  section?: string;
+  program?: string;
+  yearLevel?: string | number;
 }
 
 /** Demo student shown on Form 3 and the confirmation slip. */
@@ -94,6 +97,8 @@ export interface ClearanceState {
   referenceNumber?: string;
   /** False while the registrar keeps the clearance period closed. */
   periodOpen?: boolean;
+  /** Registrar-created snapshot for the term being cleared (may differ from the student's promoted cohort). */
+  studentSnapshot?: Pick<StudentProfile, "name" | "studentId" | "section" | "yearLevel" | "course" | "program" | "academicYear" | "semester" | "term">;
 }
 
 /**
@@ -116,6 +121,7 @@ export interface ClearanceRecord {
   /** Generated once every office has signed. */
   referenceNumber?: string;
   completedAt?: string;
+  history?: ClearanceHistoryItem[];
 }
 
 /** A single office's outstanding request for one student. */

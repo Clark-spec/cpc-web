@@ -31,13 +31,18 @@ function toClearanceState(record: Awaited<ReturnType<typeof loadMyClearanceRecor
   const completedAt = fullySigned
     ? record.completedAt ?? record.offices.map((office) => office.respondedAt).filter((value): value is string => Boolean(value)).sort().at(-1) ?? null
     : null;
-  const history: ClearanceState["history"] = fullySigned && completedAt
+  const history: ClearanceState["history"] = Array.isArray(record.history) && record.history.length
+    ? record.history
+    : fullySigned && completedAt
     ? [{
         academicYear: record.academicYear,
         semester: record.term,
         status: "Cleared",
         dateCleared: completedAt,
         signatures: record.offices,
+        section: record.section,
+        program: record.program,
+        yearLevel: record.yearLevel,
       }]
     : [];
   return {
@@ -47,6 +52,17 @@ function toClearanceState(record: Awaited<ReturnType<typeof loadMyClearanceRecor
     dateCleared: completedAt,
     referenceNumber: record.referenceNumber,
     periodOpen: true,
+    studentSnapshot: {
+      name: record.studentName,
+      studentId: record.studentId,
+      section: record.section,
+      yearLevel: record.yearLevel,
+      course: record.program,
+      program: canonicalProgram(record.program),
+      academicYear: record.academicYear,
+      semester: record.term,
+      term: record.term.toLowerCase().includes("1st") ? "1st" : "2nd",
+    },
   };
 }
 

@@ -91,6 +91,8 @@ export interface EnrollmentFormRecord {
   department: DepartmentCode;
   course: string;
   yearLevel: number;
+  /** Target cohort for this enrollment term; student profile stays on the prior cohort until all signatures are complete. */
+  section?: string;
   term: string; // e.g. "1st Semester 2026-2027"
   type: "preprinted" | "blank";
   standing: StudentStanding;

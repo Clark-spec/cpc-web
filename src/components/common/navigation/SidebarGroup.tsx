@@ -125,7 +125,10 @@ export function SidebarGroup({
         <span className="min-w-0 flex-1 truncate text-left">{group.label}</span>
 
         {groupBadge && (
-          <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 font-poppins text-[10px] leading-none font-bold text-amber-800">
+          <span className={cn(
+            "shrink-0 rounded-full px-1.5 py-0.5 font-poppins text-[10px] leading-none font-bold",
+            group.badgeKey === "clearance" ? "bg-amber-100 text-amber-900" : "bg-amber-100 text-amber-800",
+          )}>
             {groupBadge}
           </span>
         )}

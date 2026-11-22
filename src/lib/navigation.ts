@@ -340,6 +340,7 @@ export const NAV_SECTIONS: NavSection[] = [
         label: "Student Services",
         icon: Briefcase,
         roles: ALL_ROLES,
+        badgeKey: "clearance",
         children: [
           {
             type: "link",

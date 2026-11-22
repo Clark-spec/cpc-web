@@ -74,7 +74,22 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   const [unacknowledgedGradeCount, setUnacknowledgedGradeCount] = useState(0);
   const [highlightedOffice, setHighlightedOffice] = useState<OfficeId | null>(null);
   const highlightTimer = useRef<number | null>(null);
-  const { notify } = useNotifications();
+  const { notifications, removeLocalNotification } = useNotifications();
+  const notificationListRef = useRef(notifications);
+  notificationListRef.current = notifications;
+
+  const removeResolvedLocalRequestNotices = useCallback((next: ClearanceState) => {
+    for (const office of next.offices) {
+      if (office.status === "requested") continue;
+      const legacyMessages = new Set([
+        `Request sent to ${office.label}`,
+        `${office.label} request cancelled.`,
+      ]);
+      notificationListRef.current
+        .filter((notification) => notification.local && notification.officeId === office.office && legacyMessages.has(notification.message))
+        .forEach((notification) => removeLocalNotification(notification.id));
+    }
+  }, [removeLocalNotification]);
 
   const refreshGradeAcknowledgement = useCallback(async () => {
     if (user?.role !== "student") {
@@ -103,15 +118,17 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
 
   const student = useMemo<StudentProfile>(() => {
     if (user && user.role === "student") {
+      const snapshot = state.studentSnapshot;
       return {
-        name: user.name || mockStudent.name,
-        studentId: user.studentNumber || user.id || mockStudent.studentId,
-        yearLevel: user.yearLevel ? `${user.yearLevel}rd Year` : mockStudent.yearLevel,
-        course: user.course || mockStudent.course,
-        program: canonicalProgram(user.course || mockStudent.program),
-        academicYear: mockStudent.academicYear,
-        semester: mockStudent.semester,
-        term: mockStudent.term,
+        name: snapshot?.name || user.name || mockStudent.name,
+        studentId: snapshot?.studentId || user.studentNumber || user.id || mockStudent.studentId,
+        section: snapshot?.section || user.section || "",
+        yearLevel: snapshot?.yearLevel ? `${snapshot.yearLevel} Year` : user.yearLevel ? `${user.yearLevel} Year` : mockStudent.yearLevel,
+        course: snapshot?.course || user.course || mockStudent.course,
+        program: snapshot?.program || canonicalProgram(user.course || mockStudent.program),
+        academicYear: snapshot?.academicYear || mockStudent.academicYear,
+        semester: snapshot?.semester || mockStudent.semester,
+        term: snapshot?.term || mockStudent.term,
         graduating: mockStudent.graduating,
         date: new Date().toISOString().split("T")[0],
         referenceNumber: state.referenceNumber ?? mockStudent.referenceNumber,
@@ -121,7 +138,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       ...mockStudent,
       referenceNumber: state.referenceNumber ?? mockStudent.referenceNumber,
     };
-  }, [user, state.referenceNumber]);
+  }, [user, state.referenceNumber, state.studentSnapshot]);
 
   // Initial fetch through the mock service.
   useEffect(() => {
@@ -130,6 +147,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       .then((next) => {
         if (active) {
           setState(next);
+          removeResolvedLocalRequestNotices(next);
           setLoading(false);
         }
       })
@@ -139,7 +157,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [removeResolvedLocalRequestNotices]);
 
   useEffect(() => {
     return () => {
@@ -151,7 +169,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const refresh = () => {
       void getClearance()
-        .then((next) => setState(next))
+        .then((next) => {
+          setState(next);
+          removeResolvedLocalRequestNotices(next);
+        })
         .catch(() => {
           // Keep current state on error
         });
@@ -177,7 +198,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("storage", onStorage);
       channel?.close();
     };
-  }, []);
+  }, [removeResolvedLocalRequestNotices]);
 
   const isCleared = useMemo(
     () => state.offices.length === 5 && state.offices.every((office) => office.status === "signed"),
@@ -209,12 +230,6 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       setState(next);
       const office = findOffice(next, officeId);
       if (office && office.status === "requested") {
-        notify({
-          message: `Request sent to ${office.label}`,
-          type: "info",
-          officeId,
-          silent: true,
-        });
         showSuccess(
           "Signature request sent",
           `${office.label} will review your clearance and sign it digitally.`,
@@ -222,7 +237,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         );
       }
     },
-    [gradeAcknowledgementStatus, notify, state.periodOpen],
+    [gradeAcknowledgementStatus, state.periodOpen],
   );
 
   /** "Request All": one service call, one summary toast, one notification each. */
@@ -240,16 +255,6 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       }
       const next = await requestSignaturesService(officeIds);
       setState(next);
-      officeIds.forEach((officeId) => {
-        const office = findOffice(next, officeId);
-        if (!office || office.status !== "requested") return;
-        notify({
-          message: `Request sent to ${office.label}`,
-          type: "info",
-          officeId,
-          silent: true,
-        });
-      });
       const sent = officeIds.length;
       showSuccess(
         sent === 1 ? "Signature request sent" : "Signature requests sent",
@@ -258,28 +263,23 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           : `${sent} offices will review your clearance and sign it digitally.`,
       );
     },
-    [gradeAcknowledgementStatus, notify, state.periodOpen],
+    [gradeAcknowledgementStatus, state.periodOpen],
   );
 
   const cancelRequest = useCallback(
     async (officeId: OfficeId) => {
       const next = await cancelRequestService(officeId);
       setState(next);
+      removeResolvedLocalRequestNotices(next);
       const office = findOffice(next, officeId);
       if (office) {
-        notify({
-          message: `${office.label} request cancelled.`,
-          type: "warning",
-          officeId,
-          silent: true,
-        });
         showInfo(
           "Request cancelled",
           `${office.label} will no longer review this request. You can send it again anytime.`,
         );
       }
     },
-    [notify],
+    [removeResolvedLocalRequestNotices],
   );
 
   /**

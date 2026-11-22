@@ -1,20 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import {
-  ArrowRight,
   ChevronDown,
-  ClipboardList,
-  FileCheck2,
-  GraduationCap,
   LogOut,
   Menu,
-  UserRound,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import cpcLogo from "@/assets/cpc-logo.jpg";
 import { useAuth } from "@/components/context/useAuth";
-import { getStudentSession } from "@/services/enrollmentWorkflow/service";
 
 type NavLink = {
   label: string;
@@ -84,12 +78,6 @@ const navItems: NavItem[] = [
   },
 ];
 
-const utilityLinks = [
-  { label: "Student Profile", to: "/my-account/profile", icon: UserRound },
-  { label: "Enrollment Status", to: "/online-enrollment/status", icon: FileCheck2 },
-  { label: "Request Status", to: "/student/request-status", icon: ClipboardList },
-];
-
 const quickLinks: NavLink[] = [];
 
 function isLinkActive(pathname: string, to: string): boolean {
@@ -119,39 +107,6 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
 
   return (
     <div className="relative w-full border-b border-cpc-tile-border/50 bg-white shadow-[0_10px_30px_rgba(27,47,158,0.08)]">
-      {/* Utility row: portal label + account shortcuts. */}
-      <div className="hidden border-b border-cpc-input-border/70 lg:block">
-        <div
-          className={cn(
-            "mx-auto flex h-9 w-full max-w-[1440px] items-center justify-between",
-            gutter,
-          )}
-        >
-          <p className="flex items-center gap-2 font-poppins text-[10.5px] font-semibold tracking-[0.16em] text-cpc-navy-text/75 uppercase">
-            <GraduationCap className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            Student Portal
-          </p>
-
-          <ul className="flex items-center gap-6">
-            {utilityLinks.map((link) => (
-              <li key={link.to}>
-                <Link
-                  to={link.to}
-                  aria-current={isLinkActive(pathname, link.to) ? "page" : undefined}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 font-poppins text-[11.5px] font-medium text-cpc-navy-text/75 transition-colors hover:text-cpc-blue-accent",
-                    isLinkActive(pathname, link.to) && "font-semibold text-cpc-blue-accent",
-                  )}
-                >
-                  <link.icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
       {/* Brand row: centered lockup on desktop, school name + motto. */}
       <div className={cn("border-b border-cpc-input-border/70", fluid ? "h-16 lg:h-20" : "h-20")}>
         <div
@@ -182,27 +137,6 @@ export function StudentNavbar({ fluid = false }: StudentNavbarProps) {
           </Link>
 
           <div className="flex items-center justify-end gap-2">
-            <Link
-              to={
-                user &&
-                (getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "SUBMITTED" ||
-                  getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "APPROVED")
-                  ? "/student/queue"
-                  : "/student/verify"
-              }
-              className={cn(
-                "inline-flex items-center gap-2 rounded-md bg-cpc-navy-top px-5 py-2.5 font-poppins text-[11px] font-semibold tracking-[0.12em] text-white uppercase shadow-[0_6px_18px_rgba(27,47,158,0.22)] transition-colors hover:bg-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent",
-                fluid && "hidden lg:inline-flex",
-              )}
-            >
-              {user &&
-              (getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "SUBMITTED" ||
-                getStudentSession(user.studentNumber || "STU-2026-0042")?.form?.status === "APPROVED")
-                ? "Enrollment Status"
-                : "Enroll Now"}
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-            </Link>
-
             {fluid && (
               <button
                 type="button"

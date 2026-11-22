@@ -208,7 +208,7 @@ function HistoryRow({ item, open, panelId, onToggle, onDownload }: HistoryRowPro
                     Signatory Endorsements ({item.signatures.length} Offices)
                   </h4>
                   <p className="font-poppins text-[11px] text-cpc-heading-soft">
-                    All departmental clearances were verified on {formatDate(item.dateCleared)}.
+                    {item.program || "Student clearance"}{item.section ? ` · ${item.section}` : ""}{item.yearLevel ? ` · Year ${item.yearLevel}` : ""} · All departmental clearances were verified on {formatDate(item.dateCleared)}.
                   </p>
                 </div>
 

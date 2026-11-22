@@ -162,12 +162,12 @@ export function EnrollmentStatusCard() {
 
       {isEnrolled && (
         <section className="mb-8 rounded-2xl border border-cpc-input-border/70 bg-white p-5">
-          <h3 className="text-sm font-bold text-cpc-navy-text">Completed Study Load · {session.form.term}</h3>
+          <h3 className="text-sm font-bold text-cpc-navy-text">Completed Study Load · {session.form.term} · {session.form.section || session.student.section}</h3>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-xs">
-              <thead><tr className="border-b border-cpc-input-border/60 text-[10px] uppercase text-cpc-heading-soft"><th className="py-2">Subject Code</th><th className="py-2">Descriptive Title</th><th className="py-2">Time</th><th className="py-2">Units</th><th className="py-2">Instructor</th></tr></thead>
+              <thead><tr className="border-b border-cpc-input-border/60 text-[10px] uppercase text-cpc-heading-soft"><th className="py-2">Subject Code</th><th className="py-2">Descriptive Title</th><th className="py-2">Time</th><th className="py-2">Days</th><th className="py-2">Set A · F2F</th><th className="py-2">Set B · Online</th><th className="py-2">Units</th><th className="py-2">Instructor</th></tr></thead>
               <tbody className="divide-y divide-cpc-input-border/40">
-                {session.form.subjects.map((subject) => <tr key={subject.code}><td className="py-2 font-bold text-cpc-blue-accent">{subject.code}</td><td className="py-2">{subject.title}</td><td className="py-2">{subject.schedule}</td><td className="py-2">{subject.units}</td><td className="py-2">{subject.instructor || "—"}</td></tr>)}
+                {session.form.subjects.map((subject) => <tr key={subject.code}><td className="py-2 font-bold text-cpc-blue-accent">{subject.code}</td><td className="py-2">{subject.title}</td><td className="py-2">{subject.schedule}</td><td className="py-2">{subject.days || "—"}</td><td className="py-2">{subject.roomSetA || subject.room || "—"}</td><td className="py-2">{subject.roomSetB || "ONLINE"}</td><td className="py-2">{subject.units}</td><td className="py-2">{subject.instructor || "—"}</td></tr>)}
               </tbody>
             </table>
           </div>

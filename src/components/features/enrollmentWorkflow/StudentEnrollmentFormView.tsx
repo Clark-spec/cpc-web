@@ -78,7 +78,7 @@ export function StudentEnrollmentFormView() {
         setSession(saved);
         let subjects = saved.form.subjects;
         if (subjects.length === 0 && saved.form.standing === "regular") {
-          subjects = CURRICULUM_CATALOG[saved.student.department]?.[saved.student.yearLevel] ?? [];
+          subjects = CURRICULUM_CATALOG[saved.student.department]?.[saved.form.yearLevel] ?? [];
         }
         setSelectedSubjects(subjects);
         if (subjects.length > 0 && saved.form.subjects.length === 0 && saved.steps.verification.status === "APPROVED") {
@@ -104,8 +104,8 @@ export function StudentEnrollmentFormView() {
     { key: "screening", label: "1. Screening Committee & Dean" },
     { key: "guidance", label: "2. Guidance Counselor" },
     { key: "clinic", label: "3. Clinic" },
-    { key: "accounting", label: "4. Accounting" },
-    { key: "registrar", label: "5. Registrar" },
+    { key: "registrar", label: "4. Registrar" },
+    { key: "accounting", label: "5. Accounting" },
   ] as const;
   const fullySigned = signatureSteps.every(({ key }) => session.steps[key].status === "APPROVED");
 
@@ -375,7 +375,7 @@ export function StudentEnrollmentFormView() {
                   {isRegular ? "Fixed Study Load" : "Enrolled Subject Load"}
                 </span>
                 <h3 className="text-base font-bold text-cpc-navy-text">
-                  {user?.section ? `${user.section} · ` : ""}{session.student.course} · {session.form.term}
+                  {session.form.section || user?.section || session.student.section ? `${session.form.section || user?.section || session.student.section} · ` : ""}{session.student.course} · Year {session.form.yearLevel} · {session.form.term}
                 </h3>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
@@ -410,8 +410,8 @@ export function StudentEnrollmentFormView() {
                     <th className="py-2.5 font-bold">Descriptive Title</th>
                     <th className="py-2.5 font-bold">Time</th>
                     <th className="py-2.5 font-bold">Days</th>
-                    <th className="py-2.5 font-bold">Room (Set A)</th>
-                    <th className="py-2.5 font-bold">Room (Set B)</th>
+                    <th className="py-2.5 font-bold">Set A · F2F Room</th>
+                    <th className="py-2.5 font-bold">Set B · Online</th>
                     <th className="py-2.5 font-bold text-center">Units</th>
                     <th className="py-2.5 font-bold">Instructor</th>
                     <th className="py-2.5 font-bold">Status</th>
