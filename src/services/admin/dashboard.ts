@@ -3,6 +3,28 @@ import { getClearanceRequests } from "./clearanceAdapter";
 import { getOfficeSignatureRequests } from "@/services/enrollmentWorkflow/database";
 import { getAdminComplaints } from "@/services/complaints/admin";
 import { listAdminServiceRequests } from "@/services/serviceRequests/adminApi";
+import type { EnrollmentSignatureOffice } from "@/services/enrollmentWorkflow/service";
+
+const ENROLLMENT_OFFICES: EnrollmentSignatureOffice[] = ["screening", "guidance", "clinic", "registrar", "accounting"];
+
+function enrollmentOfficesForRole(role: AdminUser["role"]): EnrollmentSignatureOffice[] {
+  if (role === "admin") return ENROLLMENT_OFFICES;
+  if (role === "dean_cs" || role === "dean_edu" || role === "dean_hm") return ["screening"];
+  if (role === "guidance" || role === "clinic" || role === "registrar" || role === "accounting") return [role];
+  return [];
+}
+
+/** Count only pending Study Load signature requests assigned to this role. */
+export async function getPendingEnrollmentSignatureCount(user: AdminUser): Promise<number> {
+  const offices = enrollmentOfficesForRole(user.role);
+  if (offices.length === 0) return 0;
+  const results = await Promise.allSettled(offices.map((office) => getOfficeSignatureRequests(office)));
+  return results.reduce((total, result, index) => {
+    if (result.status !== "fulfilled") return total;
+    const office = offices[index];
+    return total + result.value.filter((session) => session.steps?.[office]?.status === "PENDING").length;
+  }, 0);
+}
 
 export function isToday(value: string | undefined): boolean {
   if (!value) return false;
@@ -18,13 +40,13 @@ export async function getDashboardStats(user: AdminUser): Promise<DashboardStats
     getClearanceRequests(user),
     listAdminServiceRequests({ page: 1, pageSize: 1, search: "", status: "all", serviceId: null, from: "", to: "" }),
     getAdminComplaints(),
-    getOfficeSignatureRequests(user.role === "guidance" ? "guidance" : user.role === "clinic" ? "clinic" : user.role.startsWith("dean_") ? "screening" : user.role === "registrar" ? "registrar" : user.role === "admin" ? "screening" : "accounting"),
+    getPendingEnrollmentSignatureCount(user),
   ]);
   const requests = clearanceResult.status === "fulfilled" ? clearanceResult.value : [];
   const pendingClearance = requests.filter((request) => request.status === "pending").length;
   const signedToday = requests.filter((request) => request.status === "signed" && isToday(request.respondedAt)).length;
   const rejectedClearance = requests.filter((request) => request.status === "rejected").length;
-  const pendingEnrollments = enrollmentResult.status === "fulfilled" ? enrollmentResult.value.length : 0;
+  const pendingEnrollments = enrollmentResult.status === "fulfilled" ? enrollmentResult.value : 0;
   const openRequests = serviceResult.status === "fulfilled" ? serviceResult.value.summary.submitted + serviceResult.value.summary.under_review + serviceResult.value.summary.processing + serviceResult.value.summary.ready_for_release : 0;
   const activeComplaints = complaintResult.status === "fulfilled" ? complaintResult.value.filter((item) => item.status !== "resolved").length : 0;
   const cards: DashboardStat[] = [];

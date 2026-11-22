@@ -91,6 +91,22 @@ export function visibleRequests(user: AdminUser): ClearanceRequest[] {
 
 /** Role-aware clearance queue, newest request first. */
 export async function getClearanceRequests(user: AdminUser): Promise<ClearanceRequest[]> {
+  // The API deliberately restricts clearance records to the offices that
+  // process online clearance. Guidance and Clinic handle enrollment signatures
+  // only; requesting this endpoint for them returns 403 and used to make the
+  // entire shared staff dashboard show a load error.
+  const clearanceRoles = new Set<AdminUser["role"]>([
+    "admin",
+    "registrar",
+    "dean_cs",
+    "dean_edu",
+    "dean_hm",
+    "sao",
+    "library",
+    "accounting",
+  ]);
+  if (!clearanceRoles.has(user.role)) return [];
+
   const records = await getClearanceRecordsFromDatabase();
   const byId = new Map(records.map((record) => [record.studentId, record]));
   const all = deriveRows(records, 3).flatMap((row) => {

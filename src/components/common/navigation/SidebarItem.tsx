@@ -28,7 +28,9 @@ export function SidebarItem({
   const count = item.badgeKey ? badges[item.badgeKey] : 0;
   const badge = count > 0 ? (count > 99 ? "99+" : String(count)) : null;
   const badgeTone =
-    item.badgeKey === "enrollment" || item.badgeKey === "profileCorrections"
+    item.id === "enrollment-clearance-requests"
+      ? "bg-rose-100 text-rose-700"
+      : item.badgeKey === "enrollment" || item.badgeKey === "profileCorrections"
       ? "bg-amber-100 text-amber-800"
       : "bg-rose-100 text-rose-700";
   const [tooltip, setTooltip] = useState<TooltipPosition | null>(null);

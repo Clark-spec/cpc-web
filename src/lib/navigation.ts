@@ -257,6 +257,7 @@ export const NAV_SECTIONS: NavSection[] = [
             label: "Request Signatures",
             to: "/admin/enrollment/clearance-requests",
             icon: ShieldCheck,
+            badgeKey: "enrollment",
             roles: ["admin", "registrar", ...DEAN_ROLES, "guidance", "clinic", "accounting"],
           },
           {

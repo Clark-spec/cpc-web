@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Keep the pointer consistent for semantic controls throughout the portal. */
+:where(button:not(:disabled), a[href], [role="button"]:not([aria-disabled="true"]), [role="link"], [role="menuitem"], [role="tab"], [role="option"], [role="checkbox"], [role="radio"], [role="switch"], summary, label[for], input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled), select:not(:disabled)) {
+  cursor: pointer;
+}
+
+:where(button:disabled, [role="button"][aria-disabled="true"], input:disabled, select:disabled) {
+  cursor: not-allowed;
+}
+
 @theme {
   /* Cordova Public College design tokens, sampled from the login design frame. */
   --color-cpc-navy: #082d79;

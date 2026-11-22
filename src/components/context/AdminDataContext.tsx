@@ -22,6 +22,7 @@ import {
   getDashboardStats,
   getEnrollmentOverview,
   getRecentActivity,
+  getPendingEnrollmentSignatureCount,
 } from "@/services/admin";
 import { normalizeDepartment } from "@/services/enrollmentWorkflow/service";
 import type { DepartmentCode } from "@/types/enrollmentWorkflow";
@@ -206,8 +207,23 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const syncClearanceRequests = useCallback(async () => {
     if (!user) return;
     try {
-      const requests = await getClearanceRequests(user);
-      setState((current) => ({ ...current, requests }));
+      const [requests, pendingEnrollments] = await Promise.all([
+        getClearanceRequests(user),
+        getPendingEnrollmentSignatureCount(user),
+      ]);
+      setState((current) => ({
+        ...current,
+        requests,
+        stats: current.stats
+          ? {
+              ...current.stats,
+              pendingEnrollments,
+              stats: current.stats.stats.map((item) => item.id === "enrollments"
+                ? { ...item, value: pendingEnrollments, sparkline: Array(7).fill(pendingEnrollments) as number[] }
+                : item),
+            }
+          : current.stats,
+      }));
     } catch {
       // Keep the current count while offline; the next visible poll retries.
     }

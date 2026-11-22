@@ -71,7 +71,7 @@ export async function fetchAdminNotificationFeed(): Promise<AdminNotification[]>
     read: Boolean(row.read),
     href: row.href ?? undefined,
     targetRole: row.officeId ?? undefined,
-    source: row.title?.toLowerCase().startsWith("signature requested:") || row.title?.toLowerCase().startsWith("signature signed:") || row.title?.toLowerCase().startsWith("signature request cancelled:")
+    source: row.title?.toLowerCase().startsWith("signature requested:") || row.title?.toLowerCase().startsWith("signature signed:") || row.title?.toLowerCase().startsWith("signature request ")
       ? "enrollment-signature"
       : row.title?.toLowerCase().startsWith("clearance")
         ? "clearance"

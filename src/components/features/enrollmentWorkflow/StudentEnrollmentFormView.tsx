@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "@/components/context/useAuth";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import {
   approveClearanceStep,
   checkClearanceStatus,
@@ -55,6 +56,7 @@ export function StudentEnrollmentFormView() {
   const [session, setSession] = useState(() => getStudentSession(studentId));
   const [selectedSubjects, setSelectedSubjects] = useState<EnrollmentSubjectItem[]>(session.form.subjects);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
   const [databaseLoadError, setDatabaseLoadError] = useState(false);
   const [clearanceData, setClearanceData] = useState(() => checkClearanceStatus(studentId));
@@ -187,6 +189,7 @@ export function StudentEnrollmentFormView() {
       alert(error instanceof Error ? error.message : "The Study Load could not be saved. Check your connection and try again.");
     } finally {
       setSubmitting(false);
+      setConfirmSubmit(false);
     }
   };
 
@@ -548,7 +551,7 @@ export function StudentEnrollmentFormView() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => void handleSubmitForm()}
+                  onClick={() => setConfirmSubmit(true)}
                   disabled={submitting}
                   className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition disabled:opacity-50"
                 >
@@ -560,6 +563,16 @@ export function StudentEnrollmentFormView() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={confirmSubmit}
+        onClose={() => setConfirmSubmit(false)}
+        onConfirm={() => void handleSubmitForm()}
+        title="Submit your Study Load?"
+        description={<>Your <strong>{selectedSubjects.length} subjects</strong> totaling <strong>{totalUnits} units</strong> will be saved and sent into the enrollment signature process.</>}
+        confirmLabel="Submit Study Load"
+        loadingLabel="Submitting…"
+        busy={submitting}
+      />
     </div>
   );
 }

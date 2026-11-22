@@ -18,7 +18,6 @@ export default function StudentLoginPage() {
       redirectTo="/student/home"
       footerLinks={[
         { label: "Admin", to: "/login/admin" },
-        { label: "Staff", to: "/login/staff" },
       ]}
     />
   );

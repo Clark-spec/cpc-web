@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Check,
   Eraser,
   PenLine,
   Sparkles,
@@ -619,10 +618,6 @@ function SignaturePadBody({ signerName, onClose, onUse }: SignaturePadBodyProps)
         </button>
       </div>
 
-      <p className="mt-2 flex items-center justify-center gap-1 font-poppins text-[10px] text-cpc-heading-soft">
-        <Check className="h-3 w-3 text-emerald-600" aria-hidden />
-        Stored locally in demo mode. A real deployment signs server-side.
-      </p>
     </div>
   );
 }

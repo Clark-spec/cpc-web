@@ -13,6 +13,7 @@ import {
 import { StudentIdUpload } from "@/components/features/student/service-requests/StudentIdUpload";
 import { ActionButton, useActionStatus } from "@/components/ui/action-button";
 import { showError } from "@/lib/feedback";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 
 type NewRequestFormProps = {
   services: ServiceOption[];
@@ -79,6 +80,7 @@ export function NewRequestForm({
   const [files, setFiles] = useState<File[]>([]);
   const [savedDocument, setSavedDocument] = useState(draft?.document ?? null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
   const appliedDraft = useRef<string | null>(null);
   const submitAction = useActionStatus();
   const draftAction = useActionStatus(1200);
@@ -146,11 +148,17 @@ export function NewRequestForm({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    setConfirmSubmit(true);
+  }
+
+  async function confirmRequest() {
+    if (submitAction.status === "loading" || submitAction.status === "success") return;
     submitAction.start();
     const request = await onSubmit(buildValues());
     if (request) {
       submitAction.succeed();
       resetForm();
+      setConfirmSubmit(false);
     } else {
       submitAction.fail();
     }
@@ -467,6 +475,16 @@ export function NewRequestForm({
           )}
         </div>
       </form>
+      <ConfirmDialog
+        open={confirmSubmit}
+        onClose={() => setConfirmSubmit(false)}
+        onConfirm={() => void confirmRequest()}
+        title="Submit this service request?"
+        description="Your request and uploaded student ID will be sent to the selected office for processing."
+        confirmLabel="Submit request"
+        loadingLabel="Submitting…"
+        busy={submitAction.status === "loading"}
+      />
     </section>
   );
 }

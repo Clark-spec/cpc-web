@@ -3,7 +3,6 @@ import { PortalHeader } from "@/components/common/layout/PortalHeader";
 import { EnrollContent } from "@/components/features/student/enrollment/EnrollContent";
 import { EnrollmentHero } from "@/components/features/student/enrollment/EnrollmentHero";
 import { EnrollmentStatusCard } from "@/components/features/student/enrollment/EnrollmentStatusCard";
-import { EnrollmentStatusInfoCards } from "@/components/features/student/enrollment/EnrollmentStatusInfoCards";
 
 /** Route: /online-enrollment/status */
 export default function EnrollmentStatusPage() {
@@ -18,7 +17,6 @@ export default function EnrollmentStatusPage() {
 
       <EnrollContent>
         <EnrollmentStatusCard />
-        <EnrollmentStatusInfoCards />
       </EnrollContent>
 
       <PortalFooter />

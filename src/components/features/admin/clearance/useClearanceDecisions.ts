@@ -77,7 +77,6 @@ export function useClearanceDecisions({
         const outcome = await approveRequest(row.id, {
           ...input,
           signerName: staff.name,
-          staffId: staff.id,
         });
         await afterDecision();
         if (outcome.snapshots.length) armUndo({

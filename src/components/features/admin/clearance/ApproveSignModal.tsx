@@ -25,9 +25,8 @@ type ApproveSignModalProps = {
 /**
  * Approve &amp; Sign dialog.
  *
- * (2) staff -> signature (saved library or draw/type/upload) -> base64 PNG ->
- * `approve()` -> shared localStorage record -> `storage` event -> the student's
- * Online Clearance card renders the image.
+ * Staff can sign with a database-saved signature or create a new one. The
+ * approved signature is stored on the student's clearance record.
  */
 export function ApproveSignModal({ row, open, onClose }: ApproveSignModalProps) {
   if (!row) return null;
@@ -45,7 +44,7 @@ export function ApproveSignModal({ row, open, onClose }: ApproveSignModalProps) 
 }
 
 function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: () => void }) {
-  const { approve, busy, defaultSignature, deleteSignature, records, savedSignatures, staff } =
+  const { addSignature, approve, busy, defaultSignature, deleteSignature, records, savedSignatures, staff } =
     useClearanceAdmin();
 
   const [source, setSource] = useState<Source>(() => (defaultSignature ? "saved" : "new"));
@@ -85,8 +84,16 @@ function ApproveSignBody({ row, onClose }: { row: ClearanceRequestRow; onClose: 
 
   const confirm = async () => {
     if (!draft) return;
+    if (draft.saveAs) {
+      await addSignature({
+        imageBase64: draft.imageBase64,
+        method: draft.method,
+        label: draft.saveAs.label.trim() || staff.name,
+        isDefault: draft.saveAs.isDefault,
+      });
+    }
     const signed = await approve(row, {
-      draft,
+      draft: { ...draft, saveAs: undefined },
       internalRemarks: internalRemarks.trim() || undefined,
     });
     if (signed) onClose();

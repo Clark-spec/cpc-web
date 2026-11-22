@@ -196,9 +196,6 @@ export function StudentVerifyView() {
               <p className="mt-1 text-xs text-emerald-800">All five offices have signed your Study Load. You can review the completed enrollment status below.</p>
             </div>
           </div>
-          <Link to="/online-enrollment/status" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-800">
-            View Enrollment Status <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       )}
 

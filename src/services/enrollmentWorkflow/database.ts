@@ -96,7 +96,10 @@ export async function getOfficeSignatureRequests(office: EnrollmentSignatureOffi
       `/enrollment/v1/sessions/requests/${office}`,
       adminConfig(token),
     );
-    return response.data.data?.sessions ?? [];
+    if (!Array.isArray(response.data.data?.sessions)) {
+      throw new ApiError(response.data.message || "The office request list could not be loaded.");
+    }
+    return response.data.data.sessions;
   });
 }
 

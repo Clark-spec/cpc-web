@@ -7,6 +7,7 @@ import { ensureAdminSession } from "@/services/complaints/admin-session";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { cacheContinuingStudentRecord } from "@/services/enrollmentWorkflow/service";
 import type { MasterlistRecord } from "@/types/enrollmentWorkflow";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 
 type StudentAccountRow = { id: string; name: string; studentNumber: string; section: string | null };
 type Envelope<T> = { data?: T; message?: string };
@@ -17,10 +18,15 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
   const [name, setName] = useState("");
   const [section, setSection] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmCreate, setConfirmCreate] = useState(false);
   const canManageAccounts = user?.role === "admin" || user?.role === "registrar";
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setConfirmCreate(true);
+  }
+
+  async function createStudent() {
     setSaving(true);
     try {
       const [token, csrf] = await Promise.all([ensureAdminSession(user?.role), getCsrfToken()]);
@@ -40,6 +46,7 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
       onCreated?.();
       setName("");
       setSection("");
+      setConfirmCreate(false);
       toast(`Created account ${created.studentNumber}. Default password: 123456`, "success");
     } catch (error) {
       toast(error instanceof Error ? error.message : "Student account could not be created.", "error");
@@ -70,9 +77,19 @@ export function RegistrarStudentCreator({ onCreated }: { onCreated?: () => void 
           Section
           <input required maxLength={40} value={section} onChange={(event) => setSection(event.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-cpc-input-border px-3 font-normal" placeholder="e.g. BSIT 1-A" />
         </label>
-        <button disabled={saving} className="cpc-btn cpc-btn-primary h-10 disabled:opacity-60">{saving ? "Creating…" : "Create student"}</button>
+        <button type="submit" disabled={saving} className="cpc-btn cpc-btn-primary h-10 disabled:opacity-60">{saving ? "Creating…" : "Create student"}</button>
       </form>
       <p className="mt-2 font-poppins text-[11px] text-cpc-heading-soft">IDs start at 20240770 and increase from the highest existing ID. Default password: 123456.</p>
+      <ConfirmDialog
+        open={confirmCreate}
+        onClose={() => setConfirmCreate(false)}
+        onConfirm={() => void createStudent()}
+        title="Create this student account?"
+        description={<>Create an account for <strong>{name}</strong> in <strong>{section}</strong>? The student ID will be generated and the default password will be <strong>123456</strong>.</>}
+        confirmLabel="Create account"
+        loadingLabel="Creating…"
+        busy={saving}
+      />
     </section>
   );
 }

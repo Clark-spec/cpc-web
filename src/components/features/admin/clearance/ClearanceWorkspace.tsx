@@ -12,13 +12,17 @@ export function ClearanceWorkspace() {
   const [reviewRow, setReviewRow] = useState<ClearanceRequestRow | null>(null);
   const [signRow, setSignRow] = useState<ClearanceRequestRow | null>(null);
   const [rejectRow, setRejectRow] = useState<ClearanceRequestRow | null>(null);
+  const [sectionFilter, setSectionFilter] = useState("all");
+  const matchesSection = (row: ClearanceRequestRow) => sectionFilter === "all" || row.section?.toUpperCase().replace(/\s+/g, "") === sectionFilter;
+  const sectionRows = rows.filter(matchesSection);
+  const sectionVisibleRows = visibleRows.filter(matchesSection);
   const openReview = (row: ClearanceRequestRow) => setReviewRow(row);
   const handleReject = (row: ClearanceRequestRow) => { setReviewRow(null); setRejectRow(row); };
   const statusOptions = [
-    { value: "requested" as const, label: "Pending", count: rows.filter((row) => row.status === "requested").length },
-    { value: "signed" as const, label: "Signed", count: rows.filter((row) => row.status === "signed").length },
-    { value: "rejected" as const, label: "Rejected", count: rows.filter((row) => row.status === "rejected").length },
-    { value: "all" as const, label: "All", count: rows.length },
+    { value: "requested" as const, label: "Pending", count: sectionRows.filter((row) => row.status === "requested").length },
+    { value: "signed" as const, label: "Signed", count: sectionRows.filter((row) => row.status === "signed").length },
+    { value: "rejected" as const, label: "Rejected", count: sectionRows.filter((row) => row.status === "rejected").length },
+    { value: "all" as const, label: "All", count: sectionRows.length },
   ];
   const statusLabel = statusOptions.find((option) => option.value === filters.status)?.label ?? "Pending";
 
@@ -36,7 +40,9 @@ export function ClearanceWorkspace() {
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <header className="border-b border-slate-200 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2"><h2 className="font-bold text-slate-900">{statusLabel} requests</h2><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">{visibleRows.length}</span></div>
+            <div className="flex items-center gap-2"><h2 className="font-bold text-slate-900">{statusLabel} requests</h2><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">{sectionVisibleRows.length}</span></div>
+            <div className="flex flex-wrap items-center gap-1.5">
+            <label className="mr-1 text-xs font-semibold text-slate-600">Section <select aria-label="Filter clearance requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700"><option value="all">All BSIT sections</option>{["BSIT-3A", "BSIT-3B", "BSIT-3C", "BSIT-3D"].map((section) => <option key={section} value={section}>{section}</option>)}</select></label>
             <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter clearance requests by status">
               {statusOptions.map((option) => {
                 const activeClass = option.value === "requested"
@@ -58,10 +64,11 @@ export function ClearanceWorkspace() {
                 </button>;
               })}
             </div>
+            </div>
           </div>
         </header>
-        {loading ? <p className="p-8 text-center text-sm text-slate-500">Loading requests…</p> : visibleRows.length === 0 ? <div className="p-10 text-center"><Check className="mx-auto h-8 w-8 text-emerald-600"/><h3 className="mt-3 font-semibold text-slate-900">No {statusLabel.toLowerCase()} requests</h3><p className="mt-1 text-sm text-slate-500">Requests in this status will appear here.</p></div> : <ul className="divide-y divide-slate-100">
-          {visibleRows.map((row) => <li key={row.id}>
+        {loading ? <p className="p-8 text-center text-sm text-slate-500">Loading requests…</p> : sectionVisibleRows.length === 0 ? <div className="p-10 text-center"><Check className="mx-auto h-8 w-8 text-emerald-600"/><h3 className="mt-3 font-semibold text-slate-900">No {statusLabel.toLowerCase()} requests</h3><p className="mt-1 text-sm text-slate-500">Requests in this status will appear here.</p></div> : <ul className="divide-y divide-slate-100">
+          {sectionVisibleRows.map((row) => <li key={row.id}>
             <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => openReview(row)} className="min-w-0 text-left">
                 <span className="block truncate font-semibold text-slate-900">{row.studentName || "Student"}</span>

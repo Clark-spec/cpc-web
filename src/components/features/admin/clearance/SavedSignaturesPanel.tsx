@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Star, Trash2, Pencil, UserCheck } from "lucide-react";
+import { Plus, Star, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
@@ -47,28 +47,13 @@ function SavedSignaturesBody({ onClose }: { onClose: () => void }) {
     addSignature,
     defaultSignature,
     deleteSignature,
-    makeDefaultSignature,
-    renameSignature,
     savedSignatures,
     staff,
   } = useClearanceAdmin();
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draftLabel, setDraftLabel] = useState("");
   const [pendingDelete, setPendingDelete] = useState<SavedSignature | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [padOpen, setPadOpen] = useState(false);
-
-  const startRename = (signature: SavedSignature) => {
-    setEditingId(signature.id);
-    setDraftLabel(signature.label);
-  };
-
-  const commitRename = async (signature: SavedSignature) => {
-    const next = draftLabel.trim();
-    setEditingId(null);
-    if (next && next !== signature.label) await renameSignature(signature.id, next);
-  };
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
@@ -109,7 +94,6 @@ function SavedSignaturesBody({ onClose }: { onClose: () => void }) {
         {savedSignatures.map((signature) => {
           const isDefault =
             signature.isDefault || defaultSignature?.id === signature.id;
-          const editing = editingId === signature.id;
 
           return (
             <div
@@ -128,32 +112,9 @@ function SavedSignaturesBody({ onClose }: { onClose: () => void }) {
               />
 
               <div className="min-w-0 flex-1">
-                {editing ? (
-                  <input
-                    type="text"
-                    value={draftLabel}
-                    autoFocus
-                    maxLength={40}
-                    aria-label="New signature label"
-                    onChange={(event) => setDraftLabel(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        void commitRename(signature);
-                      }
-                      if (event.key === "Escape") {
-                        event.stopPropagation();
-                        setEditingId(null);
-                      }
-                    }}
-                    onBlur={() => void commitRename(signature)}
-                    className="w-full rounded-lg border border-cpc-tile-border bg-white px-2 py-1 font-poppins text-sm text-cpc-navy-text outline-none focus-visible:border-cpc-blue-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent"
-                  />
-                ) : (
-                  <p className="truncate font-poppins text-xs font-semibold text-cpc-navy-text">
-                    {signature.label}
-                  </p>
-                )}
+                <p className="truncate font-poppins text-xs font-semibold text-cpc-navy-text">
+                  {signature.label}
+                </p>
 
                 <p className="mt-0.5 flex flex-wrap items-center gap-1.5 font-poppins text-[10px] text-cpc-heading-soft">
                   <Badge tone="info" size="sm" dot={false}>
@@ -170,25 +131,6 @@ function SavedSignaturesBody({ onClose }: { onClose: () => void }) {
               </div>
 
               <div className="flex shrink-0 items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => startRename(signature)}
-                  aria-label={`Rename signature ${signature.label}`}
-                  className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 font-poppins text-[10px] font-semibold text-cpc-heading-soft transition-colors hover:bg-cpc-section-light hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:animate-none"
-                >
-                  <Pencil className="h-3 w-3" aria-hidden />
-                  Rename
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void makeDefaultSignature(signature.id)}
-                  disabled={signature.isDefault}
-                  aria-label={`Make ${signature.label} the default signature`}
-                  className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 font-poppins text-[10px] font-semibold text-cpc-heading-soft transition-colors hover:bg-cpc-section-light hover:text-cpc-navy-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cpc-blue-accent motion-reduce:animate-none disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Star className="h-3 w-3" aria-hidden />
-                  Set default
-                </button>
                 <button
                   type="button"
                   onClick={() => setPendingDelete(signature)}

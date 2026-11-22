@@ -13,6 +13,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useAuth } from "@/components/context/useAuth";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { useToast } from "@/components/ui/toast";
 import {
   getStudentSession,
@@ -69,6 +70,7 @@ export function StudentQueueView() {
   const [sending, setSending] = useState<EnrollmentSignatureOffice | null>(null);
   const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
   const [databaseError, setDatabaseError] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ kind: "request" | "cancel"; office: EnrollmentSignatureOffice } | null>(null);
 
   useEffect(() => {
     const refresh = () => {
@@ -231,11 +233,39 @@ export function StudentQueueView() {
                 </p>
               )}
 
+              {signed && (
+                <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-2.5">
+                  <div className="flex items-center justify-between gap-3 text-[10.5px]">
+                    <span className="text-emerald-800">
+                      Signed by <strong className="font-semibold text-emerald-950">{session.steps[card.office].updatedBy ?? card.title}</strong>
+                    </span>
+                    {session.steps[card.office].updatedAt && (
+                      <time className="shrink-0 text-emerald-700/80" dateTime={session.steps[card.office].updatedAt}>
+                        {new Date(session.steps[card.office].updatedAt!).toLocaleDateString()}
+                      </time>
+                    )}
+                  </div>
+                  <div className="mt-2 flex h-14 items-center justify-center rounded-lg border border-emerald-200/50 bg-white/80 p-1.5">
+                    {session.steps[card.office].signatureImage ? (
+                      <img
+                        src={session.steps[card.office].signatureImage}
+                        alt={`Digital signature of ${session.steps[card.office].updatedBy ?? card.title}`}
+                        className="max-h-12 w-auto max-w-full object-contain"
+                      />
+                    ) : (
+                      <span className="select-none text-xl leading-none text-cpc-navy-text" style={{ fontFamily: '"Dancing Script", "Segoe Script", cursive' }}>
+                        {session.steps[card.office].updatedBy ?? card.title}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mt-4 space-y-2">
                 <button
                   type="button"
                   disabled={disabled}
-                  onClick={() => void handleRequest(card.office)}
+                  onClick={() => setPendingAction({ kind: "request", office: card.office })}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-cpc-blue-accent px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:shadow-none"
                 >
                   {signed ? <CheckCircle2 className="h-4 w-4" aria-hidden /> : <Send className="h-4 w-4" aria-hidden />}
@@ -245,7 +275,7 @@ export function StudentQueueView() {
                   <button
                     type="button"
                     disabled={sending !== null}
-                    onClick={() => void handleCancel(card.office)}
+                    onClick={() => setPendingAction({ kind: "cancel", office: card.office })}
                     className="inline-flex w-full items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {sending === card.office ? "Cancelling request…" : "Cancel Request"}
@@ -263,6 +293,24 @@ export function StudentQueueView() {
           Go back to Study Load
         </Link>
       </div>
+
+      <ConfirmDialog
+        open={pendingAction !== null}
+        onClose={() => setPendingAction(null)}
+        onConfirm={() => {
+          if (!pendingAction) return;
+          const action = pendingAction;
+          setPendingAction(null);
+          if (action.kind === "request") void handleRequest(action.office);
+          else void handleCancel(action.office);
+        }}
+        title={pendingAction?.kind === "cancel" ? "Cancel this signature request?" : "Send this signature request?"}
+        description={pendingAction?.kind === "cancel"
+          ? <>Your request to <strong>{REQUEST_CARDS.find((card) => card.office === pendingAction.office)?.title}</strong> will be cancelled, and that office will be notified.</>
+          : <>A signature request will be sent to <strong>{REQUEST_CARDS.find((card) => card.office === pendingAction?.office)?.title}</strong>. The office will be notified and can review your enrollment record.</>}
+        confirmLabel={pendingAction?.kind === "cancel" ? "Cancel request" : "Send request"}
+        danger={pendingAction?.kind === "cancel"}
+      />
     </div>
   );
 }

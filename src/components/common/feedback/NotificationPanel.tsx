@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleAlert,
   CircleCheck,
+  CircleX,
   FileText,
   Info,
   Loader2,
@@ -132,8 +133,9 @@ export function NotificationPanel({
     const isServiceRequest =
       notification.href?.includes("request-status") ||
       notification.href?.includes("service-request");
-    const Icon = isServiceRequest ? FileText : (typeIcons[notification.type] ?? Info);
     const title = notification.title?.trim() || fallbackTitle(notification);
+    const isSignatureCancelled = title.toLowerCase().startsWith("signature request cancelled:");
+    const Icon = isServiceRequest ? FileText : isSignatureCancelled ? CircleX : (typeIcons[notification.type] ?? Info);
     return (
       <li
         key={notification.id}
@@ -150,7 +152,7 @@ export function NotificationPanel({
           <span
             className={cn(
               "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-              TYPE_TILES[notification.type],
+              isSignatureCancelled ? "bg-rose-50 text-rose-600" : TYPE_TILES[notification.type],
             )}
             aria-hidden
           >

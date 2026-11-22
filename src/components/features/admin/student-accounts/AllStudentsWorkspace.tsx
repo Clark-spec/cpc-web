@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCw, Search, Trash2, Users } from "lucide-react";
 import { PageBanner } from "@/components/common/display/PageBanner";
+import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
 import { RegistrarStudentCreator } from "@/components/features/admin/student-accounts/RegistrarStudentCreator";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { useToast } from "@/components/ui/toast";
@@ -18,6 +19,7 @@ export function AllStudentsWorkspace() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RegistrarStudentAccount | null>(null);
 
   const role = user?.role;
   const canManageAccounts = role === "admin" || role === "registrar";
@@ -50,17 +52,16 @@ export function AllStudentsWorkspace() {
     );
   }, [query, students]);
 
-  async function removeStudent(student: RegistrarStudentAccount) {
+  async function removeStudent() {
+    const student = deleteTarget;
+    if (!student) return;
     if (!role || deletingId) return;
-    const confirmed = window.confirm(
-      `Delete ${student.studentNumber} — ${student.name}? This permanently removes the account and continuing-student record. Linked requests and notifications may also be removed.`,
-    );
-    if (!confirmed) return;
 
     setDeletingId(student.id);
     try {
       await deleteRegistrarStudentAccount(role, student.id);
       setStudents((current) => current.filter((row) => row.id !== student.id));
+      setDeleteTarget(null);
       toast(`Student account ${student.studentNumber} was deleted.`, "success");
     } catch (deleteError) {
       toast(deleteError instanceof Error ? deleteError.message : "Student account could not be deleted.", "error");
@@ -149,7 +150,7 @@ export function AllStudentsWorkspace() {
                       <button
                         type="button"
                         disabled={deletingId !== null}
-                        onClick={() => void removeStudent(student)}
+                        onClick={() => setDeleteTarget(student)}
                         className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 font-poppins text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
                         aria-label={`Delete student ${student.studentNumber}`}
                       >
@@ -164,6 +165,17 @@ export function AllStudentsWorkspace() {
           </div>
         )}
       </section>
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => void removeStudent()}
+        title="Delete this student account?"
+        description={deleteTarget ? <>{deleteTarget.studentNumber} — {deleteTarget.name} and the continuing-student record will be permanently deleted. Linked requests and notifications may also be removed.</> : "This account will be permanently deleted."}
+        confirmLabel="Delete account"
+        loadingLabel="Deleting…"
+        danger
+        busy={deletingId !== null}
+      />
     </div>
   );
 }

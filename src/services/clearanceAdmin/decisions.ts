@@ -1,6 +1,6 @@
 import type { ClearanceRequestRow, OfficeId, OfficeSignature } from "@/types/clearance";
 import type { ApproveInput } from "@/components/features/admin/clearance/types";
-import { readSavedSignatures, storeSignature } from "./storage";
+import { readSavedSignatures } from "./storage";
 import { saveClearanceDecision } from "./database";
 
 export type DecisionSnapshot = {
@@ -23,10 +23,9 @@ export function parseRowId(id: string): { studentId: string; office: OfficeId } 
   return { studentId: id.slice(0, sep), office };
 }
 
-export async function approveRequest(requestId: string, input: ApproveInput & { signerName: string; staffId: string }): Promise<DecisionOutcome> {
+export async function approveRequest(requestId: string, input: ApproveInput & { signerName: string }): Promise<DecisionOutcome> {
   const parsed = parseRowId(requestId);
   if (!parsed) throw new Error("Invalid clearance request.");
-  if (input.draft.saveAs) storeSignature(input.staffId, { imageBase64: input.draft.imageBase64, method: input.draft.method, label: input.draft.saveAs.label.trim() || input.signerName, isDefault: input.draft.saveAs.isDefault });
   await saveClearanceDecision(parsed.studentId, parsed.office, { action: "sign", signerName: input.signerName, signatureImage: input.draft.imageBase64, remarks: input.internalRemarks });
   return emptyOutcome();
 }
