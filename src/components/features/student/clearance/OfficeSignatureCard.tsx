@@ -71,6 +71,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     cancelRequest,
     highlightedOffice,
     periodOpen,
+    priorOfficesSigned,
     gradeAcknowledgementStatus,
     unacknowledgedGradeCount,
     missingGradeCount,
@@ -84,7 +85,7 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
   const requested = office.status === "requested";
   const rejected = office.status === "rejected";
   const signatureRequestDisabled =
-    !periodOpen || (office.office === "registrar" && gradeAcknowledgementStatus !== "ready");
+    !periodOpen || (office.office === "registrar" && (!priorOfficesSigned || gradeAcknowledgementStatus !== "ready"));
   const highlighted = highlightedOffice === office.office;
   const cardId = `office-${office.office}`;
   const titleId = `${cardId}-title`;
@@ -184,6 +185,12 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
         <p className="mt-1.5 font-poppins text-[11px] leading-snug text-cpc-heading-soft">
           {info.description}
         </p>
+
+        {office.office === "registrar" && !signed && !requested && !priorOfficesSigned && (
+          <div role="status" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900">
+            Request Registrar after Dean, SAO / SSG Adviser, Library, and Accounting have signed.
+          </div>
+        )}
 
         {office.office === "registrar" && !signed && !requested && gradeAcknowledgementStatus === "no_grades" && (
           <div role="status" className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] leading-relaxed text-blue-900">

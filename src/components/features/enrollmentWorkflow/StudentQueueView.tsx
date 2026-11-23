@@ -26,6 +26,7 @@ import {
 import { cancelSignatureRequestFromDatabase, loadMyEnrollmentSession, requestSignatureFromDatabase } from "@/services/enrollmentWorkflow/database";
 import { useSSE } from "@/hooks/useSSE";
 import { downloadQueueTicket } from "@/utils/downloadQueueTicket";
+import { SignatureQueuePreview } from "@/components/features/signatureQueues/SignatureQueuePreview";
 
 const REQUEST_CARDS: Array<{
   office: EnrollmentSignatureOffice;
@@ -205,7 +206,10 @@ export function StudentQueueView() {
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-cpc-heading-soft">
           Request the first three signatures in any order. Registrar and Accounting unlock after all three have signed.
         </p>
-        <a href="/display/study-load-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/study-load-signatures", "_blank", "noopener"); }} className="mt-3 inline-flex rounded-lg border border-cpc-blue-accent/30 bg-white px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-blue-50">View live Study Load queue board</a>
+      </div>
+
+      <div className="mb-6">
+        <SignatureQueuePreview workflow="study_load" />
       </div>
 
       {officiallyEnrolled && (
@@ -336,9 +340,8 @@ export function StudentQueueView() {
       </div>
 
       <div className="mt-7 flex justify-start border-t border-cpc-input-border/50 pt-5">
-        <Link to="/student/enrollment-form" className="inline-flex items-center gap-2 text-xs font-semibold text-cpc-blue-accent hover:underline">
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          Go back to Study Load
+        <Link to="/student/enrollment-form?step=study-load" className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> Go Back to Study Load
         </Link>
       </div>
 

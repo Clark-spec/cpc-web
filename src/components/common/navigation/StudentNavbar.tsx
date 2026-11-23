@@ -34,8 +34,7 @@ const navItems: NavItem[] = [
     label: "Student Service",
     links: [
       { label: "Online Clearance", to: "/student-services/online-clearance" },
-      { label: "Office Signatures Live Queue", to: "/display/office-signatures", openInNewTab: true },
-      { label: "Study Load Live Queue", to: "/display/study-load-signatures", openInNewTab: true },
+      { label: "Live Signature Queue TV", to: "/display/signature-queues", openInNewTab: true },
       { label: "Online Kiosk", to: "#" },
       { label: "Service Request", to: "/student/service-requests" },
     ],

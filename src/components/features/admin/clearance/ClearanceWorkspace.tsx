@@ -62,7 +62,7 @@ export function ClearanceWorkspace() {
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Clearance Requests</h1>
           <p className="mt-1 text-sm text-slate-600">Review clearance requests for your office and digitally sign pending requests.</p></div>
         <div className="flex flex-wrap items-center gap-2">
-          <a href="/display/office-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/office-signatures", "_blank", "noopener"); }} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">View live queue</a>
+          <a href="/display/signature-queues" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/signature-queues", "_blank", "noopener"); }} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50">View live queue</a>
           <button type="button" onClick={() => void refresh()} disabled={refreshing} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"><RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</button>
         </div>
       </div>

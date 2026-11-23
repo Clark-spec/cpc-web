@@ -229,7 +229,7 @@ export function EnrollmentSignatureInbox({ office }: { office: EnrollmentSignatu
           <button type="button" onClick={() => void refresh()} className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
           </button>
-          <a href="/display/study-load-signatures" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/study-load-signatures", "_blank", "noopener"); }} className="inline-flex items-center gap-1.5 rounded-lg border border-cpc-blue-accent/30 bg-white px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
+          <a href="/display/signature-queues" target="_blank" rel="noopener" onClick={(event) => { event.preventDefault(); window.open("/display/signature-queues", "_blank", "noopener"); }} className="inline-flex items-center gap-1.5 rounded-lg border border-cpc-blue-accent/30 bg-white px-3 py-2 text-xs font-semibold text-cpc-blue-accent hover:bg-cpc-section-light">
             <MonitorPlay className="h-3.5 w-3.5" aria-hidden /> Live Queue TV
           </a>
         </div>

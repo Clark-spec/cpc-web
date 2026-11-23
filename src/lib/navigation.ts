@@ -264,9 +264,9 @@ export const NAV_SECTIONS: NavSection[] = [
           },
           {
             type: "link",
-            id: "study-load-live-queue",
-            label: "Live Queue TV",
-            to: "/display/study-load-signatures",
+            id: "signature-live-queue",
+            label: "Live Signature Queue TV",
+            to: "/display/signature-queues",
             icon: MonitorPlay,
             openInNewTab: true,
             roles: ["admin", "registrar", ...DEAN_ROLES, "guidance", "clinic", "accounting"],
@@ -365,8 +365,8 @@ export const NAV_SECTIONS: NavSection[] = [
           {
             type: "link",
             id: "clearance-live-queue",
-            label: "Office Signatures Live Queue",
-            to: "/display/office-signatures",
+            label: "Live Signature Queue TV",
+            to: "/display/signature-queues",
             icon: MonitorPlay,
             roles: ALL_ROLES,
             openInNewTab: true,

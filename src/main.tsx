@@ -78,8 +78,7 @@ import StudentVerifyPage from "@/pages/student/verify";
 import StudentEnrollmentFormPage from "@/pages/student/enrollment-form";
 import StudentQueuePage from "@/pages/student/queue";
 import DisplayPage from "@/pages/display";
-import StudyLoadSignatureDisplayPage from "@/pages/display/study-load-signatures";
-import OfficeSignatureDisplayPage from "@/pages/display/office-signatures";
+import SignatureQueueDisplayPage from "@/pages/display/signature-queues";
 import CommitteeScreeningPage from "@/pages/committee/screening";
 import GuidanceQueuePage from "@/pages/guidance/queue";
 import ClinicQueuePage from "@/pages/clinic/queue";
@@ -246,8 +245,9 @@ export function AppRoutes() {
 
       {/* ── Public Live Queue Display (TV screen) ────────────────────── */}
       <Route path="/display" element={<DisplayPage />} />
-      <Route path="/display/study-load-signatures" element={<StudyLoadSignatureDisplayPage />} />
-      <Route path="/display/office-signatures" element={<OfficeSignatureDisplayPage />} />
+      <Route path="/display/signature-queues" element={<SignatureQueueDisplayPage />} />
+      <Route path="/display/study-load-signatures" element={<Navigate to="/display/signature-queues" replace />} />
+      <Route path="/display/office-signatures" element={<Navigate to="/display/signature-queues" replace />} />
 
       {/* ── Office Stations Direct Routes (Spec Section 6) ──────────── */}
       <Route

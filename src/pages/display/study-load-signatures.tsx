@@ -1,5 +1,5 @@
-import { SignatureQueueBoard } from "@/components/features/signatureQueues/SignatureQueueBoard";
+import { Navigate } from "react-router";
 
 export default function StudyLoadSignatureDisplayPage() {
-  return <SignatureQueueBoard workflow="study_load" />;
+  return <Navigate to="/display/signature-queues" replace />;
 }

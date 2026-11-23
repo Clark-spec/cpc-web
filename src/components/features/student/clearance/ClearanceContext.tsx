@@ -44,6 +44,7 @@ type ClearanceContextValue = {
   referenceNumber: string;
   loading: boolean;
   isCleared: boolean;
+  priorOfficesSigned: boolean;
   /** False while the admin keeps the clearance period closed (shared record). */
   periodOpen: boolean;
   gradeAcknowledgementStatus: "loading" | "no_grades" | "ready" | "needs_acknowledgement" | "unavailable";
@@ -216,6 +217,10 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
     () => state.offices.length === 5 && state.offices.every((office) => office.status === "signed"),
     [state.offices],
   );
+  const priorOfficesSigned = useMemo(() => {
+    const prior = state.offices.filter((office) => office.office !== "registrar");
+    return prior.length === 4 && prior.every((office) => office.status === "signed");
+  }, [state.offices]);
 
   /**
    * Request flow: the modal calls this → the service flips the office to
@@ -227,6 +232,13 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
    */
   const requestSignature = useCallback(
     async (officeId: OfficeId, note?: string) => {
+      if (officeId === "registrar" && !priorOfficesSigned) {
+        showWarning(
+          "Complete the other office signatures first",
+          "Request Registrar after Dean, SAO / SSG Adviser, Library, and Accounting have signed.",
+        );
+        return;
+      }
       if (officeId === "registrar" && gradeAcknowledgementStatus !== "ready") {
         showWarning(
           gradeAcknowledgementStatus === "needs_acknowledgement" ? "Acknowledge posted grades first" : "Registrar signature unavailable",
@@ -256,13 +268,21 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
         );
       }
     },
-    [gradeAcknowledgementStatus, state.periodOpen],
+    [gradeAcknowledgementStatus, priorOfficesSigned, state.periodOpen],
   );
 
   /** "Request All": one service call, one summary toast, one notification each. */
   const requestAll = useCallback(
     async (officeIds: OfficeId[]) => {
       if (officeIds.length === 0) return;
+      if (officeIds.includes("registrar") && !priorOfficesSigned) {
+        showWarning(
+          "Complete the other office signatures first",
+          "Registrar will become available after Dean, SAO / SSG Adviser, Library, and Accounting have signed. Other selected office requests can still be sent.",
+        );
+        officeIds = officeIds.filter((officeId) => officeId !== "registrar");
+        if (officeIds.length === 0) return;
+      }
       if (officeIds.includes("registrar") && gradeAcknowledgementStatus !== "ready") {
         showWarning(
           gradeAcknowledgementStatus === "needs_acknowledgement" ? "Acknowledge posted grades first" : "Registrar signature unavailable",
@@ -292,7 +312,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
           : `${sent} offices will review your clearance and sign it digitally.`,
       );
     },
-    [gradeAcknowledgementStatus, state.periodOpen],
+    [gradeAcknowledgementStatus, priorOfficesSigned, state.periodOpen],
   );
 
   const cancelRequest = useCallback(
@@ -332,6 +352,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       referenceNumber: state.referenceNumber ?? student.referenceNumber,
       loading,
       isCleared,
+      priorOfficesSigned,
       periodOpen: state.periodOpen ?? true,
       gradeAcknowledgementStatus,
       postedGradeCount,
@@ -349,6 +370,7 @@ export function ClearanceProvider({ children }: { children: ReactNode }) {
       state,
       loading,
       isCleared,
+      priorOfficesSigned,
       gradeAcknowledgementStatus,
       postedGradeCount,
       unacknowledgedGradeCount,

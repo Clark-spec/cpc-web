@@ -1,5 +1,5 @@
-import { SignatureQueueBoard } from "@/components/features/signatureQueues/SignatureQueueBoard";
+import { Navigate } from "react-router";
 
 export default function OfficeSignatureDisplayPage() {
-  return <SignatureQueueBoard workflow="office_signatures" />;
+  return <Navigate to="/display/signature-queues" replace />;
 }

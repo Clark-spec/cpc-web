@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   AlertCircle,
   ArrowRight,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/context/useAuth";
 import { ConfirmDialog } from "@/components/common/feedback/ConfirmDialog";
+import { Modal } from "@/components/ui/modal";
 import {
   approveClearanceStep,
   checkClearanceStatus,
@@ -30,6 +31,7 @@ import { loadMyClearanceRecord } from "@/services/clearanceStudent/database";
 import { CURRICULUM_CATALOG } from "@/services/enrollmentWorkflow/seedData";
 import type { EnrollmentSubjectItem } from "@/types/enrollmentWorkflow";
 import type { ClearanceRecord } from "@/types/clearance";
+import { hasOpenedStudyLoadDraft, markStudyLoadDraftOpened } from "@/services/enrollmentWorkflow/studyLoadNavigation";
 
 function clearanceStatusFromRecord(record: ClearanceRecord) {
   const fallback = checkClearanceStatus(record.studentId);
@@ -50,6 +52,7 @@ function clearanceStatusFromRecord(record: ClearanceRecord) {
 export function StudentEnrollmentFormView() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const studentId = user?.studentNumber || "2024-00012";
   const isDatabaseStudent = user?.role === "student" && /^\d{8}$/.test(studentId);
 
@@ -57,6 +60,8 @@ export function StudentEnrollmentFormView() {
   const [selectedSubjects, setSelectedSubjects] = useState<EnrollmentSubjectItem[]>(session.form.subjects);
   const [submitting, setSubmitting] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [submittedStudyLoadModalOpen, setSubmittedStudyLoadModalOpen] = useState(false);
+  const [openingStudyLoad, setOpeningStudyLoad] = useState(false);
   const [loadingDatabase, setLoadingDatabase] = useState(isDatabaseStudent);
   const [databaseLoadError, setDatabaseLoadError] = useState(false);
   const [clearanceData, setClearanceData] = useState(() => checkClearanceStatus(studentId));
@@ -81,7 +86,13 @@ export function StudentEnrollmentFormView() {
           subjects = CURRICULUM_CATALOG[saved.student.department]?.[saved.form.yearLevel] ?? [];
         }
         setSelectedSubjects(subjects);
-        if (subjects.length > 0 && saved.form.subjects.length === 0 && saved.steps.verification.status === "APPROVED") {
+        if (
+          subjects.length > 0
+          && saved.form.subjects.length === 0
+          && saved.steps.verification.status === "APPROVED"
+          && ["DRAFT", "RESUBMIT"].includes(saved.form.status)
+          && currentClearance.cleared
+        ) {
           const drafted = await saveEnrollmentDraftToDatabase(subjects, currentClearance.cleared);
           setSession(drafted);
           saveStudentSession(drafted);
@@ -97,8 +108,9 @@ export function StudentEnrollmentFormView() {
     return () => { unsub(); window.clearInterval(timer); };
   }, [isDatabaseStudent, studentId]);
 
-  const isClearanceApproved = clearanceData.cleared || session.steps.clearance.status === "APPROVED";
+  const isClearanceApproved = clearanceData.cleared;
   const isFormSubmitted = session.form.status === "SUBMITTED" || session.form.status === "APPROVED";
+  const hasStudyLoadDraft = hasOpenedStudyLoadDraft(studentId);
   const isFormResubmit = session.form.status === "RESUBMIT";
   const signatureSteps = [
     { key: "screening", label: "1. Screening Committee & Dean" },
@@ -113,8 +125,25 @@ export function StudentEnrollmentFormView() {
 
   // Subjects state for irregular students
   const [activeTab, setActiveTab] = useState<"clearance" | "form">(
-    isClearanceApproved ? "form" : "clearance",
+    isClearanceApproved && new URLSearchParams(location.search).get("step") === "study-load" ? "form" : "clearance",
   );
+  const stepSelectionInProgress = useRef(false);
+
+  useEffect(() => {
+    if (stepSelectionInProgress.current) {
+      stepSelectionInProgress.current = false;
+      return;
+    }
+    if (!isClearanceApproved && activeTab === "form") setActiveTab("clearance");
+    else if (isClearanceApproved && new URLSearchParams(location.search).get("step") === "study-load") setActiveTab("form");
+  }, [activeTab, isClearanceApproved, location.search]);
+
+  const selectEnrollmentStep = (step: "clearance" | "form") => {
+    stepSelectionInProgress.current = true;
+    setActiveTab(step);
+    const search = step === "form" ? "?step=study-load" : "";
+    navigate(`${location.pathname}${search}`, { replace: true });
+  };
 
   // Available subjects for irregular students to add
   const availableCatalog = [
@@ -125,19 +154,28 @@ export function StudentEnrollmentFormView() {
 
   const totalUnits = selectedSubjects.reduce((sum, s) => sum + s.units, 0);
 
-  const handleApproveClearance = () => {
+  const handleApproveClearance = async () => {
     if (!isClearanceApproved) return;
+    if (isFormSubmitted) {
+      setSubmittedStudyLoadModalOpen(true);
+      return;
+    }
+    setOpeningStudyLoad(true);
     const updated = approveClearanceStep(studentId);
     setSession(updated);
-    if (isDatabaseStudent) {
-      void saveEnrollmentDraftToDatabase(selectedSubjects, true).then((saved) => {
+    try {
+      if (isDatabaseStudent) {
+        const saved = await saveEnrollmentDraftToDatabase(selectedSubjects, true);
         setSession(saved);
         saveStudentSession(saved);
-      }).catch((error) => {
-        alert(error instanceof Error ? error.message : "Clearance progress could not be saved.");
-      });
+      }
+      markStudyLoadDraftOpened(studentId);
+      setActiveTab("form");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Clearance progress could not be saved.");
+    } finally {
+      setOpeningStudyLoad(false);
     }
-    setActiveTab("form");
   };
 
   const handleAddSubject = (subject: EnrollmentSubjectItem) => {
@@ -221,7 +259,7 @@ export function StudentEnrollmentFormView() {
       <div className="mb-6 flex border-b border-cpc-input-border/70">
         <button
           type="button"
-          onClick={() => setActiveTab("clearance")}
+          onClick={() => selectEnrollmentStep("clearance")}
           className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-bold transition-all ${
             activeTab === "clearance"
               ? "border-cpc-blue-accent text-cpc-blue-accent"
@@ -239,7 +277,7 @@ export function StudentEnrollmentFormView() {
 
         <button
           type="button"
-          onClick={() => setActiveTab("form")}
+          onClick={() => selectEnrollmentStep("form")}
           disabled={!isClearanceApproved}
           className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
             activeTab === "form"
@@ -313,10 +351,10 @@ export function StudentEnrollmentFormView() {
             <button
               type="button"
               onClick={handleApproveClearance}
-              disabled={!isClearanceApproved}
+              disabled={!isClearanceApproved || openingStudyLoad}
               className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-45"
             >
-              Proceed to Study Load
+              {openingStudyLoad ? "Opening Study Load…" : hasStudyLoadDraft && !isFormSubmitted ? "View and Submit Study Load" : "Proceed to Study Load"}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -529,7 +567,7 @@ export function StudentEnrollmentFormView() {
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-cpc-input-border/50 pt-6">
               <button
                 type="button"
-                onClick={() => setActiveTab("clearance")}
+                onClick={() => selectEnrollmentStep("clearance")}
                 className="text-xs font-semibold text-cpc-heading-soft hover:text-cpc-navy-text"
               >
                 ← Back to Clearance
@@ -556,7 +594,7 @@ export function StudentEnrollmentFormView() {
                   className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
-                  {submitting ? "Saving Study Load…" : "Request Signature"}
+                  {submitting ? "Submitting Study Load…" : "Submit Study Load"}
                 </button>
               )}
             </div>
@@ -573,6 +611,17 @@ export function StudentEnrollmentFormView() {
         loadingLabel="Submitting…"
         busy={submitting}
       />
+      <Modal open={submittedStudyLoadModalOpen} onClose={() => setSubmittedStudyLoadModalOpen(false)} labelledBy="submitted-study-load-title" className="sm:max-w-md">
+        <div className="p-6 sm:p-7">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-cpc-blue-accent"><Lock className="h-6 w-6" aria-hidden /></div>
+          <h2 id="submitted-study-load-title" className="mt-4 font-poppins text-xl font-bold text-cpc-navy-text">Study Load already submitted</h2>
+          <p className="mt-2 font-poppins text-sm leading-relaxed text-cpc-heading-soft">The submitted Study Load can no longer be edited. You can check its office signature requests and progress.</p>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Link to="/student/enrollment-form?step=study-load" onClick={() => setSubmittedStudyLoadModalOpen(false)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-cpc-input-border/80 bg-white px-4 py-2.5 font-poppins text-sm font-semibold text-cpc-navy-text transition hover:border-cpc-blue-accent hover:text-cpc-blue-accent">View Study Load</Link>
+            <Link to="/student/queue" onClick={() => setSubmittedStudyLoadModalOpen(false)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-cpc-blue-accent px-4 py-2.5 font-poppins text-sm font-semibold text-white shadow-sm transition hover:bg-cpc-navy">View Signature Progress <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

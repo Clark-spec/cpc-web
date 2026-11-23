@@ -28,6 +28,7 @@ import type { MasterlistRecord } from "@/types/enrollmentWorkflow";
 import type { StudentEnrollmentSession } from "@/types/enrollmentWorkflow";
 import { confirmEnrollmentVerificationInDatabase, loadMyEnrollmentSession } from "@/services/enrollmentWorkflow/database";
 import { saveStudentSession as cacheEnrollmentSession } from "@/services/enrollmentWorkflow/service";
+import { hasOpenedStudyLoadDraft } from "@/services/enrollmentWorkflow/studyLoadNavigation";
 
 export function StudentVerifyView() {
   const { user } = useAuth();
@@ -115,6 +116,7 @@ export function StudentVerifyView() {
   const latestCorrection = corrections[0];
   const isVerified = session?.steps.verification.status === "APPROVED";
   const isStudyLoadSubmitted = session?.form.status === "SUBMITTED" || session?.form.status === "APPROVED";
+  const hasStudyLoadDraft = hasOpenedStudyLoadDraft(studentId);
   const isOfficiallyEnrolled = Boolean(session && ["screening", "guidance", "clinic", "accounting", "registrar"]
     .every((office) => session.steps[office as "screening" | "guidance" | "clinic" | "accounting" | "registrar"].status === "APPROVED"));
 
@@ -137,6 +139,14 @@ export function StudentVerifyView() {
     }
     setSession(confirmVerification(studentId));
     navigate("/student/enrollment-form");
+  };
+
+  const handleContinueEnrollment = () => {
+    if (hasStudyLoadDraft && !isStudyLoadSubmitted) {
+      navigate("/student/enrollment-form?step=study-load");
+      return;
+    }
+    void handleConfirm();
   };
 
   const handleSubmitCorrection = (e: React.FormEvent) => {
@@ -379,10 +389,10 @@ export function StudentVerifyView() {
 
                 <button
                   type="button"
-                  onClick={handleConfirm}
+                  onClick={handleContinueEnrollment}
                   className="inline-flex items-center gap-2 rounded-xl bg-cpc-blue-accent px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
                 >
-                  {isVerified ? "Continue to Clearance" : "Confirm Details & Proceed"}
+                  {hasStudyLoadDraft ? "View and Submit Study Load" : isVerified ? "Proceed to Online Clearance & Study Load" : "Confirm Details & Proceed"}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </>
