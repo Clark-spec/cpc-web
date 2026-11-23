@@ -170,7 +170,7 @@ export function AllStudentsWorkspace() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => void removeStudent()}
         title="Delete this student account?"
-        description={deleteTarget ? <>{deleteTarget.studentNumber} — {deleteTarget.name} and the continuing-student record will be permanently deleted. Linked requests and notifications may also be removed.</> : "This account will be permanently deleted."}
+        description={deleteTarget ? <>{deleteTarget.studentNumber} — {deleteTarget.name}, the continuing-student record, all enrollment and office-signature requests, queue numbers (including any currently processing), service requests, and student notifications will be permanently deleted.</> : "This account and its student activity will be permanently deleted."}
         confirmLabel="Delete account"
         loadingLabel="Deleting…"
         danger
