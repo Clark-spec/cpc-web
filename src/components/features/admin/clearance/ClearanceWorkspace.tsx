@@ -9,9 +9,10 @@ import { OFFICE_LABELS } from "@/components/features/admin/clearance/officeCheck
 import type { ClearanceRequestRow } from "@/components/features/admin/clearance/types";
 import { finishSignatureQueue, startSignatureQueue } from "@/services/signatureQueues/api";
 import { BSIT_SIGNATURE_SECTIONS, isBsitSignatureSection, normalizeBsitSignatureSection } from "@/lib/bsitSignatureSections";
+import { SaoAttendanceEditor } from "@/components/features/admin/clearance/SaoAttendanceEditor";
 
 export function ClearanceWorkspace() {
-  const { error, loading, refresh, refreshing, visibleRows, rows, filters, setFilter, staff, isSuperAdmin } = useClearanceAdmin();
+  const { error, loading, refresh, refreshing, visibleRows, rows, records, filters, setFilter, staff, isSuperAdmin } = useClearanceAdmin();
   const [reviewRow, setReviewRow] = useState<ClearanceRequestRow | null>(null);
   const [signRow, setSignRow] = useState<ClearanceRequestRow | null>(null);
   const [rejectRow, setRejectRow] = useState<ClearanceRequestRow | null>(null);
@@ -23,8 +24,9 @@ export function ClearanceWorkspace() {
       ? isBsitSignatureSection(registeredSection)
       : registeredSection === sectionFilter;
   };
-  const sectionRows = rows.filter(matchesSection);
-  const sectionVisibleRows = visibleRows.filter(matchesSection);
+  const showAllSections = staff.role === "sao";
+  const sectionRows = rows.filter((row) => showAllSections || matchesSection(row));
+  const sectionVisibleRows = visibleRows.filter((row) => showAllSections || matchesSection(row));
   const openReview = (row: ClearanceRequestRow) => setReviewRow(row);
   const handleReject = (row: ClearanceRequestRow) => { setReviewRow(null); setRejectRow(row); };
   const statusOptions = [
@@ -34,6 +36,7 @@ export function ClearanceWorkspace() {
     { value: "all" as const, label: "All", count: sectionRows.length },
   ];
   const statusLabel = statusOptions.find((option) => option.value === filters.status)?.label ?? "Pending";
+  const reviewRecord = reviewRow ? records.find((record) => record.studentId === reviewRow.studentId) : undefined;
 
   async function reviewAndSign(row: ClearanceRequestRow) {
     if (processingBusy || !row.isProcessing) return;
@@ -74,7 +77,7 @@ export function ClearanceWorkspace() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2"><h2 className="font-bold text-slate-900">{statusLabel} requests</h2><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">{sectionVisibleRows.length}</span></div>
             <div className="flex flex-wrap items-center gap-1.5">
-            <label className="mr-1 text-xs font-semibold text-slate-600">Section <select aria-label="Filter clearance requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700"><option value="all">All BSIT sections</option>{BSIT_SIGNATURE_SECTIONS.map((section) => <option key={section} value={section}>{section}</option>)}</select></label>
+            {!showAllSections && <label className="mr-1 text-xs font-semibold text-slate-600">Section <select aria-label="Filter clearance requests by section" value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} className="ml-1 cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-700"><option value="all">All BSIT sections</option>{BSIT_SIGNATURE_SECTIONS.map((section) => <option key={section} value={section}>{section}</option>)}</select></label>}
             <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter clearance requests by status">
               {statusOptions.map((option) => {
                 const activeClass = option.value === "requested"
@@ -133,6 +136,14 @@ export function ClearanceWorkspace() {
           {reviewRow.studentNote && <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 sm:col-span-2"><p className="text-xs font-semibold text-blue-800">Student note</p><p className="mt-1 text-sm text-slate-700">{reviewRow.studentNote}</p></div>}
           <div className={`flex items-center gap-2 rounded-xl p-4 text-sm sm:col-span-2 ${reviewRow.status === "requested" ? "border border-amber-200 bg-amber-50 text-amber-900" : reviewRow.status === "signed" ? "border border-emerald-200 bg-emerald-50 text-emerald-900" : "border border-rose-200 bg-rose-50 text-rose-900"}`}>{reviewRow.status === "requested" ? <Clock3 className="h-4 w-4 shrink-0"/> : reviewRow.status === "signed" ? <Check className="h-4 w-4 shrink-0"/> : <X className="h-4 w-4 shrink-0"/>}{reviewRow.status === "requested" ? "The student is waiting for your office to review this request." : reviewRow.status === "signed" ? `Signed digitally by ${reviewRow.signerName || "your office"}.` : `This request was rejected${reviewRow.remarks ? `: ${reviewRow.remarks}` : "."}`}</div>
         </div>
+        {reviewRow.office === "sao" && staff.role === "sao" && reviewRecord && (
+          <SaoAttendanceEditor
+            key={reviewRow.studentId}
+            studentId={reviewRow.studentId}
+            events={reviewRecord.saoEvents ?? []}
+            onSaved={() => void refresh()}
+          />
+        )}
         <footer className="flex flex-col-reverse gap-2 border-t border-slate-200 p-5 sm:flex-row sm:justify-end sm:p-6">
           {reviewRow.status === "requested" && <><button type="button" onClick={() => handleReject(reviewRow)} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Return request</button>
           <button type="button" disabled={!reviewRow.isProcessing} title={!reviewRow.isProcessing ? "Start processing this request before signing." : undefined} onClick={() => { setSignRow(reviewRow); setReviewRow(null); }} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"><PenLine className="h-4 w-4"/>Approve &amp; continue to signature</button></>}

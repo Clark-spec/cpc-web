@@ -96,6 +96,9 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
     icon: FileText,
   };
   const OfficeIcon = info.icon;
+  const replyParts = (office.remarks ?? "").split(/\bAction\s+needed\s*:/i);
+  const officeReply = replyParts[0]?.trim();
+  const requestedAction = replyParts.slice(1).join(" ").trim();
 
   // Clicking a notification scrolls the related card into view and flashes it.
   useEffect(() => {
@@ -270,13 +273,24 @@ export function OfficeSignatureCard({ office }: OfficeSignatureCardProps) {
             role="note"
             className="mt-3 rounded-xl border border-rose-200 bg-rose-50/80 p-2.5 backdrop-blur-xs"
           >
-            <p className="flex items-center gap-1.5 font-poppins text-[11px] font-semibold text-rose-800">
+            <p className="flex items-center gap-1.5 font-poppins text-xs font-bold text-rose-900">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-600" aria-hidden />
-              Action Required
+              {office.office === "registrar" ? "Registrar Reply" : office.office === "sao" ? "SAO Reply" : "Office Reply"}
             </p>
-            <p className="mt-1 font-poppins text-[11px] leading-relaxed text-rose-800">
-              {office.remarks ?? "The office needs more information before signing."}
-            </p>
+            <div className="mt-2 rounded-lg border border-rose-200 bg-white/90 p-2.5">
+              <p className="font-poppins text-[10px] font-bold uppercase tracking-wide text-rose-700">Message from {office.office === "registrar" ? "Registrar" : office.office === "sao" ? "SAO" : office.label}</p>
+              <p className="mt-1 font-poppins text-xs leading-relaxed text-rose-950">
+                {officeReply || "The office needs more information before signing."}
+              </p>
+            </div>
+            <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+              <p className="font-poppins text-[10px] font-bold uppercase tracking-wide text-amber-900">What you need to do</p>
+              <p className="mt-1 font-poppins text-xs leading-relaxed text-amber-950">
+                {requestedAction || (office.office === "sao"
+                  ? "Contact the SAO / SSG Adviser to confirm the required attendance or documents, then resubmit your request."
+                  : "Follow the office message above, then resubmit your request.")}
+              </p>
+            </div>
             {office.respondedAt && (
               <p className="mt-1 font-poppins text-[10px] text-rose-700/80">
                 {formatRelativeTime(office.respondedAt)}

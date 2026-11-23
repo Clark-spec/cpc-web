@@ -36,13 +36,13 @@ export const mockSubjects: Subject[] = [
 
 /** Default SAO activities mirrored from the clearance record defaults. */
 export const defaultSaoEvents = [
-  { title: "Brigada Balik Eskwela", attended: false },
-  { title: "Foundation Day", attended: false },
-  { title: "Monday – BSIT and BEED", attended: false },
-  { title: "Mass – Foundation Day", attended: false },
-  { title: "SSG Day Trash Galore", attended: false },
-  { title: "I-CARE Seminar – Officers", attended: false },
-  { title: "Exhibit (Index Card)", attended: false, note: "Pending SAO attendance verification." },
+  { title: "Brigada Balik Eskwela", status: "pending" as const },
+  { title: "Foundation Day", status: "attended" as const },
+  { title: "Monday – BSIT and BEED", status: "not_attended" as const },
+  { title: "Mass – Foundation Day", status: "pending" as const },
+  { title: "SSG Day Trash Galore", status: "attended" as const },
+  { title: "I-CARE Seminar – Officers", status: "not_attended" as const },
+  { title: "Exhibit (Index Card)", status: "pending" as const },
 ];
 
 /** The six signatories, in the order they appear on Form 3. */

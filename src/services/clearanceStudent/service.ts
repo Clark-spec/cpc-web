@@ -50,10 +50,7 @@ function toClearanceState(record: Awaited<ReturnType<typeof loadMyClearanceRecor
     offices: record.offices,
     saoEvents: record.saoEvents?.length
       ? record.saoEvents
-      : defaultSaoEvents.map((event) => ({
-          ...event,
-          attended: record.offices.some((office) => office.office === "sao" && office.status === "signed") || event.attended,
-        })),
+      : defaultSaoEvents.map((event) => ({ ...event })),
     history,
     dateCleared: completedAt,
     referenceNumber: record.referenceNumber,

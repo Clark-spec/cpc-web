@@ -49,6 +49,7 @@ import { useAuth } from "@/components/context/useAuth";
 import { useAdminAuth } from "@/components/context/AdminAuthContext";
 import { ProtectedEnrollment } from "@/components/context/ProtectedEnrollment";
 import ClearanceRequestsPage from "@/pages/admin/clearance-requests";
+import SaoEventAttendanceAdminPage from "@/pages/admin/sao/event-attendance";
 import ComplaintsAdminPage from "@/pages/admin/complaints";
 import ClassSchedulesAdminPage from "@/pages/admin/class-schedules";
 import AcademicCalendarAdminPage from "@/pages/admin/academic-calendar";
@@ -135,6 +136,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="clearance-requests" element={<ClearanceRequestsPage />} />
+        <Route path="sao/event-attendance" element={<RequireAdminRole roles={["admin", "sao"]}><SaoEventAttendanceAdminPage /></RequireAdminRole>} />
         <Route
           path="enrollment/clearance-requests"
           element={

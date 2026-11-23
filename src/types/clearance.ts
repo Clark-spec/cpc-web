@@ -58,9 +58,11 @@ export interface Subject {
 
 export interface SaoEvent {
   title: string;
-  attended: boolean;
-  /** Explanation shown in the popover when `attended` is false. */
+  status: "pending" | "attended" | "not_attended";
+  /** Reason or instruction shown directly beneath the activity on Form 3. */
   note?: string;
+  /** Backward compatibility for clearance records saved before attendance statuses. */
+  attended?: boolean;
 }
 
 export interface ClearanceHistoryItem {
