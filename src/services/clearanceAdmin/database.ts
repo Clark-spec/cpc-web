@@ -2,6 +2,7 @@ import { ApiError, apiClient } from "@/lib/apiClient";
 import { getCsrfToken } from "@/services/auth";
 import { ensureAdminSession, readAdminRole } from "@/services/complaints/admin-session";
 import type { ClearanceRecord, OfficeId, SavedSignature } from "@/types/clearance";
+import type { SaoEvent } from "@/types/clearance";
 import type { NewSignatureInput } from "@/components/features/admin/clearance/types";
 type Envelope<T> = { message?: string; data?: T };
 async function withStaff<T>(fn: (token: string) => Promise<T>): Promise<T> {
@@ -19,6 +20,18 @@ export async function saveClearanceDecision(studentId: string, office: OfficeId,
     const csrf = await getCsrfToken();
     const response = await apiClient.post<Envelope<{ record: ClearanceRecord }>>(`/enrollment/v1/clearance/records/${encodeURIComponent(studentId)}/action`, { office, ...values }, { headers: { Authorization: `Bearer ${token}`, "x-csrf-token": csrf }, skipAuthRefresh: true });
     if (!response.data.data?.record) throw new ApiError(response.data.message || "Clearance decision could not be saved.");
+    return response.data.data.record;
+  });
+}
+export async function saveSaoAttendance(studentId: string, events: SaoEvent[]): Promise<ClearanceRecord> {
+  return withStaff(async (token) => {
+    const csrf = await getCsrfToken();
+    const response = await apiClient.post<Envelope<{ record: ClearanceRecord }>>(
+      `/enrollment/v1/clearance/records/${encodeURIComponent(studentId)}/action`,
+      { office: "sao", action: "update_sao_events", events },
+      { headers: { Authorization: `Bearer ${token}`, "x-csrf-token": csrf }, skipAuthRefresh: true },
+    );
+    if (!response.data.data?.record) throw new ApiError(response.data.message || "SAO activity attendance could not be saved.");
     return response.data.data.record;
   });
 }

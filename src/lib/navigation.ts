@@ -364,6 +364,14 @@ export const NAV_SECTIONS: NavSection[] = [
           },
           {
             type: "link",
+            id: "sao-event-attendance",
+            label: "Student Event Attendance",
+            to: "/admin/sao/event-attendance",
+            icon: CalendarHeart,
+            roles: ["admin", "sao"],
+          },
+          {
+            type: "link",
             id: "clearance-live-queue",
             label: "Office Signatures Live Queue",
             to: "/display/office-signatures",
